@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: onboarding and profiles implementation.
+Stage: marketplace foundation implementation.
 
-The repository contains the fullstack skeleton, auth flow, and onboarding/profile slice: base profiles, customer profiles, performer profiles, skills, portfolio, and RPG-style profile completion progress.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, and marketplace foundation: categories, jobs, job detail pages, applications, and customer selection of a performer.
 
 Development can run in two modes:
 
@@ -103,14 +103,14 @@ Core idea:
 
 ## Current Next Block
 
-After onboarding is verified, the next implementation block is marketplace foundation:
+After marketplace foundation is verified, the next implementation block is orders and escrow foundation:
 
-- categories API;
-- job creation;
-- job list;
-- job details;
-- applications/responses;
-- customer selection of performer.
+- create order after accepting an application;
+- order statuses;
+- mock wallet;
+- mock escrow hold;
+- basic transaction history;
+- dispute entry point.
 
 ## Demo Accounts
 

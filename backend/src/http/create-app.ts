@@ -8,6 +8,7 @@ import { openApiSpec } from '../docs/openapi.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { authRouter } from '../modules/auth/auth.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
+import { marketplaceRouter } from '../modules/marketplace/marketplace.routes.js';
 import { profileRouter } from '../modules/profile/profile.routes.js';
 
 export const createApp = () => {
@@ -30,6 +31,7 @@ export const createApp = () => {
   app.get('/openapi.json', (_request, response) => response.json(openApiSpec));
   app.use('/api/auth', authRouter);
   app.use('/api/health', healthRouter);
+  app.use('/api/marketplace', marketplaceRouter);
   app.use('/api/profile', profileRouter);
   app.use(errorHandler);
 

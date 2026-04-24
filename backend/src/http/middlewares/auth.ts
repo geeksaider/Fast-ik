@@ -21,3 +21,22 @@ export const requireAuth: RequestHandler = async (request, _response, next) => {
     next(error);
   }
 };
+
+export const optionalAuth: RequestHandler = async (request, _response, next) => {
+  try {
+    const header = request.headers.authorization;
+
+    if (!header?.startsWith('Bearer ')) {
+      next();
+      return;
+    }
+
+    const token = header.slice('Bearer '.length);
+    const payload = verifyAccessToken(token);
+    request.user = await getCurrentUser(payload.sub);
+
+    next();
+  } catch {
+    next();
+  }
+};

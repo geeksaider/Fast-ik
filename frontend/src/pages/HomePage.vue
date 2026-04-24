@@ -88,12 +88,12 @@ onMounted(() => {
         </a>
 
         <nav class="flex flex-wrap items-center gap-2 text-sm font-bold">
-          <a
+          <RouterLink
             class="rounded-full border border-ink px-4 py-2 transition hover:bg-ink hover:text-paper"
-            href="#market"
+            to="/jobs"
           >
             Биржа
-          </a>
+          </RouterLink>
           <a
             class="rounded-full border border-ink px-4 py-2 transition hover:bg-ink hover:text-paper"
             href="#levels"

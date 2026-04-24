@@ -21,6 +21,10 @@ export const openApiSpec = {
       description: 'Service diagnostics',
     },
     {
+      name: 'Marketplace',
+      description: 'Categories, jobs and applications',
+    },
+    {
       name: 'Profile',
       description: 'Onboarding, skills and portfolio',
     },
@@ -159,6 +163,82 @@ export const openApiSpec = {
             description: 'Current user',
           },
           '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/marketplace/categories': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get active marketplace categories',
+        responses: {
+          '200': { description: 'Active categories' },
+        },
+      },
+    },
+    '/marketplace/jobs': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get published jobs',
+        responses: {
+          '200': { description: 'Job list' },
+        },
+      },
+      post: {
+        tags: ['Marketplace'],
+        summary: 'Create a job as customer',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': { description: 'Created job detail' },
+          '403': { description: 'Only customers can create jobs' },
+        },
+      },
+    },
+    '/marketplace/jobs/{id}': {
+      get: {
+        tags: ['Marketplace'],
+        summary: 'Get job detail',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Job detail' },
+          '404': { description: 'Job not found' },
+        },
+      },
+    },
+    '/marketplace/jobs/{id}/applications': {
+      post: {
+        tags: ['Marketplace'],
+        summary: 'Apply to a job as performer',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '201': { description: 'Updated job detail' },
+          '403': { description: 'Only performers can apply' },
+          '409': { description: 'Application conflict' },
+        },
+      },
+    },
+    '/marketplace/jobs/{jobId}/applications/{applicationId}/select': {
+      post: {
+        tags: ['Marketplace'],
+        summary: 'Select performer application',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'jobId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+          {
+            name: 'applicationId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Job moved to in progress' },
+          '403': { description: 'Only owner or manager can select' },
+          '404': { description: 'Job or application not found' },
         },
       },
     },

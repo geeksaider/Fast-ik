@@ -127,3 +127,5 @@ npm run format:check
 - RPG-прогресс заполнения профиля;
 - Swagger-раздел Auth.
 - Swagger-раздел Profile.
+- marketplace: категории, список заказов, создание заказа, страница заказа и отклики.
+- Swagger-раздел Marketplace.

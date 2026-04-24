@@ -233,3 +233,121 @@ export const deletePortfolioItem = async (token: string, id: string) =>
     method: 'DELETE',
     headers: authHeaders(token),
   });
+
+export type MarketplaceCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+};
+
+export type JobStatus = 'published' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
+export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+
+export type JobListItem = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  title: string;
+  description: string;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  deadlineAt: string | null;
+  status: JobStatus;
+  moderationStatus: string;
+  applicationsCount: number;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobApplication = {
+  id: string;
+  jobId: string;
+  performerId: string;
+  performerName: string;
+  coverLetter: string;
+  price: number | null;
+  deliveryDays: number | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type JobDetail = JobListItem & {
+  applications: JobApplication[];
+  canApply: boolean;
+  canManage: boolean;
+  myApplication: JobApplication | null;
+};
+
+export type JobCreatePayload = {
+  categoryId?: string | null;
+  title: string;
+  description: string;
+  budgetMin?: number | null;
+  budgetMax?: number | null;
+  deadlineAt?: string | null;
+  tags?: string[];
+};
+
+export type ApplicationCreatePayload = {
+  coverLetter: string;
+  price?: number | null;
+  deliveryDays?: number | null;
+};
+
+export const getMarketplaceCategories = async () =>
+  apiFetch<{ categories: MarketplaceCategory[] }>('/marketplace/categories');
+
+export const getMarketplaceJobs = async (
+  params: { category?: string; search?: string; mine?: boolean } = {},
+) => {
+  const query = new URLSearchParams();
+
+  if (params.category) {
+    query.set('category', params.category);
+  }
+
+  if (params.search) {
+    query.set('search', params.search);
+  }
+
+  if (params.mine) {
+    query.set('mine', 'true');
+  }
+
+  return apiFetch<{ jobs: JobListItem[] }>(`/marketplace/jobs${query.size ? `?${query}` : ''}`);
+};
+
+export const createJob = async (token: string, payload: JobCreatePayload) =>
+  apiFetch<JobDetail>('/marketplace/jobs', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getMarketplaceJob = async (id: string, token?: string | null) =>
+  apiFetch<JobDetail>(`/marketplace/jobs/${id}`, {
+    headers: token ? authHeaders(token) : undefined,
+  });
+
+export const applyToMarketplaceJob = async (
+  token: string,
+  id: string,
+  payload: ApplicationCreatePayload,
+) =>
+  apiFetch<JobDetail>(`/marketplace/jobs/${id}/applications`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const selectJobApplication = async (token: string, jobId: string, applicationId: string) =>
+  apiFetch<JobDetail>(`/marketplace/jobs/${jobId}/applications/${applicationId}/select`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });

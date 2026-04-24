@@ -188,6 +188,14 @@ const logout = async () => {
               </div>
             </article>
           </div>
+
+          <RouterLink
+            class="inline-flex items-center justify-center gap-2 rounded-[1.25rem] border border-ink bg-ink p-5 font-black text-paper transition hover:bg-bolt"
+            to="/jobs"
+          >
+            Открыть биржу заказов
+            <ArrowRight :size="18" />
+          </RouterLink>
         </section>
       </section>
 

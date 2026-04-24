@@ -2,6 +2,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
+import JobCreatePage from '../pages/JobCreatePage.vue';
+import JobDetailPage from '../pages/JobDetailPage.vue';
+import JobsPage from '../pages/JobsPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import OnboardingPage from '../pages/OnboardingPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
@@ -35,6 +38,22 @@ export const router = createRouter({
       name: 'onboarding',
       component: OnboardingPage,
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/jobs',
+      name: 'jobs',
+      component: JobsPage,
+    },
+    {
+      path: '/jobs/new',
+      name: 'jobs-new',
+      component: JobCreatePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/jobs/:id',
+      name: 'jobs-detail',
+      component: JobDetailPage,
     },
   ],
 });

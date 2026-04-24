@@ -37,6 +37,36 @@ const demoUsers = [
   ['admin@fastik.local', 'Fastik Admin', 'admin'],
 ];
 
+const demoJobs = [
+  {
+    title: 'Собрать лендинг для SaaS-сервиса',
+    description:
+      'Нужен аккуратный адаптивный лендинг с hero-блоком, тарифами, FAQ и формой заявки. Важно: без визуального шума, быстро и современно.',
+    categorySlug: 'development',
+    budgetMin: 45_000,
+    budgetMax: 90_000,
+    tags: ['vue', 'tailwind', 'landing'],
+  },
+  {
+    title: 'Разработать дизайн личного кабинета',
+    description:
+      'Ищем UI/UX-дизайнера для dashboard фриланс-платформы. Нужны 5-7 экранов, компоненты и понятная логика состояний.',
+    categorySlug: 'design',
+    budgetMin: 70_000,
+    budgetMax: 140_000,
+    tags: ['ui-ux', 'figma', 'dashboard'],
+  },
+  {
+    title: 'Настроить PostgreSQL и Docker для MVP',
+    description:
+      'Требуется помочь с Docker Compose, миграциями и базовой структурой PostgreSQL для небольшого marketplace-проекта.',
+    categorySlug: 'administration',
+    budgetMin: 30_000,
+    budgetMax: 60_000,
+    tags: ['docker', 'postgresql', 'backend'],
+  },
+];
+
 const skills = [
   ['Vue', 'vue', 'development'],
   ['TypeScript', 'typescript', 'development'],
@@ -107,6 +137,43 @@ const run = async () => {
            updated_at = now()`,
       [user[0], user[1], passwordHash, user[2]],
     );
+  }
+
+  for (const job of demoJobs) {
+    const jobResult = await pool.query<{ id: string }>(
+      `insert into jobs (
+         customer_id,
+         category_id,
+         title,
+         description,
+         budget_min,
+         budget_max,
+         status,
+         moderation_status
+       )
+       select customer.id, categories.id, $1, $2, $3, $4, 'published', 'approved'
+       from users customer
+       join categories on categories.slug = $5
+       where customer.email = 'customer@fastik.local'
+         and not exists (
+           select 1 from jobs existing
+           where existing.customer_id = customer.id and existing.title = $1
+         )
+       returning id`,
+      [job.title, job.description, job.budgetMin, job.budgetMax, job.categorySlug],
+    );
+    const jobId = jobResult.rows[0]?.id;
+
+    if (!jobId) {
+      continue;
+    }
+
+    for (const tag of job.tags) {
+      await pool.query(
+        'insert into job_tags (job_id, tag) values ($1, $2) on conflict do nothing',
+        [jobId, tag],
+      );
+    }
   }
 
   console.log('Seed data is ready');

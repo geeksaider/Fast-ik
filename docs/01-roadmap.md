@@ -77,7 +77,7 @@
 
 ## Блок 3. Marketplace
 
-Статус: следующий блок.
+Статус: готово.
 
 Цель:
 
@@ -89,7 +89,24 @@
 - отклики;
 - выбор исполнителя.
 
+Сделано:
+
+- таблицы `jobs`, `job_tags`, `job_applications`;
+- seed demo-заказов;
+- `GET /api/marketplace/categories`;
+- `GET /api/marketplace/jobs`;
+- `POST /api/marketplace/jobs`;
+- `GET /api/marketplace/jobs/:id`;
+- `POST /api/marketplace/jobs/:id/applications`;
+- `POST /api/marketplace/jobs/:jobId/applications/:applicationId/select`;
+- страницы `/jobs`, `/jobs/new`, `/jobs/:id`;
+- создание заказа заказчиком;
+- отклик исполнителя;
+- выбор исполнителя заказчиком.
+
 ## Блок 4. Заказы в работе
+
+Статус: следующий блок.
 
 Цель:
 
