@@ -139,6 +139,23 @@ const run = async () => {
     );
   }
 
+  const demoWallets = [
+    ['customer@fastik.local', 750_000],
+    ['performer@fastik.local', 80_000],
+    ['admin@fastik.local', 0],
+  ];
+
+  for (const wallet of demoWallets) {
+    await pool.query(
+      `insert into wallets (user_id, available_balance, held_balance)
+       select users.id, $2, 0
+       from users
+       where users.email = $1
+       on conflict (user_id) do nothing`,
+      wallet,
+    );
+  }
+
   for (const job of demoJobs) {
     const jobResult = await pool.query<{ id: string }>(
       `insert into jobs (

@@ -351,3 +351,111 @@ export const selectJobApplication = async (token: string, jobId: string, applica
     method: 'POST',
     headers: authHeaders(token),
   });
+
+export type Wallet = {
+  userId: string;
+  availableBalance: number;
+  heldBalance: number;
+  currency: string;
+  updatedAt: string;
+};
+
+export type Transaction = {
+  id: string;
+  userId: string;
+  orderId: string | null;
+  escrowHoldId: string | null;
+  type: string;
+  direction: 'in' | 'out' | 'hold' | 'release';
+  amount: number;
+  balanceAfter: number;
+  description: string;
+  createdAt: string;
+};
+
+export type OrderStatus = 'in_progress' | 'submitted' | 'completed' | 'cancelled' | 'disputed';
+export type EscrowStatus = 'held' | 'released' | 'refunded' | 'disputed';
+
+export type OrderListItem = {
+  id: string;
+  jobId: string;
+  applicationId: string;
+  customerId: string;
+  customerName: string;
+  performerId: string;
+  performerName: string;
+  title: string;
+  amount: number;
+  status: OrderStatus;
+  workResult: string | null;
+  escrowStatus: EscrowStatus | null;
+  createdAt: string;
+  updatedAt: string;
+  submittedAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  disputedAt: string | null;
+};
+
+export type OrderStatusHistoryItem = {
+  id: string;
+  orderId: string;
+  status: OrderStatus;
+  actorId: string | null;
+  actorName: string | null;
+  note: string | null;
+  createdAt: string;
+};
+
+export type OrderDetail = OrderListItem & {
+  statusHistory: OrderStatusHistoryItem[];
+};
+
+export const getFinanceSummary = async (token: string) =>
+  apiFetch<{ wallet: Wallet; transactions: Transaction[] }>('/finance/me', {
+    headers: authHeaders(token),
+  });
+
+export const topUpWallet = async (token: string, amount: number) =>
+  apiFetch<{ wallet: Wallet; transactions: Transaction[] }>('/finance/top-up', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ amount }),
+  });
+
+export const getOrders = async (token: string) =>
+  apiFetch<{ orders: OrderListItem[] }>('/orders', {
+    headers: authHeaders(token),
+  });
+
+export const getOrder = async (token: string, id: string) =>
+  apiFetch<OrderDetail>(`/orders/${id}`, {
+    headers: authHeaders(token),
+  });
+
+export const submitOrder = async (token: string, id: string, workResult: string) =>
+  apiFetch<OrderDetail>(`/orders/${id}/submit`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ workResult }),
+  });
+
+export const acceptOrder = async (token: string, id: string) =>
+  apiFetch<OrderDetail>(`/orders/${id}/accept`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+
+export const disputeOrder = async (token: string, id: string, reason: string) =>
+  apiFetch<OrderDetail>(`/orders/${id}/dispute`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ reason }),
+  });
+
+export const cancelOrder = async (token: string, id: string, reason: string) =>
+  apiFetch<OrderDetail>(`/orders/${id}/cancel`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ reason }),
+  });

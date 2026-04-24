@@ -5,8 +5,11 @@ import HomePage from '../pages/HomePage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
 import JobDetailPage from '../pages/JobDetailPage.vue';
 import JobsPage from '../pages/JobsPage.vue';
+import FinancePage from '../pages/FinancePage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import OnboardingPage from '../pages/OnboardingPage.vue';
+import OrderDetailPage from '../pages/OrderDetailPage.vue';
+import OrdersPage from '../pages/OrdersPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
 
 export const router = createRouter({
@@ -54,6 +57,24 @@ export const router = createRouter({
       path: '/jobs/:id',
       name: 'jobs-detail',
       component: JobDetailPage,
+    },
+    {
+      path: '/orders',
+      name: 'orders',
+      component: OrdersPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/orders/:id',
+      name: 'orders-detail',
+      component: OrderDetailPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/finance',
+      name: 'finance',
+      component: FinancePage,
+      meta: { requiresAuth: true },
     },
   ],
 });

@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: marketplace foundation implementation.
+Stage: orders and mock escrow implementation.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, and marketplace foundation: categories, jobs, job detail pages, applications, and customer selection of a performer.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, and order workflow with mock wallet, escrow holds, transactions, order submission, acceptance, disputes and refunds.
 
 Development can run in two modes:
 
@@ -103,14 +103,13 @@ Core idea:
 
 ## Current Next Block
 
-After marketplace foundation is verified, the next implementation block is orders and escrow foundation:
+After orders and escrow are verified, the next implementation block is communication and notifications:
 
-- create order after accepting an application;
-- order statuses;
-- mock wallet;
-- mock escrow hold;
-- basic transaction history;
-- dispute entry point.
+- conversations attached to jobs/orders;
+- messages;
+- notification events;
+- unread counters;
+- file-sharing placeholder after conversation starts.
 
 ## Demo Accounts
 

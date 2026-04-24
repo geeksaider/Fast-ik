@@ -16,6 +16,9 @@ export const formatMoney = (min: number | null, max: number | null) => {
   return 'Бюджет обсуждается';
 };
 
+export const formatAmount = (amount: number) =>
+  `${new Intl.NumberFormat('ru-RU').format(amount)} ₽`;
+
 export const formatDate = (value: string | null) => {
   if (!value) {
     return 'Без срока';

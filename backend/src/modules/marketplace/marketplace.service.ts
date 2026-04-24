@@ -1,7 +1,6 @@
 import type { AuthUser } from '../auth/auth.types.js';
 import { HttpError } from '../../http/errors/http-error.js';
 import {
-  acceptApplication,
   createApplication,
   createJob,
   getApplicationById,
@@ -10,6 +9,10 @@ import {
   listCategories,
   listJobs,
 } from './marketplace.repository.js';
+import {
+  EscrowBalanceError,
+  selectApplicationAndCreateOrder,
+} from '../orders/orders.repository.js';
 import type {
   ApplicationCreateInput,
   JobCreateInput,
@@ -156,7 +159,23 @@ export const selectApplication = async (user: AuthUser, jobId: string, applicati
     throw new HttpError(404, 'Отклик не найден');
   }
 
-  await acceptApplication(jobId, applicationId);
+  if (application.status !== 'pending') {
+    throw new HttpError(409, 'Этот отклик уже обработан');
+  }
+
+  try {
+    await selectApplicationAndCreateOrder({
+      jobId,
+      applicationId,
+      actorId: user.id,
+    });
+  } catch (error) {
+    if (error instanceof EscrowBalanceError) {
+      throw new HttpError(409, error.message);
+    }
+
+    throw error;
+  }
 
   return buildJobDetail(jobId, user);
 };

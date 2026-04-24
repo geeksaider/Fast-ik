@@ -129,3 +129,6 @@ npm run format:check
 - Swagger-раздел Profile.
 - marketplace: категории, список заказов, создание заказа, страница заказа и отклики.
 - Swagger-раздел Marketplace.
+- заказы в работе: submit, accept, dispute, cancel.
+- моковый кошелек, пополнение, escrow hold/release/refund и история транзакций.
+- Swagger-разделы Orders и Finance.

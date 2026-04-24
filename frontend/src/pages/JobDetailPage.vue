@@ -277,6 +277,13 @@ onMounted(() => {
           >
             Войдите, чтобы откликнуться или управлять заказом.
           </RouterLink>
+          <RouterLink
+            v-if="auth.isAuthenticated && job.status === 'in_progress'"
+            class="block rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 font-black transition hover:bg-white"
+            to="/orders"
+          >
+            Исполнитель выбран. Открыть заказы в работе.
+          </RouterLink>
 
           <p
             v-if="marketplace.error"

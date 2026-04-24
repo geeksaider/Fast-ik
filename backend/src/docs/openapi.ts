@@ -21,8 +21,16 @@ export const openApiSpec = {
       description: 'Service diagnostics',
     },
     {
+      name: 'Finance',
+      description: 'Mock wallet, escrow and transactions',
+    },
+    {
       name: 'Marketplace',
       description: 'Categories, jobs and applications',
+    },
+    {
+      name: 'Orders',
+      description: 'Orders in progress and escrow lifecycle',
     },
     {
       name: 'Profile',
@@ -166,6 +174,28 @@ export const openApiSpec = {
         },
       },
     },
+    '/finance/me': {
+      get: {
+        tags: ['Finance'],
+        summary: 'Get current wallet and transaction history',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Wallet and transactions' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/finance/top-up': {
+      post: {
+        tags: ['Finance'],
+        summary: 'Mock top up current user wallet',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Updated wallet and transactions' },
+          '400': { description: 'Validation error' },
+        },
+      },
+    },
     '/marketplace/categories': {
       get: {
         tags: ['Marketplace'],
@@ -239,6 +269,86 @@ export const openApiSpec = {
           '200': { description: 'Job moved to in progress' },
           '403': { description: 'Only owner or manager can select' },
           '404': { description: 'Job or application not found' },
+        },
+      },
+    },
+    '/orders': {
+      get: {
+        tags: ['Orders'],
+        summary: 'Get current user orders',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Order list' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/orders/{id}': {
+      get: {
+        tags: ['Orders'],
+        summary: 'Get order detail',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Order detail' },
+          '403': { description: 'Forbidden' },
+          '404': { description: 'Order not found' },
+        },
+      },
+    },
+    '/orders/{id}/submit': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Submit work result as performer',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Submitted order' },
+          '409': { description: 'Invalid status' },
+        },
+      },
+    },
+    '/orders/{id}/accept': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Accept submitted work and release escrow',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Completed order' },
+          '409': { description: 'Invalid status' },
+        },
+      },
+    },
+    '/orders/{id}/dispute': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Open dispute for active order',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Disputed order' },
+        },
+      },
+    },
+    '/orders/{id}/cancel': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Cancel order and refund escrow to customer',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Cancelled order with refund' },
         },
       },
     },

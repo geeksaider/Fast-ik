@@ -196,6 +196,22 @@ const logout = async () => {
             Открыть биржу заказов
             <ArrowRight :size="18" />
           </RouterLink>
+          <div class="grid gap-4 md:grid-cols-2">
+            <RouterLink
+              class="inline-flex items-center justify-center gap-2 rounded-[1.25rem] border border-ink bg-[#fffaf0] p-5 font-black transition hover:bg-white"
+              to="/orders"
+            >
+              Заказы в работе
+              <ArrowRight :size="18" />
+            </RouterLink>
+            <RouterLink
+              class="inline-flex items-center justify-center gap-2 rounded-[1.25rem] border border-ink bg-[#fffaf0] p-5 font-black transition hover:bg-white"
+              to="/finance"
+            >
+              Финансы и гарант
+              <ArrowRight :size="18" />
+            </RouterLink>
+          </div>
         </section>
       </section>
 

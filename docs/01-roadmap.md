@@ -106,7 +106,7 @@
 
 ## Блок 4. Заказы в работе
 
-Статус: следующий блок.
+Статус: готово.
 
 Цель:
 
@@ -118,7 +118,27 @@
 - отмена;
 - спор.
 
+Сделано:
+
+- таблицы `orders`, `order_status_history`;
+- таблицы `wallets`, `transactions`, `escrow_holds`;
+- выбор исполнителя создает order и escrow hold;
+- моковый баланс заказчика резервируется при выборе исполнителя;
+- `GET /api/orders`;
+- `GET /api/orders/:id`;
+- `POST /api/orders/:id/submit`;
+- `POST /api/orders/:id/accept`;
+- `POST /api/orders/:id/dispute`;
+- `POST /api/orders/:id/cancel`;
+- `GET /api/finance/me`;
+- `POST /api/finance/top-up`;
+- страницы `/orders`, `/orders/:id`, `/finance`;
+- выплата исполнителю после принятия работы;
+- возврат заказчику при отмене.
+
 ## Блок 5. Коммуникация
+
+Статус: следующий блок.
 
 Цель:
 
