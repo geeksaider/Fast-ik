@@ -1,4 +1,5 @@
 import { closePool, pool } from './pool.js';
+import bcrypt from 'bcryptjs';
 
 const roles = [
   ['guest', 'Гость', 'Публичный доступ без авторизации'],
@@ -30,6 +31,12 @@ const levels = [
   ['elite', 'Fastik Elite', 5000, 6],
 ];
 
+const demoUsers = [
+  ['customer@fastik.local', 'Антон Заказчик', 'customer'],
+  ['performer@fastik.local', 'Мария Исполнитель', 'performer'],
+  ['admin@fastik.local', 'Fastik Admin', 'admin'],
+];
+
 const run = async () => {
   for (const role of roles) {
     await pool.query(
@@ -55,6 +62,24 @@ const run = async () => {
        values ($1, $2, $3, $4)
        on conflict (code) do update set title = excluded.title, required_xp = excluded.required_xp, sort_order = excluded.sort_order`,
       level,
+    );
+  }
+
+  const passwordHash = await bcrypt.hash('Fastik123!', 12);
+
+  for (const user of demoUsers) {
+    await pool.query(
+      `insert into users (email, display_name, password_hash, role_id, email_verified)
+       select $1, $2, $3, roles.id, true
+       from roles
+       where roles.code = $4
+       on conflict (email) do update
+       set display_name = excluded.display_name,
+           password_hash = excluded.password_hash,
+           role_id = excluded.role_id,
+           email_verified = true,
+           updated_at = now()`,
+      [user[0], user[1], passwordHash, user[2]],
     );
   }
 

@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from '../config/env.js';
 import { openApiSpec } from '../docs/openapi.js';
 import { errorHandler } from './middlewares/error-handler.js';
+import { authRouter } from '../modules/auth/auth.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
 
 export const createApp = () => {
@@ -26,6 +27,7 @@ export const createApp = () => {
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
   app.get('/openapi.json', (_request, response) => response.json(openApiSpec));
+  app.use('/api/auth', authRouter);
   app.use('/api/health', healthRouter);
   app.use(errorHandler);
 

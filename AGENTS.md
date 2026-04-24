@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: foundation implementation.
+Stage: auth and roles implementation.
 
-The repository now contains the first fullstack skeleton: Vue frontend, Express backend, shared package, Docker Compose PostgreSQL setup, audit docs, and development roadmap.
+The repository contains the fullstack skeleton plus the first auth flow: email/password registration, login, JWT access tokens, role-aware middleware, auth pages, and protected dashboard.
 
 ## Product Direction
 
@@ -97,12 +97,19 @@ Core idea:
 
 ## Current Next Block
 
-After the foundation is verified, the next implementation block is authentication and roles:
+After auth is verified, the next implementation block is onboarding and profiles:
 
-- registration;
-- login;
-- password hashing;
-- JWT access flow;
-- role-aware middleware;
-- customer/performer/admin role model;
-- login and registration screens.
+- customer profile;
+- performer profile;
+- skills;
+- portfolio;
+- profile completion progress;
+- first RPG roadmap requirements.
+
+## Demo Accounts
+
+After running `npm run db:seed`, these accounts are available:
+
+- `customer@fastik.local` / `Fastik123!`
+- `performer@fastik.local` / `Fastik123!`
+- `admin@fastik.local` / `Fastik123!`

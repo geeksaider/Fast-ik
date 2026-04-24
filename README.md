@@ -62,6 +62,16 @@ npm run dev
 - Swagger: `http://localhost:4200/docs`
 - Health: `http://localhost:4200/api/health`
 
+## Demo-аккаунты
+
+После `npm run db:seed` доступны пользователи:
+
+```text
+customer@fastik.local / Fastik123!
+performer@fastik.local / Fastik123!
+admin@fastik.local / Fastik123!
+```
+
 ## Проверки
 
 ```bash
@@ -72,4 +82,12 @@ npm run format:check
 
 ## Текущий этап
 
-Собран фундамент проекта: рабочая структура, Docker Compose, PostgreSQL, backend health endpoints, Swagger, frontend стартовая страница и базовая дизайн-система.
+Собран фундамент проекта и первый auth-блок:
+
+- регистрация заказчика/исполнителя;
+- вход по email/password;
+- хеширование пароля;
+- JWT access token;
+- middleware авторизации и ролей;
+- защищенный dashboard;
+- Swagger-раздел Auth.

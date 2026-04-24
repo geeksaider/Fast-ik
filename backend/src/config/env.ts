@@ -12,4 +12,6 @@ export const env = {
   corsOrigin: process.env.CORS_ORIGIN ?? 'http://localhost:5173',
   databaseUrl:
     process.env.DATABASE_URL ?? 'postgresql://fastik:fastik_password@localhost:5432/fastik',
+  jwtAccessSecret: process.env.JWT_ACCESS_SECRET ?? 'change_me_access_secret',
+  jwtAccessTtl: process.env.JWT_ACCESS_TTL ?? '2h',
 };

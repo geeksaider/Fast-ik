@@ -2,7 +2,7 @@
 
 ## Блок 0. Фундамент
 
-Статус: в работе.
+Статус: готово.
 
 Состав:
 
@@ -21,6 +21,8 @@
 
 ## Блок 1. Auth и роли
 
+Статус: готово.
+
 Цель:
 
 - регистрация;
@@ -30,7 +32,22 @@
 - middleware доступа;
 - страницы входа и регистрации.
 
+Сделано:
+
+- регистрация ролей `customer` и `performer`;
+- demo-аккаунты заказчика, исполнителя и админа;
+- password hashing через `bcryptjs`;
+- JWT access token;
+- endpoint `GET /api/auth/me`;
+- middleware `requireAuth`;
+- middleware `requireRoles`;
+- страницы `/login`, `/register`, `/dashboard`;
+- хранение сессии на frontend;
+- Swagger-документация auth endpoints.
+
 ## Блок 2. Onboarding и профили
+
+Статус: следующий блок.
 
 Цель:
 

@@ -106,9 +106,12 @@ onMounted(() => {
           >
             Гарант
           </a>
-          <a class="rounded-full bg-ink px-4 py-2 text-paper transition hover:bg-bolt" href="#auth">
+          <RouterLink
+            class="rounded-full bg-ink px-4 py-2 text-paper transition hover:bg-bolt"
+            to="/login"
+          >
             Войти
-          </a>
+          </RouterLink>
         </nav>
       </header>
 
@@ -137,19 +140,19 @@ onMounted(() => {
           </div>
 
           <div class="mt-8 grid gap-3 sm:grid-cols-[auto_auto_1fr] sm:items-center">
-            <a
+            <RouterLink
               class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-6 py-3 font-black text-paper transition hover:-translate-y-0.5"
-              href="#create-job"
+              to="/register"
             >
               Опубликовать заказ
               <ArrowRight :size="18" />
-            </a>
-            <a
+            </RouterLink>
+            <RouterLink
               class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-6 py-3 font-black transition hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
-              href="#become-performer"
+              to="/register"
             >
               Стать исполнителем
-            </a>
+            </RouterLink>
             <div
               class="rounded-full border border-ink px-4 py-3 text-sm font-bold sm:justify-self-end"
             >
