@@ -7,6 +7,9 @@ import JobDetailPage from '../pages/JobDetailPage.vue';
 import JobsPage from '../pages/JobsPage.vue';
 import FinancePage from '../pages/FinancePage.vue';
 import LoginPage from '../pages/LoginPage.vue';
+import ConversationPage from '../pages/ConversationPage.vue';
+import MessagesPage from '../pages/MessagesPage.vue';
+import NotificationsPage from '../pages/NotificationsPage.vue';
 import OnboardingPage from '../pages/OnboardingPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
 import OrdersPage from '../pages/OrdersPage.vue';
@@ -74,6 +77,24 @@ export const router = createRouter({
       path: '/finance',
       name: 'finance',
       component: FinancePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/messages',
+      name: 'messages',
+      component: MessagesPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/messages/:id',
+      name: 'messages-detail',
+      component: ConversationPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/notifications',
+      name: 'notifications',
+      component: NotificationsPage,
       meta: { requiresAuth: true },
     },
   ],

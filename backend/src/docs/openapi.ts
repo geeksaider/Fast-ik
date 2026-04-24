@@ -2,7 +2,7 @@ export const openApiSpec = {
   openapi: '3.0.3',
   info: {
     title: 'Fastik API',
-    version: '0.2.0',
+    version: '0.3.0',
     description: 'REST API for the Fastik freelance marketplace diploma project.',
   },
   servers: [
@@ -31,6 +31,14 @@ export const openApiSpec = {
     {
       name: 'Orders',
       description: 'Orders in progress and escrow lifecycle',
+    },
+    {
+      name: 'Communication',
+      description: 'Order conversations and messages',
+    },
+    {
+      name: 'Notifications',
+      description: 'User event feed and unread state',
     },
     {
       name: 'Profile',
@@ -349,6 +357,81 @@ export const openApiSpec = {
         ],
         responses: {
           '200': { description: 'Cancelled order with refund' },
+        },
+      },
+    },
+    '/conversations': {
+      get: {
+        tags: ['Communication'],
+        summary: 'Get current user conversations',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Conversation list with unread counters' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/conversations/{id}': {
+      get: {
+        tags: ['Communication'],
+        summary: 'Get conversation detail and mark it as read',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Conversation with participants and messages' },
+          '404': { description: 'Conversation not found' },
+        },
+      },
+    },
+    '/conversations/{id}/messages': {
+      post: {
+        tags: ['Communication'],
+        summary: 'Send text message to a conversation',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '201': { description: 'Created message and refreshed conversation' },
+          '400': { description: 'Validation error' },
+          '404': { description: 'Conversation not found' },
+        },
+      },
+    },
+    '/notifications': {
+      get: {
+        tags: ['Notifications'],
+        summary: 'Get current user notifications',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Notification list with unread count' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/notifications/read-all': {
+      post: {
+        tags: ['Notifications'],
+        summary: 'Mark all current user notifications as read',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Updated notifications' },
+        },
+      },
+    },
+    '/notifications/{id}/read': {
+      post: {
+        tags: ['Notifications'],
+        summary: 'Mark notification as read',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated notifications' },
+          '404': { description: 'Notification not found' },
         },
       },
     },

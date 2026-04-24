@@ -386,6 +386,7 @@ export type OrderListItem = {
   performerName: string;
   title: string;
   amount: number;
+  conversationId: string | null;
   status: OrderStatus;
   workResult: string | null;
   escrowStatus: EscrowStatus | null;
@@ -459,3 +460,109 @@ export const cancelOrder = async (token: string, id: string, reason: string) =>
     headers: authHeaders(token),
     body: JSON.stringify({ reason }),
   });
+
+export type ConversationType = 'job' | 'order' | 'support';
+export type MessageKind = 'text' | 'system';
+
+export type ConversationListItem = {
+  id: string;
+  jobId: string | null;
+  orderId: string | null;
+  title: string;
+  type: ConversationType;
+  lastMessageAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastMessageBody: string | null;
+  lastMessageSenderName: string | null;
+  unreadCount: number;
+};
+
+export type ConversationParticipant = {
+  userId: string;
+  displayName: string;
+  role: AuthRole;
+  lastReadAt: string | null;
+};
+
+export type ConversationMessage = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: AuthRole;
+  body: string;
+  kind: MessageKind;
+  createdAt: string;
+};
+
+export type ConversationDetail = ConversationListItem & {
+  participants: ConversationParticipant[];
+  messages: ConversationMessage[];
+};
+
+export type NotificationType =
+  | 'application_received'
+  | 'application_selected'
+  | 'order_submitted'
+  | 'order_completed'
+  | 'order_disputed'
+  | 'order_cancelled'
+  | 'message_received'
+  | 'system';
+
+export type NotificationListItem = {
+  id: string;
+  userId: string;
+  actorId: string | null;
+  actorName: string | null;
+  type: NotificationType;
+  title: string;
+  body: string;
+  linkUrl: string | null;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export const getConversations = async (token: string) =>
+  apiFetch<{ conversations: ConversationListItem[] }>('/conversations', {
+    headers: authHeaders(token),
+  });
+
+export const getConversation = async (token: string, id: string) =>
+  apiFetch<ConversationDetail>(`/conversations/${id}`, {
+    headers: authHeaders(token),
+  });
+
+export const sendConversationMessage = async (token: string, id: string, body: string) =>
+  apiFetch<{ message: ConversationMessage; conversation: ConversationDetail }>(
+    `/conversations/${id}/messages`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify({ body }),
+    },
+  );
+
+export const getNotifications = async (token: string) =>
+  apiFetch<{ notifications: NotificationListItem[]; unreadCount: number }>('/notifications', {
+    headers: authHeaders(token),
+  });
+
+export const readNotification = async (token: string, id: string) =>
+  apiFetch<{ notifications: NotificationListItem[]; unreadCount: number }>(
+    `/notifications/${id}/read`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+    },
+  );
+
+export const readAllNotifications = async (token: string) =>
+  apiFetch<{ notifications: NotificationListItem[]; unreadCount: number }>(
+    '/notifications/read-all',
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+    },
+  );

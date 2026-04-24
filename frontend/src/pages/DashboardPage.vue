@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import {
   ArrowRight,
@@ -14,8 +14,10 @@ import {
   Zap,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
+import { useCommunicationStore } from '../stores/communication';
 
 const auth = useAuthStore();
+const communication = useCommunicationStore();
 const router = useRouter();
 
 const roleTitle = computed(() => {
@@ -79,6 +81,15 @@ const logout = async () => {
   auth.logout();
   await router.push('/');
 };
+
+onMounted(() => {
+  if (!auth.accessToken) {
+    return;
+  }
+
+  void communication.loadConversations(auth.accessToken).catch(() => undefined);
+  void communication.loadNotifications(auth.accessToken).catch(() => undefined);
+});
 </script>
 
 <template>
@@ -145,10 +156,10 @@ const logout = async () => {
         <section class="grid gap-4">
           <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-7">
             <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">Следующий блок</p>
-            <h2 class="mt-3 text-4xl font-black tracking-[-0.06em]">Onboarding и профили</h2>
+            <h2 class="mt-3 text-4xl font-black tracking-[-0.06em]">Рабочий контур Fastik</h2>
             <p class="mt-4 max-w-2xl text-base font-medium leading-7 text-ink/68">
-              Авторизация уже держит пользователя и роль. Дальше на эту основу ляжет заполнение
-              профиля, портфолио, навыки и первые шаги RPG-roadmap.
+              Профиль, биржа заказов, гарант, чаты и уведомления уже собираются в один сценарий:
+              заказчик выбирает исполнителя, Fastik резервирует деньги и открывает рабочий диалог.
             </p>
             <RouterLink
               class="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
@@ -179,8 +190,8 @@ const logout = async () => {
               <ShieldCheck class="mb-4 text-moss" :size="28" />
               <h3 class="text-xl font-black tracking-[-0.04em]">Доступы</h3>
               <p class="mt-3 text-sm font-medium leading-6 text-ink/70">
-                Backend уже умеет проверять токен и ограничивать маршруты по ролям. Админские
-                интерфейсы подключим после marketplace и модерации.
+                Backend проверяет токен, роли и доступ к заказам. Следующим крупным слоем можно
+                подключать модерацию, поддержку и админ-панель.
               </p>
               <div class="mt-5 grid gap-2 text-sm font-black">
                 <span class="rounded-full border border-line bg-paper px-4 py-2">requireAuth</span>
@@ -219,20 +230,31 @@ const logout = async () => {
         <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
           <BriefcaseBusiness class="mb-3 text-ember" :size="24" />
           <p class="font-black">Заказы</p>
-          <p class="mt-2 text-sm leading-6 text-ink/68">Появятся после профилей и категорий.</p>
+          <p class="mt-2 text-sm leading-6 text-ink/68">
+            Marketplace, отклики, выбор исполнителя и order-flow.
+          </p>
         </article>
-        <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
+        <RouterLink
+          class="rounded-2xl border border-ink bg-[#fffaf0] p-5 transition hover:bg-white"
+          to="/messages"
+        >
           <MessagesSquare class="mb-3 text-bolt" :size="24" />
           <p class="font-black">Чат</p>
-          <p class="mt-2 text-sm leading-6 text-ink/68">Будет привязан к заказам и откликам.</p>
-        </article>
-        <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
+          <p class="mt-2 text-sm leading-6 text-ink/68">
+            Рабочих диалогов: {{ communication.conversations.length }}, непрочитано:
+            {{ communication.unreadMessages }}.
+          </p>
+        </RouterLink>
+        <RouterLink
+          class="rounded-2xl border border-ink bg-[#fffaf0] p-5 transition hover:bg-white"
+          to="/notifications"
+        >
           <Bell class="mb-3 text-moss" :size="24" />
           <p class="font-black">Уведомления</p>
           <p class="mt-2 text-sm leading-6 text-ink/68">
-            Добавим после ключевых событий marketplace.
+            Новых событий: {{ communication.unreadNotifications }}.
           </p>
-        </article>
+        </RouterLink>
       </section>
     </section>
   </main>

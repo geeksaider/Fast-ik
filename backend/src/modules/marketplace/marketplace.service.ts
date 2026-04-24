@@ -13,6 +13,7 @@ import {
   EscrowBalanceError,
   selectApplicationAndCreateOrder,
 } from '../orders/orders.repository.js';
+import { createNotification } from '../communication/communication.repository.js';
 import type {
   ApplicationCreateInput,
   JobCreateInput,
@@ -127,6 +128,15 @@ export const applyToJob = async (user: AuthUser, jobId: string, input: Applicati
     if (!applicationId) {
       throw new HttpError(500, 'Не удалось отправить отклик');
     }
+
+    await createNotification({
+      userId: job.customerId,
+      actorId: user.id,
+      type: 'application_received',
+      title: 'Новый отклик на заказ',
+      body: `${user.displayName} откликнулся на заказ «${job.title}»`,
+      linkUrl: `/jobs/${jobId}`,
+    });
   } catch (error) {
     if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
       throw new HttpError(409, 'Вы уже откликнулись на этот заказ');

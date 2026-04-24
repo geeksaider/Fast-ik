@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: orders and mock escrow implementation.
+Stage: communication and notifications implementation.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, and order workflow with mock wallet, escrow holds, transactions, order submission, acceptance, disputes and refunds.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, and REST-based conversations with notifications.
 
 Development can run in two modes:
 
@@ -80,8 +80,8 @@ Core idea:
 - Job creation
 - Applications/responses
 - Performer profiles and portfolio
-- Chat
-- Notifications
+- Chat attached to order workflow
+- Notifications with unread state
 - Reviews and ratings
 - Search and filters
 - Mock escrow/guarantor system
@@ -103,13 +103,12 @@ Core idea:
 
 ## Current Next Block
 
-After orders and escrow are verified, the next implementation block is communication and notifications:
+After communication and notifications are verified, the next implementation block should be admin/moderation or the RPG level roadmap:
 
-- conversations attached to jobs/orders;
-- messages;
-- notification events;
-- unread counters;
-- file-sharing placeholder after conversation starts.
+- admin/support views for disputes and moderation;
+- performer level roadmap beyond onboarding XP;
+- reviews and rating events after completed orders;
+- optional file attachments in order conversations.
 
 ## Demo Accounts
 

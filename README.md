@@ -132,3 +132,8 @@ npm run format:check
 - заказы в работе: submit, accept, dispute, cancel.
 - моковый кошелек, пополнение, escrow hold/release/refund и история транзакций.
 - Swagger-разделы Orders и Finance.
+- рабочие диалоги, привязанные к заказам после выбора исполнителя.
+- сообщения через REST API.
+- уведомления по откликам, выбору исполнителя, статусам заказа и новым сообщениям.
+- страницы `/messages`, `/messages/:id`, `/notifications`.
+- Swagger-разделы Communication и Notifications.

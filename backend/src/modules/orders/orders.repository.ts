@@ -1,5 +1,9 @@
 import type { AuthUser } from '../auth/auth.types.js';
 import { pool } from '../../db/pool.js';
+import {
+  createNotification,
+  ensureOrderConversation,
+} from '../communication/communication.repository.js';
 import type { OrderDetail, OrderListItem, OrderStatusHistoryItem } from './orders.types.js';
 
 export class EscrowBalanceError extends Error {
@@ -21,6 +25,7 @@ const orderSelect = `
     performer.display_name as "performerName",
     orders.title,
     orders.amount,
+    conversations.id as "conversationId",
     orders.status,
     orders.work_result as "workResult",
     escrow_holds.status as "escrowStatus",
@@ -33,6 +38,7 @@ const orderSelect = `
   from orders
   join users customer on customer.id = orders.customer_id
   join users performer on performer.id = orders.performer_id
+  left join conversations on conversations.order_id = orders.id
   left join escrow_holds on escrow_holds.order_id = orders.id
 `;
 
@@ -195,6 +201,10 @@ export const selectApplicationAndCreateOrder = async (input: {
     );
     const orderId = orderResult.rows[0]?.id;
 
+    if (!orderId) {
+      throw new Error('ORDER_NOT_CREATED');
+    }
+
     const escrowResult = await client.query<{ id: string }>(
       `insert into escrow_holds (order_id, job_id, application_id, customer_id, performer_id, amount, status)
        values ($1, $2, $3, $4, $5, $6, 'held')
@@ -202,6 +212,10 @@ export const selectApplicationAndCreateOrder = async (input: {
       [orderId, input.jobId, input.applicationId, job.customerId, application.performerId, amount],
     );
     const escrowHoldId = escrowResult.rows[0]?.id;
+
+    if (!escrowHoldId) {
+      throw new Error('ESCROW_NOT_CREATED');
+    }
 
     const updatedWallet = await client.query<{ availableBalance: number }>(
       `update wallets
@@ -232,6 +246,30 @@ export const selectApplicationAndCreateOrder = async (input: {
       `insert into order_status_history (order_id, status, actor_id, note)
        values ($1, 'in_progress', $2, 'Исполнитель выбран, средства зарезервированы в гаранте')`,
       [orderId, input.actorId],
+    );
+
+    await ensureOrderConversation(
+      {
+        orderId,
+        jobId: input.jobId,
+        title: job.title,
+        customerId: job.customerId,
+        performerId: application.performerId,
+        actorId: input.actorId,
+      },
+      client,
+    );
+
+    await createNotification(
+      {
+        userId: application.performerId,
+        actorId: input.actorId,
+        type: 'application_selected',
+        title: 'Вас выбрали исполнителем',
+        body: `Заказ «${job.title}» перешел в работу. Средства уже зарезервированы в гаранте.`,
+        linkUrl: `/orders/${orderId}`,
+      },
+      client,
     );
 
     await client.query(

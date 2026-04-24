@@ -1,5 +1,6 @@
 import type { AuthUser } from '../auth/auth.types.js';
 import { HttpError } from '../../http/errors/http-error.js';
+import { createNotification } from '../communication/communication.repository.js';
 import {
   completeOrder,
   disputeOrder as markOrderDisputed,
@@ -9,6 +10,7 @@ import {
   submitOrder as submitOrderResult,
 } from './orders.repository.js';
 import type { CancelOrderInput, DisputeOrderInput, SubmitOrderInput } from './orders.schemas.js';
+import type { OrderDetail } from './orders.types.js';
 
 const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
 
@@ -26,6 +28,32 @@ const ensureOrderAccess = async (user: AuthUser, orderId: string) => {
   }
 
   return order;
+};
+
+const notifyOrderSide = async (
+  order: OrderDetail,
+  user: AuthUser,
+  input: {
+    type: 'order_submitted' | 'order_completed' | 'order_disputed' | 'order_cancelled';
+    title: string;
+    body: string;
+    recipients?: string[];
+  },
+) => {
+  const recipients = input.recipients ?? [order.customerId, order.performerId];
+
+  await Promise.all(
+    recipients.map((userId) =>
+      createNotification({
+        userId,
+        actorId: user.id,
+        type: input.type,
+        title: input.title,
+        body: input.body,
+        linkUrl: `/orders/${order.id}`,
+      }),
+    ),
+  );
 };
 
 export const getOrders = async (user: AuthUser) => ({
@@ -46,6 +74,12 @@ export const submitOrder = async (user: AuthUser, orderId: string, input: Submit
   }
 
   await submitOrderResult(orderId, user.id, input.workResult);
+  await notifyOrderSide(order, user, {
+    type: 'order_submitted',
+    title: 'Работа отправлена на проверку',
+    body: `Исполнитель отправил результат по заказу «${order.title}»`,
+    recipients: [order.customerId],
+  });
 
   return ensureOrderAccess(user, orderId);
 };
@@ -62,6 +96,12 @@ export const acceptOrder = async (user: AuthUser, orderId: string) => {
   }
 
   await completeOrder(orderId, user.id);
+  await notifyOrderSide(order, user, {
+    type: 'order_completed',
+    title: 'Заказ принят',
+    body: `Заказ «${order.title}» завершен, выплата отправлена исполнителю`,
+    recipients: [order.performerId],
+  });
 
   return ensureOrderAccess(user, orderId);
 };
@@ -74,6 +114,11 @@ export const disputeOrder = async (user: AuthUser, orderId: string, input: Dispu
   }
 
   await markOrderDisputed(orderId, user.id, input.reason);
+  await notifyOrderSide(order, user, {
+    type: 'order_disputed',
+    title: 'Открыт спор по заказу',
+    body: `По заказу «${order.title}» открыт спор: ${input.reason}`,
+  });
 
   return ensureOrderAccess(user, orderId);
 };
@@ -90,6 +135,11 @@ export const cancelOrder = async (user: AuthUser, orderId: string, input: Cancel
   }
 
   await refundOrder(orderId, user.id, input.reason ?? null);
+  await notifyOrderSide(order, user, {
+    type: 'order_cancelled',
+    title: 'Заказ отменен',
+    body: `Заказ «${order.title}» отменен, средства возвращены заказчику`,
+  });
 
   return ensureOrderAccess(user, orderId);
 };

@@ -6,6 +6,7 @@ import {
   Check,
   Flag,
   Loader2,
+  MessageCircle,
   RotateCcw,
   Send,
   ShieldCheck,
@@ -107,13 +108,23 @@ onMounted(() => {
           <ArrowLeft :size="16" />
           К заказам
         </RouterLink>
-        <RouterLink
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
-          to="/finance"
-        >
-          <WalletCards :size="18" />
-          Финансы
-        </RouterLink>
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <RouterLink
+            v-if="order?.conversationId"
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-5 py-3 font-black text-ink transition hover:bg-white"
+            :to="`/messages/${order.conversationId}`"
+          >
+            <MessageCircle :size="18" />
+            Рабочий чат
+          </RouterLink>
+          <RouterLink
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+            to="/finance"
+          >
+            <WalletCards :size="18" />
+            Финансы
+          </RouterLink>
+        </div>
       </header>
 
       <div v-if="orders.isLoading" class="grid min-h-[420px] place-items-center">

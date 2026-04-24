@@ -7,6 +7,7 @@ import { env } from '../config/env.js';
 import { openApiSpec } from '../docs/openapi.js';
 import { errorHandler } from './middlewares/error-handler.js';
 import { authRouter } from '../modules/auth/auth.routes.js';
+import { communicationRouter } from '../modules/communication/communication.routes.js';
 import { financeRouter } from '../modules/finance/finance.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
 import { marketplaceRouter } from '../modules/marketplace/marketplace.routes.js';
@@ -32,6 +33,7 @@ export const createApp = () => {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
   app.get('/openapi.json', (_request, response) => response.json(openApiSpec));
   app.use('/api/auth', authRouter);
+  app.use('/api', communicationRouter);
   app.use('/api/finance', financeRouter);
   app.use('/api/health', healthRouter);
   app.use('/api/marketplace', marketplaceRouter);

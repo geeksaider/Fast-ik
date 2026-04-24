@@ -11,6 +11,7 @@ export type OrderListItem = {
   performerName: string;
   title: string;
   amount: number;
+  conversationId: string | null;
   status: OrderStatus;
   workResult: string | null;
   escrowStatus: EscrowStatus | null;
