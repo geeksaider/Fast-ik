@@ -23,12 +23,60 @@ const categories = [
 ];
 
 const levels = [
-  ['newcomer', 'Новичок', 0, 1],
-  ['builder', 'Исполнитель', 150, 2],
-  ['verified', 'Проверенный', 500, 3],
-  ['reliable', 'Надежный', 1200, 4],
-  ['pro', 'Профи', 2500, 5],
-  ['elite', 'Fastik Elite', 5000, 6],
+  [
+    'newcomer',
+    'Новичок',
+    0,
+    1,
+    'Стартовая точка: профиль создан, первые шаги уже видны заказчику.',
+    '#6b7280',
+    false,
+  ],
+  [
+    'builder',
+    'Исполнитель',
+    150,
+    2,
+    'Исполнитель собрал базовый профиль, навыки и готов брать первые задачи.',
+    '#0057ff',
+    false,
+  ],
+  [
+    'verified',
+    'Проверенный',
+    500,
+    3,
+    'Платформа видит реальные действия: отклики, выбранные заявки и первые завершения.',
+    '#177245',
+    false,
+  ],
+  [
+    'reliable',
+    'Надежный',
+    1200,
+    4,
+    'Надежный исполнитель с историей заказов и минимальным количеством спорных ситуаций.',
+    '#ff4d1c',
+    false,
+  ],
+  [
+    'pro',
+    'Профи',
+    2500,
+    5,
+    'Сильный специалист с устойчивой статистикой, высоким доверием и портфолио.',
+    '#171717',
+    false,
+  ],
+  [
+    'elite',
+    'Fastik Elite',
+    5000,
+    6,
+    'Максимальный уровень Fastik: требуется ручная проверка и HR-интервью платформы.',
+    '#b45309',
+    true,
+  ],
 ];
 
 const demoUsers = [
@@ -114,9 +162,23 @@ const run = async () => {
 
   for (const level of levels) {
     await pool.query(
-      `insert into performer_levels (code, title, required_xp, sort_order)
-       values ($1, $2, $3, $4)
-       on conflict (code) do update set title = excluded.title, required_xp = excluded.required_xp, sort_order = excluded.sort_order`,
+      `insert into performer_levels (
+         code,
+         title,
+         required_xp,
+         sort_order,
+         description,
+         accent,
+         interview_required
+       )
+       values ($1, $2, $3, $4, $5, $6, $7)
+       on conflict (code) do update set
+         title = excluded.title,
+         required_xp = excluded.required_xp,
+         sort_order = excluded.sort_order,
+         description = excluded.description,
+         accent = excluded.accent,
+         interview_required = excluded.interview_required`,
       level,
     );
   }

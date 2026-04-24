@@ -2,7 +2,7 @@ export const openApiSpec = {
   openapi: '3.0.3',
   info: {
     title: 'Fastik API',
-    version: '0.3.0',
+    version: '0.4.0',
     description: 'REST API for the Fastik freelance marketplace diploma project.',
   },
   servers: [
@@ -39,6 +39,10 @@ export const openApiSpec = {
     {
       name: 'Notifications',
       description: 'User event feed and unread state',
+    },
+    {
+      name: 'Levels',
+      description: 'Performer RPG roadmap, XP and level requirements',
     },
     {
       name: 'Profile',
@@ -432,6 +436,18 @@ export const openApiSpec = {
         responses: {
           '200': { description: 'Updated notifications' },
           '404': { description: 'Notification not found' },
+        },
+      },
+    },
+    '/levels/me': {
+      get: {
+        tags: ['Levels'],
+        summary: 'Get current performer RPG roadmap',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Current level, next level, metrics, requirements and XP events' },
+          '401': { description: 'Unauthorized' },
+          '403': { description: 'Only performers can open level roadmap' },
         },
       },
     },

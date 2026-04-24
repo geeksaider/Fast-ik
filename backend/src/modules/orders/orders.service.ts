@@ -1,6 +1,7 @@
 import type { AuthUser } from '../auth/auth.types.js';
 import { HttpError } from '../../http/errors/http-error.js';
 import { createNotification } from '../communication/communication.repository.js';
+import { awardPerformerXp } from '../levels/levels.service.js';
 import {
   completeOrder,
   disputeOrder as markOrderDisputed,
@@ -74,6 +75,16 @@ export const submitOrder = async (user: AuthUser, orderId: string, input: Submit
   }
 
   await submitOrderResult(orderId, user.id, input.workResult);
+  await awardPerformerXp({
+    userId: order.performerId,
+    type: 'order_submitted',
+    dedupeKey: `order_submitted:${order.id}`,
+    xp: 80,
+    title: 'Работа отправлена на проверку',
+    description: `Результат по заказу «${order.title}» отправлен заказчику`,
+    sourceType: 'order',
+    sourceId: order.id,
+  });
   await notifyOrderSide(order, user, {
     type: 'order_submitted',
     title: 'Работа отправлена на проверку',
@@ -96,6 +107,16 @@ export const acceptOrder = async (user: AuthUser, orderId: string) => {
   }
 
   await completeOrder(orderId, user.id);
+  await awardPerformerXp({
+    userId: order.performerId,
+    type: 'order_completed',
+    dedupeKey: `order_completed:${order.id}`,
+    xp: 220,
+    title: 'Заказ завершен',
+    description: `Заказ «${order.title}» принят заказчиком, выплата отправлена исполнителю`,
+    sourceType: 'order',
+    sourceId: order.id,
+  });
   await notifyOrderSide(order, user, {
     type: 'order_completed',
     title: 'Заказ принят',

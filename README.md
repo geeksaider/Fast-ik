@@ -137,3 +137,7 @@ npm run format:check
 - уведомления по откликам, выбору исполнителя, статусам заказа и новым сообщениям.
 - страницы `/messages`, `/messages/:id`, `/notifications`.
 - Swagger-разделы Communication и Notifications.
+- RPG-roadmap исполнителя с уровнями, XP, требованиями и журналом событий.
+- XP начисляется за отклик, выбранную заявку, сдачу работы и завершенный заказ.
+- страница `/level-roadmap`.
+- Swagger-раздел Levels.

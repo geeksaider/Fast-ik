@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: communication and notifications implementation.
+Stage: RPG level roadmap implementation.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, and REST-based conversations with notifications.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, and a performer RPG roadmap with XP events.
 
 Development can run in two modes:
 
@@ -103,10 +103,9 @@ Core idea:
 
 ## Current Next Block
 
-After communication and notifications are verified, the next implementation block should be admin/moderation or the RPG level roadmap:
+After the RPG roadmap is verified, the next implementation block should be admin/moderation or reviews:
 
 - admin/support views for disputes and moderation;
-- performer level roadmap beyond onboarding XP;
 - reviews and rating events after completed orders;
 - optional file attachments in order conversations.
 

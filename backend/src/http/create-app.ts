@@ -10,6 +10,7 @@ import { authRouter } from '../modules/auth/auth.routes.js';
 import { communicationRouter } from '../modules/communication/communication.routes.js';
 import { financeRouter } from '../modules/finance/finance.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
+import { levelsRouter } from '../modules/levels/levels.routes.js';
 import { marketplaceRouter } from '../modules/marketplace/marketplace.routes.js';
 import { ordersRouter } from '../modules/orders/orders.routes.js';
 import { profileRouter } from '../modules/profile/profile.routes.js';
@@ -36,6 +37,7 @@ export const createApp = () => {
   app.use('/api', communicationRouter);
   app.use('/api/finance', financeRouter);
   app.use('/api/health', healthRouter);
+  app.use('/api/levels', levelsRouter);
   app.use('/api/marketplace', marketplaceRouter);
   app.use('/api/orders', ordersRouter);
   app.use('/api/profile', profileRouter);

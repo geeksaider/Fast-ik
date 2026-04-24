@@ -31,7 +31,7 @@ import type {
   ProfileSummary,
   UserSkill,
 } from './profile.types.js';
-import { pool } from '../../db/pool.js';
+import { recalculatePerformerProgress } from '../levels/levels.service.js';
 
 const hasText = (value: string | null | undefined) => Boolean(value && value.trim().length > 0);
 
@@ -133,32 +133,6 @@ const buildProgress = (steps: OnboardingStep[]): ProfileProgress => {
   };
 };
 
-const syncPerformerProgress = async (userId: string, progress: ProfileProgress) => {
-  const level = await pool.query<{ id: number }>(
-    `select id
-     from performer_levels
-     where required_xp <= $1
-     order by required_xp desc
-     limit 1`,
-    [progress.earnedXp],
-  );
-  const levelId = level.rows[0]?.id;
-
-  if (!levelId) {
-    return;
-  }
-
-  await pool.query(
-    `insert into performer_progress (user_id, level_id, xp, interview_required, updated_at)
-     values ($1, $2, $3, false, now())
-     on conflict (user_id) do update set
-       level_id = excluded.level_id,
-       xp = greatest(performer_progress.xp, excluded.xp),
-       updated_at = now()`,
-    [userId, levelId, progress.earnedXp],
-  );
-};
-
 export const getProfileSummary = async (user: AuthUser): Promise<ProfileSummary> => {
   const [profile, customerProfile, performerProfile, skills, portfolio] = await Promise.all([
     getBaseProfile(user.id),
@@ -174,7 +148,7 @@ export const getProfileSummary = async (user: AuthUser): Promise<ProfileSummary>
       : calculateCustomerProgress(profile, customerProfile);
 
   if (user.role === 'performer') {
-    await syncPerformerProgress(user.id, progress);
+    await recalculatePerformerProgress(user.id);
   }
 
   return {

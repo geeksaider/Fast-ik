@@ -163,9 +163,11 @@ onMounted(() => {
             </p>
             <RouterLink
               class="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-              to="/onboarding"
+              :to="auth.user?.role === 'performer' ? '/level-roadmap' : '/onboarding'"
             >
-              Открыть onboarding
+              {{
+                auth.user?.role === 'performer' ? 'Открыть roadmap уровня' : 'Открыть onboarding'
+              }}
               <ArrowRight :size="18" />
             </RouterLink>
           </article>
@@ -184,6 +186,14 @@ onMounted(() => {
                   {{ step }}
                 </li>
               </ul>
+              <RouterLink
+                v-if="auth.user?.role === 'performer'"
+                class="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
+                to="/level-roadmap"
+              >
+                Дорога к славе
+                <ArrowRight :size="16" />
+              </RouterLink>
             </article>
 
             <article class="rounded-[1.25rem] border border-ink bg-[#fffaf0] p-5">

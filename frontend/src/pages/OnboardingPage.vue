@@ -264,6 +264,15 @@ onMounted(() => {
                 :style="{ width: `${progress?.percentage ?? 0}%` }"
               />
             </div>
+
+            <RouterLink
+              v-if="isPerformer"
+              class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-ember hover:text-paper"
+              to="/level-roadmap"
+            >
+              Открыть дорогу к славе
+              <ExternalLink :size="18" />
+            </RouterLink>
           </section>
 
           <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5">

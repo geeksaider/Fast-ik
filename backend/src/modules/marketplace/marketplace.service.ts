@@ -14,6 +14,7 @@ import {
   selectApplicationAndCreateOrder,
 } from '../orders/orders.repository.js';
 import { createNotification } from '../communication/communication.repository.js';
+import { awardPerformerXp } from '../levels/levels.service.js';
 import type {
   ApplicationCreateInput,
   JobCreateInput,
@@ -129,6 +130,17 @@ export const applyToJob = async (user: AuthUser, jobId: string, input: Applicati
       throw new HttpError(500, 'Не удалось отправить отклик');
     }
 
+    await awardPerformerXp({
+      userId: user.id,
+      type: 'application_sent',
+      dedupeKey: `application_sent:${applicationId}`,
+      xp: 15,
+      title: 'Отклик отправлен',
+      description: `Отклик на заказ «${job.title}»`,
+      sourceType: 'job_application',
+      sourceId: applicationId,
+    });
+
     await createNotification({
       userId: job.customerId,
       actorId: user.id,
@@ -174,10 +186,21 @@ export const selectApplication = async (user: AuthUser, jobId: string, applicati
   }
 
   try {
-    await selectApplicationAndCreateOrder({
+    const orderId = await selectApplicationAndCreateOrder({
       jobId,
       applicationId,
       actorId: user.id,
+    });
+
+    await awardPerformerXp({
+      userId: application.performerId,
+      type: 'application_selected',
+      dedupeKey: `application_selected:${applicationId}`,
+      xp: 70,
+      title: 'Заявка выбрана заказчиком',
+      description: `Исполнитель выбран для заказа «${job.title}»`,
+      sourceType: 'order',
+      sourceId: orderId,
     });
   } catch (error) {
     if (error instanceof EscrowBalanceError) {

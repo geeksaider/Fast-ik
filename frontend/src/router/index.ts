@@ -6,6 +6,7 @@ import JobCreatePage from '../pages/JobCreatePage.vue';
 import JobDetailPage from '../pages/JobDetailPage.vue';
 import JobsPage from '../pages/JobsPage.vue';
 import FinancePage from '../pages/FinancePage.vue';
+import LevelRoadmapPage from '../pages/LevelRoadmapPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import ConversationPage from '../pages/ConversationPage.vue';
 import MessagesPage from '../pages/MessagesPage.vue';
@@ -43,6 +44,12 @@ export const router = createRouter({
       path: '/onboarding',
       name: 'onboarding',
       component: OnboardingPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/level-roadmap',
+      name: 'level-roadmap',
+      component: LevelRoadmapPage,
       meta: { requiresAuth: true },
     },
     {
