@@ -24,6 +24,8 @@ infra/      Инфраструктурные файлы
 
 ## Быстрый запуск
 
+### Вариант 1. Локальный frontend/backend + PostgreSQL в Docker
+
 1. Установить зависимости:
 
 ```bash
@@ -61,6 +63,29 @@ npm run dev
 - Backend API: `http://localhost:4200`
 - Swagger: `http://localhost:4200/docs`
 - Health: `http://localhost:4200/api/health`
+
+### Вариант 2. Полный Docker dev
+
+Этот режим поднимает PostgreSQL, backend и frontend в контейнерах.
+
+```bash
+cp .env.example .env
+npm run docker:dev
+```
+
+В отдельном терминале после первого запуска:
+
+```bash
+npm run docker:dev:setup
+```
+
+Полезные команды:
+
+```bash
+npm run docker:dev:detached
+npm run docker:dev:logs
+npm run docker:dev:down
+```
 
 ## Demo-аккаунты
 

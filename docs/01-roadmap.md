@@ -9,6 +9,7 @@
 - структура `frontend/`, `backend/`, `shared/`, `docs/`, `infra/`;
 - npm workspaces;
 - Docker Compose с PostgreSQL;
+- полный Docker dev-режим для `web`, `api`, `postgres`;
 - Prettier;
 - `.env.example`;
 - Express API;

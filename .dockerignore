@@ -1,0 +1,13 @@
+.git
+node_modules
+.npm-cache
+frontend/dist
+backend/dist
+shared/dist
+coverage
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+*.tsbuildinfo

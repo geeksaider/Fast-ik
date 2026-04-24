@@ -14,6 +14,11 @@ Stage: auth and roles implementation.
 
 The repository contains the fullstack skeleton plus the first auth flow: email/password registration, login, JWT access tokens, role-aware middleware, auth pages, and protected dashboard.
 
+Development can run in two modes:
+
+- local app dev with PostgreSQL in Docker: `npm run docker:up` + `npm run dev`;
+- full Docker dev with PostgreSQL, API and web containers: `npm run docker:dev`.
+
 ## Product Direction
 
 Fastik combines a freelance marketplace with an RPG-style trust and growth system for performers.
@@ -44,6 +49,7 @@ Core idea:
 - Documentation: Swagger/OpenAPI
 - Deployment target: VPS
 - Containerization: Docker
+- Full Docker dev mode: enabled via `docker-compose.dev.yml`
 - ORM: avoid if practical; use SQL/query layer directly
 - Formatting: Prettier
 
