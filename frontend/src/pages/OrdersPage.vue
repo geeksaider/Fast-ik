@@ -1,14 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  Loader2,
-  ShieldCheck,
-  WalletCards,
-  Zap,
-} from 'lucide-vue-next';
+import { ArrowRight, BriefcaseBusiness, Loader2, ShieldCheck } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useOrdersStore } from '../stores/orders';
 import { formatAmount, formatDate } from '../lib/format';
@@ -52,33 +45,7 @@ onMounted(() => {
     <section
       class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <RouterLink to="/dashboard" class="flex items-center gap-3">
-          <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-            ><Zap :size="24"
-          /></span>
-          <span>
-            <span class="block font-display text-xl font-black uppercase tracking-[-0.04em]"
-              >Fastik Orders</span
-            >
-            <span class="block text-xs font-semibold uppercase tracking-[0.25em] text-ink/60"
-              >escrow workflow</span
-            >
-          </span>
-        </RouterLink>
-        <RouterLink
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
-          to="/finance"
-        >
-          <WalletCards :size="18" />
-          Финансы
-        </RouterLink>
-      </header>
-
-      <section class="grid gap-5 py-7 lg:grid-cols-[0.72fr_1.28fr]">
+      <section class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Заказы в работе</p>
           <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">

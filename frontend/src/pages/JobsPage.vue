@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive } from 'vue';
 import { RouterLink } from 'vue-router';
-import { ArrowRight, BriefcaseBusiness, Filter, Loader2, Plus, Search, Zap } from 'lucide-vue-next';
+import { ArrowRight, BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
 import { formatDate, formatMoney } from '../lib/format';
@@ -39,38 +39,19 @@ onMounted(() => {
     <section
       class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <RouterLink to="/dashboard" class="flex items-center gap-3">
-          <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-          >
-            <Zap :size="24" />
-          </span>
-          <span>
-            <span class="block font-display text-xl font-black uppercase tracking-[-0.04em]"
-              >Fastik Jobs</span
-            >
-            <span class="block text-xs font-semibold uppercase tracking-[0.25em] text-ink/60"
-              >marketplace</span
-            >
-          </span>
-        </RouterLink>
-
-        <RouterLink
-          v-if="canCreateJob"
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-          to="/jobs/new"
-        >
-          <Plus :size="18" />
-          Создать заказ
-        </RouterLink>
-      </header>
-
-      <section class="grid gap-5 py-7 lg:grid-cols-[0.72fr_1.28fr]">
+      <section class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Биржа</p>
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Биржа</p>
+            <RouterLink
+              v-if="canCreateJob"
+              class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
+              to="/jobs/new"
+            >
+              <Plus :size="16" />
+              Создать заказ
+            </RouterLink>
+          </div>
           <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
             Живые задачи для быстрых исполнителей.
           </h1>

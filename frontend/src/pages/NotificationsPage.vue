@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
-import { ArrowLeft, Bell, CheckCheck, Loader2, Radio } from 'lucide-vue-next';
+import { useRouter } from 'vue-router';
+import { Bell, CheckCheck, Loader2, Radio } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import { formatDate } from '../lib/format';
@@ -59,27 +59,7 @@ onMounted(() => {
     <section
       class="mx-auto max-w-5xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <RouterLink
-          to="/dashboard"
-          class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-ink/65 transition hover:text-ink"
-        >
-          <ArrowLeft :size="16" />
-          Dashboard
-        </RouterLink>
-        <button
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
-          type="button"
-          @click="readAll"
-        >
-          <CheckCheck :size="18" />
-          Прочитать все
-        </button>
-      </header>
-
-      <section class="grid gap-5 py-7 lg:grid-cols-[0.74fr_1.26fr]">
+      <section class="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <Bell class="text-moss" :size="34" />
           <p class="mt-6 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
@@ -91,6 +71,14 @@ onMounted(() => {
           <div class="mt-7 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
             <p class="font-black">Новых событий: {{ unread.length }}</p>
           </div>
+          <button
+            class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-moss hover:text-paper"
+            type="button"
+            @click="readAll"
+          >
+            <CheckCheck :size="18" />
+            Прочитать все
+          </button>
         </aside>
 
         <section class="space-y-3">

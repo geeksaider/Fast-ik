@@ -1,24 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue';
-import { RouterLink, useRouter } from 'vue-router';
+import { RouterLink } from 'vue-router';
 import {
   ArrowRight,
   BadgeCheck,
   Bell,
   BriefcaseBusiness,
-  LogOut,
   MessagesSquare,
   ShieldCheck,
   Trophy,
   UserRound,
-  Zap,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
-const router = useRouter();
 
 const roleTitle = computed(() => {
   const role = auth.user?.role;
@@ -77,11 +74,6 @@ const nextSteps = computed(() => {
   ];
 });
 
-const logout = async () => {
-  auth.logout();
-  await router.push('/');
-};
-
 onMounted(() => {
   if (!auth.accessToken) {
     return;
@@ -97,36 +89,7 @@ onMounted(() => {
     <section
       class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <RouterLink to="/" class="flex items-center gap-3">
-          <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-          >
-            <Zap :size="24" stroke-width="2.6" />
-          </span>
-          <span>
-            <span class="block font-display text-xl font-black uppercase tracking-[-0.04em]"
-              >Fastik</span
-            >
-            <span class="block text-xs font-semibold uppercase tracking-[0.25em] text-ink/60">
-              dashboard
-            </span>
-          </span>
-        </RouterLink>
-
-        <button
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink px-4 py-2 text-sm font-black transition hover:bg-ink hover:text-paper"
-          type="button"
-          @click="logout"
-        >
-          <LogOut :size="16" />
-          Выйти
-        </button>
-      </header>
-
-      <section class="grid gap-5 py-7 lg:grid-cols-[0.85fr_1.15fr]">
+      <section class="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
           <div class="flex items-center justify-between gap-4">
             <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">

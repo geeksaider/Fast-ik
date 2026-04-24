@@ -2,7 +2,6 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import {
-  ArrowLeft,
   BadgeCheck,
   BriefcaseBusiness,
   Check,
@@ -14,7 +13,6 @@ import {
   Save,
   Trash2,
   Trophy,
-  Zap,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useProfileStore } from '../stores/profile';
@@ -209,34 +207,6 @@ onMounted(() => {
     <section
       class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <RouterLink
-          to="/dashboard"
-          class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-ink/65 transition hover:text-ink"
-        >
-          <ArrowLeft :size="16" />
-          Dashboard
-        </RouterLink>
-
-        <div class="flex items-center gap-3">
-          <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-          >
-            <Zap :size="24" />
-          </span>
-          <span>
-            <span class="block font-display text-xl font-black uppercase tracking-[-0.04em]"
-              >Onboarding</span
-            >
-            <span class="block text-xs font-semibold uppercase tracking-[0.25em] text-ink/60">
-              profile setup
-            </span>
-          </span>
-        </div>
-      </header>
-
       <div v-if="profile.isLoading" class="grid min-h-[420px] place-items-center">
         <div
           class="flex items-center gap-3 rounded-full border border-ink bg-[#fffaf0] px-5 py-3 font-black"
@@ -246,7 +216,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-else class="grid gap-5 py-7 lg:grid-cols-[0.72fr_1.28fr]">
+      <div v-else class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <aside class="space-y-5">
           <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
             <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Roadmap</p>

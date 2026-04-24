@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   Sparkles,
   Trophy,
-  Zap,
 } from 'lucide-vue-next';
 import { useSystemStore } from '../stores/system';
 
@@ -68,54 +67,7 @@ onMounted(() => {
     <section
       class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <header
-        class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
-      >
-        <a href="#" class="flex items-center gap-3" aria-label="Fastik home">
-          <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-          >
-            <Zap :size="24" stroke-width="2.6" />
-          </span>
-          <span>
-            <span class="block font-display text-xl font-black uppercase tracking-[-0.04em]">
-              Fastik
-            </span>
-            <span class="block text-xs font-semibold uppercase tracking-[0.25em] text-ink/60">
-              freelance speedrun
-            </span>
-          </span>
-        </a>
-
-        <nav class="flex flex-wrap items-center gap-2 text-sm font-bold">
-          <RouterLink
-            class="rounded-full border border-ink px-4 py-2 transition hover:bg-ink hover:text-paper"
-            to="/jobs"
-          >
-            Биржа
-          </RouterLink>
-          <a
-            class="rounded-full border border-ink px-4 py-2 transition hover:bg-ink hover:text-paper"
-            href="#levels"
-          >
-            Уровни
-          </a>
-          <a
-            class="rounded-full border border-ink px-4 py-2 transition hover:bg-ink hover:text-paper"
-            href="#trust"
-          >
-            Гарант
-          </a>
-          <RouterLink
-            class="rounded-full bg-ink px-4 py-2 text-paper transition hover:bg-bolt"
-            to="/login"
-          >
-            Войти
-          </RouterLink>
-        </nav>
-      </header>
-
-      <div class="grid gap-6 py-8 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.72fr)] lg:py-12">
+      <div class="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(320px,0.72fr)]">
         <section
           class="flex flex-col justify-between rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-8"
         >
