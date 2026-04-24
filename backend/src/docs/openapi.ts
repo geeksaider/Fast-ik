@@ -20,6 +20,10 @@ export const openApiSpec = {
       name: 'Health',
       description: 'Service diagnostics',
     },
+    {
+      name: 'Profile',
+      description: 'Onboarding, skills and portfolio',
+    },
   ],
   components: {
     securitySchemes: {
@@ -155,6 +159,86 @@ export const openApiSpec = {
             description: 'Current user',
           },
           '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/profile/me': {
+      get: {
+        tags: ['Profile'],
+        summary: 'Get current user profile summary',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Profile summary with onboarding progress' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+      put: {
+        tags: ['Profile'],
+        summary: 'Update current user base and role-specific profile',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Updated profile summary' },
+          '400': { description: 'Validation error' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/profile/options/skills': {
+      get: {
+        tags: ['Profile'],
+        summary: 'Get available skills for onboarding',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Skill options grouped by categories on the client' },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/profile/me/skills': {
+      put: {
+        tags: ['Profile'],
+        summary: 'Replace performer skills',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Updated profile summary' },
+          '403': { description: 'Only performers can update skills' },
+        },
+      },
+    },
+    '/profile/me/portfolio': {
+      post: {
+        tags: ['Profile'],
+        summary: 'Create performer portfolio item',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': { description: 'Updated profile summary' },
+          '403': { description: 'Only performers can edit portfolio' },
+        },
+      },
+    },
+    '/profile/me/portfolio/{id}': {
+      put: {
+        tags: ['Profile'],
+        summary: 'Update performer portfolio item',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated profile summary' },
+          '404': { description: 'Portfolio item not found' },
+        },
+      },
+      delete: {
+        tags: ['Profile'],
+        summary: 'Delete performer portfolio item',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated profile summary' },
+          '404': { description: 'Portfolio item not found' },
         },
       },
     },

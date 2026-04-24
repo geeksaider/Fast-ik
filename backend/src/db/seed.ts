@@ -37,6 +37,21 @@ const demoUsers = [
   ['admin@fastik.local', 'Fastik Admin', 'admin'],
 ];
 
+const skills = [
+  ['Vue', 'vue', 'development'],
+  ['TypeScript', 'typescript', 'development'],
+  ['Node.js', 'node-js', 'development'],
+  ['PostgreSQL', 'postgresql', 'development'],
+  ['UI/UX', 'ui-ux', 'design'],
+  ['Figma', 'figma', 'design'],
+  ['SEO', 'seo', 'marketing'],
+  ['SMM', 'smm', 'marketing'],
+  ['QA', 'qa', 'qa'],
+  ['Docker', 'docker', 'administration'],
+  ['Техническое задание', 'technical-specification', 'analytics'],
+  ['No-code автоматизация', 'no-code-automation', 'no-code'],
+];
+
 const run = async () => {
   for (const role of roles) {
     await pool.query(
@@ -53,6 +68,17 @@ const run = async () => {
        values ($1, $2, $3)
        on conflict (slug) do update set name = excluded.name, description = excluded.description`,
       category,
+    );
+  }
+
+  for (const skill of skills) {
+    await pool.query(
+      `insert into skills (name, slug, category_id)
+       select $1, $2, categories.id
+       from categories
+       where categories.slug = $3
+       on conflict (slug) do update set name = excluded.name, category_id = excluded.category_id`,
+      skill,
     );
   }
 

@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
 import LoginPage from '../pages/LoginPage.vue';
+import OnboardingPage from '../pages/OnboardingPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
 
 export const router = createRouter({
@@ -27,6 +28,12 @@ export const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/onboarding',
+      name: 'onboarding',
+      component: OnboardingPage,
       meta: { requiresAuth: true },
     },
   ],

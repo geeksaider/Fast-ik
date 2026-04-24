@@ -150,6 +150,13 @@ const logout = async () => {
               Авторизация уже держит пользователя и роль. Дальше на эту основу ляжет заполнение
               профиля, портфолио, навыки и первые шаги RPG-roadmap.
             </p>
+            <RouterLink
+              class="mt-6 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
+              to="/onboarding"
+            >
+              Открыть onboarding
+              <ArrowRight :size="18" />
+            </RouterLink>
           </article>
 
           <div class="grid gap-4 md:grid-cols-2">

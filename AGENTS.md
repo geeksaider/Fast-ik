@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: auth and roles implementation.
+Stage: onboarding and profiles implementation.
 
-The repository contains the fullstack skeleton plus the first auth flow: email/password registration, login, JWT access tokens, role-aware middleware, auth pages, and protected dashboard.
+The repository contains the fullstack skeleton, auth flow, and onboarding/profile slice: base profiles, customer profiles, performer profiles, skills, portfolio, and RPG-style profile completion progress.
 
 Development can run in two modes:
 
@@ -103,14 +103,14 @@ Core idea:
 
 ## Current Next Block
 
-After auth is verified, the next implementation block is onboarding and profiles:
+After onboarding is verified, the next implementation block is marketplace foundation:
 
-- customer profile;
-- performer profile;
-- skills;
-- portfolio;
-- profile completion progress;
-- first RPG roadmap requirements.
+- categories API;
+- job creation;
+- job list;
+- job details;
+- applications/responses;
+- customer selection of performer.
 
 ## Demo Accounts
 

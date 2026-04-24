@@ -48,7 +48,7 @@
 
 ## Блок 2. Onboarding и профили
 
-Статус: следующий блок.
+Статус: готово.
 
 Цель:
 
@@ -60,7 +60,24 @@
 - портфолио;
 - первые требования RPG-прогресса.
 
+Сделано:
+
+- таблицы `user_profiles`, `customer_profiles`, `performer_profiles`;
+- таблицы `skills`, `user_skills`, `portfolio_items`;
+- seed стартовых навыков по категориям;
+- `GET /api/profile/me`;
+- `PUT /api/profile/me`;
+- `GET /api/profile/options/skills`;
+- `PUT /api/profile/me/skills`;
+- `POST /api/profile/me/portfolio`;
+- `DELETE /api/profile/me/portfolio/:id`;
+- protected route `/onboarding`;
+- визуальный прогресс заполнения профиля;
+- начисление стартового XP за onboarding-шаги исполнителя.
+
 ## Блок 3. Marketplace
+
+Статус: следующий блок.
 
 Цель:
 

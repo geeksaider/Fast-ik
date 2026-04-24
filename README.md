@@ -121,4 +121,9 @@ npm run format:check
 - JWT access token;
 - middleware авторизации и ролей;
 - защищенный dashboard;
+- onboarding и профили;
+- навыки исполнителя;
+- портфолио исполнителя;
+- RPG-прогресс заполнения профиля;
 - Swagger-раздел Auth.
+- Swagger-раздел Profile.
