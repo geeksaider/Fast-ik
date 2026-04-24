@@ -13,10 +13,10 @@ npm run dev
 
 ## Полный Docker dev
 
-`docker-compose.dev.yml` добавляет dev-контейнеры `api` и `web` поверх базового PostgreSQL.
+`docker-compose.override.yml` добавляет dev-контейнеры `api` и `web` поверх базового PostgreSQL. Docker Compose подхватывает этот файл автоматически, поэтому полный dev запускается обычной командой.
 
 ```bash
-npm run docker:dev
+docker compose up --build
 ```
 
 После первого запуска или изменения схемы базы:
@@ -27,7 +27,7 @@ npm run docker:dev:setup
 
 Сервисы:
 
-- Web: `http://localhost:5173`
+- Web: `http://localhost`
 - API: `http://localhost:4200`
 - Swagger: `http://localhost:4200/docs`
 - PostgreSQL: `localhost:5432`

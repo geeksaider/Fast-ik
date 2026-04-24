@@ -17,7 +17,7 @@ The repository contains the fullstack skeleton plus the first auth flow: email/p
 Development can run in two modes:
 
 - local app dev with PostgreSQL in Docker: `npm run docker:up` + `npm run dev`;
-- full Docker dev with PostgreSQL, API and web containers: `npm run docker:dev`.
+- full Docker dev with PostgreSQL, API and web containers: `docker compose up --build`.
 
 ## Product Direction
 
@@ -49,7 +49,7 @@ Core idea:
 - Documentation: Swagger/OpenAPI
 - Deployment target: VPS
 - Containerization: Docker
-- Full Docker dev mode: enabled via `docker-compose.dev.yml`
+- Full Docker dev mode: enabled via `docker-compose.override.yml`
 - ORM: avoid if practical; use SQL/query layer directly
 - Formatting: Prettier
 

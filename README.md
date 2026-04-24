@@ -70,7 +70,7 @@ npm run dev
 
 ```bash
 cp .env.example .env
-npm run docker:dev
+docker compose up --build
 ```
 
 В отдельном терминале после первого запуска:
@@ -86,6 +86,12 @@ npm run docker:dev:detached
 npm run docker:dev:logs
 npm run docker:dev:down
 ```
+
+Адреса в полном Docker dev:
+
+- Frontend: `http://localhost`
+- Backend API: `http://localhost:4200`
+- Swagger: `http://localhost:4200/docs`
 
 ## Demo-аккаунты
 
