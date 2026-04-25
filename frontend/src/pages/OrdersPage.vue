@@ -4,7 +4,7 @@ import { RouterLink, useRouter } from 'vue-router';
 import { ArrowRight, BriefcaseBusiness, Loader2, ShieldCheck } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useOrdersStore } from '../stores/orders';
-import { formatAmount, formatDateTime } from '../lib/format';
+import { formatAmount, formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const orders = useOrdersStore();
@@ -106,10 +106,12 @@ onMounted(() => {
               <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
                 {{ statusTitle(order.status) }} · {{ formatDateTime(order.createdAt) }}
               </p>
-              <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">{{ order.title }}</h2>
+              <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
+                {{ formatDisplayText(order.title) }}
+              </h2>
               <p class="mt-3 text-sm font-semibold leading-6 text-ink/68">
                 Заказчик: {{ order.customerName }} · Исполнитель: {{ order.performerName }} ·
-                Escrow: {{ order.escrowStatus || 'нет' }}
+                Гарант: {{ formatSystemLabel(order.escrowStatus) }}
               </p>
             </div>
             <div class="rounded-2xl border border-line bg-paper px-4 py-3 text-right">

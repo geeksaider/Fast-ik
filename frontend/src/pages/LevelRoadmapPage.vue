@@ -15,7 +15,7 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useLevelsStore } from '../stores/levels';
-import { formatDateTime } from '../lib/format';
+import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 import type { LevelRequirement } from '../lib/api';
 
 const auth = useAuthStore();
@@ -173,7 +173,8 @@ onMounted(() => {
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div>
                     <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
-                      LVL {{ level.sortOrder }} · {{ level.status }} · {{ level.requiredXp }} XP
+                      LVL {{ level.sortOrder }} · {{ formatSystemLabel(level.status) }} ·
+                      {{ level.requiredXp }} XP
                     </p>
                     <h3 class="mt-2 text-3xl font-black tracking-[-0.06em]">
                       {{ level.title }}
@@ -252,16 +253,16 @@ onMounted(() => {
                   <div>
                     <p class="flex items-center gap-2 font-black">
                       <Medal class="text-bolt" :size="18" />
-                      {{ event.title }}
+                      {{ formatDisplayText(event.title) }}
                     </p>
                     <p v-if="event.description" class="mt-1 text-sm font-semibold text-ink/65">
-                      {{ event.description }}
+                      {{ formatDisplayText(event.description) }}
                     </p>
                     <p
                       class="mt-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-ink/45"
                     >
                       <Clock3 :size="14" />
-                      {{ formatDateTime(event.createdAt) }} · {{ event.type }}
+                      {{ formatDateTime(event.createdAt) }} · {{ formatSystemLabel(event.type) }}
                     </p>
                   </div>
                   <p class="text-xl font-black" :class="event.xp >= 0 ? 'text-moss' : 'text-ember'">

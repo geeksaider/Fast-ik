@@ -7,6 +7,10 @@
   background: #f7f2e8;
   font-family: Manrope, Montserrat, 'Segoe UI', sans-serif;
   font-synthesis: none;
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings:
+    'tnum' 1,
+    'lnum' 1;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,10 +24,20 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+  overflow-x: hidden;
   background:
     linear-gradient(rgba(23, 23, 23, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(23, 23, 23, 0.045) 1px, transparent 1px), #f7f2e8;
   background-size: 34px 34px;
+}
+
+main > section {
+  width: 100%;
+}
+
+.grid > *,
+.flex > * {
+  min-width: 0;
 }
 
 button,

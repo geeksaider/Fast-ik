@@ -4,7 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, BriefcaseBusiness, Loader2, Send, ShieldCheck } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDateTime } from '../lib/format';
+import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
@@ -80,10 +80,10 @@ onMounted(() => {
       <section v-else-if="conversation" class="py-7">
         <article class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">
-            {{ conversation.type }} chat
+            {{ formatSystemLabel(conversation.type) }}
           </p>
           <h1 class="mt-3 text-4xl font-black leading-[0.95] tracking-[-0.06em]">
-            {{ conversation.title }}
+            {{ formatDisplayText(conversation.title) }}
           </h1>
           <div class="mt-5 flex flex-wrap gap-2">
             <span
@@ -91,7 +91,7 @@ onMounted(() => {
               :key="participant.userId"
               class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.14em]"
             >
-              {{ participant.displayName }} · {{ participant.role }}
+              {{ participant.displayName }} · {{ formatSystemLabel(participant.role) }}
             </span>
           </div>
         </article>

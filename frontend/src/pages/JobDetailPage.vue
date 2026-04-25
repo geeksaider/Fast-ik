@@ -15,7 +15,7 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
-import { formatDate, formatMoney } from '../lib/format';
+import { formatDate, formatDisplayText, formatMoney, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
@@ -124,7 +124,7 @@ onMounted(() => {
             </div>
 
             <h1 class="mt-4 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-              {{ job.title }}
+              {{ formatDisplayText(job.title) }}
             </h1>
             <p class="mt-5 whitespace-pre-line text-base font-medium leading-8 text-ink/72">
               {{ job.description }}
@@ -194,7 +194,9 @@ onMounted(() => {
             <p class="mt-3 text-sm font-semibold leading-6 text-ink/70">
               {{ job.myApplication.coverLetter }}
             </p>
-            <p class="mt-3 text-sm font-black text-bolt">Статус: {{ job.myApplication.status }}</p>
+            <p class="mt-3 text-sm font-black text-bolt">
+              Статус: {{ formatSystemLabel(job.myApplication.status) }}
+            </p>
           </section>
 
           <section
@@ -227,7 +229,7 @@ onMounted(() => {
                           : 'Срок обсуждается'
                       }}
                       ·
-                      {{ application.status }}
+                      {{ formatSystemLabel(application.status) }}
                     </p>
                   </div>
                   <button

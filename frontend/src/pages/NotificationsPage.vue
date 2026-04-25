@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { Bell, CheckCheck, Loader2, Radio } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDateTime } from '../lib/format';
+import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 import type { NotificationListItem } from '../lib/api';
 
 const auth = useAuthStore();
@@ -114,13 +114,14 @@ onMounted(() => {
                   class="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-ink/55"
                 >
                   <Radio v-if="!notification.readAt" :size="14" class="text-ember" />
-                  {{ notification.type }} · {{ formatDateTime(notification.createdAt) }}
+                  {{ formatSystemLabel(notification.type) }} ·
+                  {{ formatDateTime(notification.createdAt) }}
                 </p>
                 <h2 class="mt-3 text-2xl font-black tracking-[-0.05em]">
-                  {{ notification.title }}
+                  {{ formatDisplayText(notification.title) }}
                 </h2>
                 <p class="mt-2 text-sm font-semibold leading-6 text-ink/68">
-                  {{ notification.body }}
+                  {{ formatDisplayText(notification.body) }}
                 </p>
               </div>
               <span

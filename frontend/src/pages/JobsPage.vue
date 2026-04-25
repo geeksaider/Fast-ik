@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router';
 import { ArrowRight, BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
-import { formatDate, formatMoney } from '../lib/format';
+import { formatDate, formatDisplayText, formatMoney } from '../lib/format';
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
@@ -139,7 +139,9 @@ onMounted(() => {
                 <span>•</span>
                 <span>{{ formatDate(job.deadlineAt) }}</span>
               </div>
-              <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">{{ job.title }}</h2>
+              <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
+                {{ formatDisplayText(job.title) }}
+              </h2>
               <p class="mt-3 max-w-2xl text-sm font-medium leading-6 text-ink/70">
                 {{ job.description }}
               </p>

@@ -150,10 +150,7 @@ onMounted(() => {
         </aside>
       </div>
 
-      <section
-        id="market"
-        class="grid gap-4 border-t border-ink pt-6 md:grid-cols-2 xl:grid-cols-4"
-      >
+      <section id="market" class="grid gap-4 pt-6 md:grid-cols-2 xl:grid-cols-4">
         <article
           v-for="feature in features"
           :key="feature.title"

@@ -4,7 +4,7 @@ import { RouterLink, useRouter } from 'vue-router';
 import { ArrowRight, Inbox, Loader2, MessageCircle } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDateTime } from '../lib/format';
+import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
@@ -43,8 +43,8 @@ onMounted(() => {
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <MessageCircle class="text-ember" :size="34" />
           <p class="mt-6 text-sm font-black uppercase tracking-[0.2em] text-paper/55">Чаты</p>
-          <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-            Договоренности живут рядом с заказом.
+          <h1 class="mt-3 text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl">
+            Диалоги по заказам.
           </h1>
           <p class="mt-5 text-sm font-semibold leading-6 text-paper/68">
             Диалог создается автоматически после выбора исполнителя. Здесь удобно хранить детали,
@@ -74,7 +74,7 @@ onMounted(() => {
             <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
-                  {{ conversation.type }} ·
+                  {{ formatSystemLabel(conversation.type) }} ·
                   {{
                     conversation.lastMessageAt
                       ? formatDateTime(conversation.lastMessageAt)
@@ -82,7 +82,7 @@ onMounted(() => {
                   }}
                 </p>
                 <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
-                  {{ conversation.title }}
+                  {{ formatDisplayText(conversation.title) }}
                 </h2>
                 <p class="mt-3 text-sm font-semibold leading-6 text-ink/68">
                   <span v-if="conversation.lastMessageBody">
@@ -93,10 +93,11 @@ onMounted(() => {
                 </p>
               </div>
               <span
+                v-if="conversation.unreadCount"
                 class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-ink/60"
                 :class="conversation.unreadCount ? 'border-ink bg-bolt text-paper' : ''"
               >
-                {{ conversation.unreadCount ? `${conversation.unreadCount} новых` : 'нет новых' }}
+                {{ conversation.unreadCount }} новых
               </span>
             </div>
 

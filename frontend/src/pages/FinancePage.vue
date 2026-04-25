@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { Loader2, Plus, WalletCards } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useFinanceStore } from '../stores/finance';
-import { formatAmount, formatDateTime } from '../lib/format';
+import { formatAmount, formatDateTime, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const finance = useFinanceStore();
@@ -128,7 +128,8 @@ onMounted(() => {
                 <div>
                   <p class="font-black">{{ transaction.description }}</p>
                   <p class="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-ink/50">
-                    {{ transaction.type }} · {{ transaction.direction }} ·
+                    {{ formatSystemLabel(transaction.type) }} ·
+                    {{ formatSystemLabel(transaction.direction) }} ·
                     {{ formatDateTime(transaction.createdAt) }}
                   </p>
                 </div>

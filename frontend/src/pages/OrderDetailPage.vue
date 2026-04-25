@@ -14,7 +14,7 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useOrdersStore } from '../stores/orders';
-import { formatAmount, formatDateTime } from '../lib/format';
+import { formatAmount, formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
 
 const auth = useAuthStore();
 const orders = useOrdersStore();
@@ -143,7 +143,7 @@ onMounted(() => {
               {{ statusTitle }}
             </p>
             <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-              {{ order.title }}
+              {{ formatDisplayText(order.title) }}
             </h1>
             <p class="mt-5 text-sm font-semibold leading-6 text-ink/70">
               Заказчик: {{ order.customerName }} · Исполнитель: {{ order.performerName }} · Создан:
@@ -242,7 +242,8 @@ onMounted(() => {
               {{ formatAmount(order.amount) }}
             </p>
             <p class="mt-4 flex items-center gap-2 text-sm font-bold text-paper/70">
-              <ShieldCheck :size="18" class="text-moss" /> Статус: {{ order.escrowStatus || 'нет' }}
+              <ShieldCheck :size="18" class="text-moss" /> Статус:
+              {{ formatSystemLabel(order.escrowStatus) }}
             </p>
           </section>
 
@@ -254,7 +255,7 @@ onMounted(() => {
                 :key="item.id"
                 class="rounded-2xl border border-line bg-paper p-4"
               >
-                <p class="font-black">{{ item.status }}</p>
+                <p class="font-black">{{ formatSystemLabel(item.status) }}</p>
                 <p class="mt-1 text-xs font-bold text-ink/55">
                   {{ item.actorName || 'Система' }} · {{ formatDateTime(item.createdAt) }}
                 </p>

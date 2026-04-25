@@ -3,16 +3,13 @@ import { computed, onMounted, type Component } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
   ArrowRight,
-  BadgeCheck,
   Bell,
   BriefcaseBusiness,
   CheckCircle2,
   ClipboardList,
-  Flag,
   Gauge,
   MessageCircle,
   Plus,
-  ShieldCheck,
   Sparkles,
   Trophy,
   UserRound,
@@ -34,7 +31,7 @@ const profile = useProfileStore();
 type HubLink = {
   to: string;
   title: string;
-  label: string;
+  label?: string;
   text: string;
   icon: Component;
   tone: 'dark' | 'light' | 'ember' | 'moss' | 'bolt';
@@ -54,6 +51,14 @@ const roleTitle = computed(() => {
   };
 
   return auth.user ? (map[auth.user.role] ?? 'Пользователь') : 'Пользователь';
+});
+
+const heroTitle = computed(() => {
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
+    return 'Центр операций';
+  }
+
+  return 'Центр Fastik';
 });
 
 const profilePercent = computed(() => profile.summary?.progress.percentage ?? 0);
@@ -89,7 +94,7 @@ const primaryAction = computed(() => {
   }
 
   if (auth.user?.role === 'performer') {
-    return { to: '/level-roadmap', label: 'Открыть LVL-roadmap', icon: Trophy };
+    return { to: '/level-roadmap', label: 'Открыть LVL', icon: Trophy };
   }
 
   return { to: '/jobs', label: 'Открыть биржу', icon: BriefcaseBusiness };
@@ -179,7 +184,6 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/jobs',
       title: 'Биржа',
-      label: 'поиск',
       text: 'Список заказов, фильтры, отклики и публикация задач.',
       icon: BriefcaseBusiness,
       tone: 'dark',
@@ -187,7 +191,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/orders',
       title: 'Заказы',
-      label: `${activeOrders.value.length} акт.`,
+      label: activeOrders.value.length ? `${activeOrders.value.length} акт.` : undefined,
       text: 'Статусы, сдача результата, приемка, отмена и спор.',
       icon: ClipboardList,
       tone: 'ember',
@@ -195,7 +199,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/messages',
       title: 'Чат',
-      label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : 'нет',
+      label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : undefined,
       text: 'Рабочие диалоги появляются после выбора исполнителя.',
       icon: MessageCircle,
       tone: 'bolt',
@@ -203,7 +207,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/finance',
       title: 'Финансы',
-      label: escrowAmount.value ? formatAmount(escrowAmount.value) : 'гарант',
+      label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
       text: 'Мок-кошелек, пополнение, удержания гаранта и транзакции.',
       icon: WalletCards,
       tone: 'moss',
@@ -213,7 +217,7 @@ const hubLinks = computed<HubLink[]>(() => {
       title: 'События',
       label: communication.unreadNotifications
         ? `${communication.unreadNotifications} нов.`
-        : 'нет',
+        : undefined,
       text: 'Отклики, сообщения, статусы заказов и изменения уровня.',
       icon: Bell,
       tone: 'light',
@@ -269,8 +273,8 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <section class="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-        <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
+      <section class="grid min-w-0 gap-5 lg:grid-cols-[0.78fr_1.22fr]">
+        <aside class="min-w-0 rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
           <div class="flex items-start justify-between gap-4">
             <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
               <Gauge :size="28" />
@@ -285,17 +289,20 @@ onMounted(() => {
           <p class="mt-7 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
             Центр управления
           </p>
-          <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-            {{ auth.user?.displayName }}
+          <h1
+            class="mt-3 break-words text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
+          >
+            {{ heroTitle }}
           </h1>
+          <p class="mt-2 text-sm font-black text-paper/48">{{ auth.user?.displayName }}</p>
           <p class="mt-5 text-sm font-semibold leading-6 text-paper/68">{{ heroText }}</p>
 
           <RouterLink
-            class="mt-7 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
+            class="mt-7 inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
             :to="primaryAction.to"
           >
             <component :is="primaryAction.icon" :size="18" />
-            {{ primaryAction.label }}
+            <span class="truncate">{{ primaryAction.label }}</span>
           </RouterLink>
 
           <div class="mt-5 grid grid-cols-2 gap-3">
@@ -310,14 +317,16 @@ onMounted(() => {
           </div>
         </aside>
 
-        <section class="grid gap-4">
-          <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+        <section class="grid min-w-0 gap-4">
+          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">
                   Что делать дальше
                 </p>
-                <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">Сценарий без поиска</h2>
+                <h2 class="mt-2 text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+                  Сценарий без поиска
+                </h2>
               </div>
               <span
                 class="inline-flex items-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black"
@@ -351,71 +360,48 @@ onMounted(() => {
             </div>
           </article>
 
-          <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <RouterLink
-              v-for="link in hubLinks"
-              :key="link.to"
-              class="group rounded-[1.35rem] border border-ink p-4 transition hover:-translate-y-0.5 sm:p-5"
-              :class="[
-                link.tone === 'dark'
-                  ? 'bg-ink text-paper hover:bg-bolt'
-                  : link.tone === 'ember'
-                    ? 'bg-ember text-paper hover:bg-bolt'
-                    : link.tone === 'moss'
-                      ? 'bg-moss text-paper hover:bg-ink'
-                      : 'bg-[#fffaf0] text-ink hover:bg-white',
-              ]"
-              :to="link.to"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <component :is="link.icon" :size="25" />
-                <span
-                  class="max-w-28 truncate rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.12em]"
-                  :class="
-                    link.tone === 'light' ? 'border-line bg-paper text-ink/65' : 'border-paper/30'
-                  "
-                >
-                  {{ link.label }}
-                </span>
+          <section class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:p-5">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Разделы</p>
+                <h2 class="mt-1 text-2xl font-black tracking-[-0.05em]">Куда перейти</h2>
               </div>
-              <h3 class="mt-4 text-xl font-black tracking-[-0.05em]">{{ link.title }}</h3>
-              <p
-                class="mt-2 text-sm font-semibold leading-5"
-                :class="link.tone === 'light' ? 'text-ink/68' : 'text-paper/72'"
-              >
-                {{ link.text }}
-              </p>
-              <span class="mt-4 inline-flex items-center gap-2 text-sm font-black">
-                Открыть
-                <ArrowRight :size="16" class="transition group-hover:translate-x-1" />
+              <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
+                {{ hubLinks.length }}
               </span>
-            </RouterLink>
+            </div>
+
+            <div class="mt-4 grid gap-2">
+              <RouterLink
+                v-for="link in hubLinks"
+                :key="link.to"
+                class="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-3 transition hover:-translate-y-0.5 hover:border-ink hover:bg-white"
+                :to="link.to"
+              >
+                <span
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-line bg-[#fffaf0]"
+                >
+                  <component :is="link.icon" :size="22" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block font-black tracking-[-0.03em]">{{ link.title }}</span>
+                  <span class="mt-1 block truncate text-sm font-semibold text-ink/60">
+                    {{ link.text }}
+                  </span>
+                </span>
+                <span class="flex shrink-0 items-center gap-2">
+                  <span
+                    v-if="link.label"
+                    class="max-w-24 truncate rounded-full border border-line bg-[#fffaf0] px-3 py-1 text-xs font-black uppercase tracking-[0.08em] text-ink/62"
+                  >
+                    {{ link.label }}
+                  </span>
+                  <ArrowRight :size="16" class="transition group-hover:translate-x-1" />
+                </span>
+              </RouterLink>
+            </div>
           </section>
         </section>
-      </section>
-
-      <section class="mt-5 grid gap-4 border-t border-ink pt-5 md:grid-cols-3">
-        <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
-          <ShieldCheck class="mb-3 text-moss" :size="24" />
-          <p class="font-black">Гарант</p>
-          <p class="mt-2 text-sm leading-6 text-ink/68">
-            Деньги моковые, но lifecycle похож на реальную платформу: hold, release, refund.
-          </p>
-        </article>
-        <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
-          <Flag class="mb-3 text-ember" :size="24" />
-          <p class="font-black">Споры</p>
-          <p class="mt-2 text-sm leading-6 text-ink/68">
-            Спор можно открыть в заказе; админское решение станет следующим блоком.
-          </p>
-        </article>
-        <article class="rounded-2xl border border-ink bg-[#fffaf0] p-5">
-          <BadgeCheck class="mb-3 text-bolt" :size="24" />
-          <p class="font-black">Проверки</p>
-          <p class="mt-2 text-sm leading-6 text-ink/68">
-            Роли и доступы уже есть, интерфейсы support/moderator/admin добавим отдельно.
-          </p>
-        </article>
       </section>
     </section>
   </main>
