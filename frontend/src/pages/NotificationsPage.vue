@@ -1,17 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Bell, CheckCheck, Loader2, Radio } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDate } from '../lib/format';
+import { formatDateTime } from '../lib/format';
 import type { NotificationListItem } from '../lib/api';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
 const router = useRouter();
+const page = ref(1);
+const pageSize = 10;
 
 const unread = computed(() => communication.notifications.filter((item) => !item.readAt));
+const visibleNotifications = computed(() =>
+  communication.notifications.slice(0, page.value * pageSize),
+);
+const hasMoreNotifications = computed(
+  () => visibleNotifications.value.length < communication.notifications.length,
+);
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -57,7 +65,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-5xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <section class="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
@@ -93,7 +101,7 @@ onMounted(() => {
           </div>
 
           <button
-            v-for="notification in communication.notifications"
+            v-for="notification in visibleNotifications"
             :key="notification.id"
             class="block w-full rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 text-left transition hover:-translate-y-1 hover:bg-white"
             :class="!notification.readAt ? 'shadow-cut' : ''"
@@ -106,7 +114,7 @@ onMounted(() => {
                   class="flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-ink/55"
                 >
                   <Radio v-if="!notification.readAt" :size="14" class="text-ember" />
-                  {{ notification.type }} · {{ formatDate(notification.createdAt) }}
+                  {{ notification.type }} · {{ formatDateTime(notification.createdAt) }}
                 </p>
                 <h2 class="mt-3 text-2xl font-black tracking-[-0.05em]">
                   {{ notification.title }}
@@ -118,7 +126,7 @@ onMounted(() => {
               <span
                 class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.14em]"
               >
-                {{ notification.readAt ? 'read' : 'new' }}
+                {{ notification.readAt ? 'прочитано' : 'новое' }}
               </span>
             </div>
           </button>
@@ -129,6 +137,15 @@ onMounted(() => {
           >
             Уведомлений пока нет
           </p>
+
+          <button
+            v-if="hasMoreNotifications"
+            class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+            type="button"
+            @click="page += 1"
+          >
+            Показать еще уведомления
+          </button>
         </section>
       </section>
     </section>

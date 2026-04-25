@@ -35,3 +35,30 @@ a {
   color: #f7f2e8;
   background: #171717;
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  main > section {
+    animation: fastik-page-in 220ms ease-out both;
+  }
+
+  a,
+  button,
+  input,
+  select,
+  textarea {
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+
+@keyframes fastik-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

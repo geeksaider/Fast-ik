@@ -67,20 +67,12 @@ const primaryLinks = computed<NavigationItem[]>(() => {
 
   return [
     { to: '/dashboard', label: 'Центр', icon: Gauge },
-    { to: '/onboarding', label: 'Профиль', icon: UserRound },
     { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
     { to: '/orders', label: 'Заказы', icon: ClipboardList },
     { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
-    {
-      to: '/notifications',
-      label: 'События',
-      icon: Bell,
-      badge: communication.unreadNotifications,
-    },
-    { to: '/finance', label: 'Финансы', icon: WalletCards },
-    ...(auth.user?.role === 'performer'
-      ? [{ to: '/level-roadmap', label: 'LVL', icon: Trophy }]
-      : []),
+    auth.user?.role === 'performer'
+      ? { to: '/level-roadmap', label: 'LVL', icon: Trophy }
+      : { to: '/onboarding', label: 'Профиль', icon: UserRound },
   ];
 });
 
@@ -111,8 +103,14 @@ const routeMatches = (target: string) => {
     return route.path === '/';
   }
 
+  if (target === '/jobs') {
+    return route.name === 'jobs' || route.name === 'jobs-detail';
+  }
+
   return route.path === target || route.path.startsWith(`${target}/`);
 };
+
+const createJobActive = computed(() => route.name === 'jobs-new');
 
 const syncCounters = async () => {
   if (!auth.accessToken) {
@@ -149,7 +147,7 @@ onMounted(() => {
     aria-label="Основная навигация"
   >
     <div
-      class="mx-auto flex max-w-6xl flex-col gap-3 rounded-[1.35rem] border border-ink bg-paper/95 p-2.5 backdrop-blur md:flex-row md:items-center md:justify-between md:rounded-[2rem] md:p-4"
+      class="mx-auto flex max-w-[1044px] flex-col gap-3 rounded-[1.35rem] border border-ink bg-paper/95 p-2.5 backdrop-blur md:flex-row md:items-center md:justify-between md:rounded-[2rem] md:p-4"
     >
       <div class="flex items-center justify-between gap-3">
         <RouterLink class="flex items-center gap-3" :to="logoTarget">
@@ -199,7 +197,7 @@ onMounted(() => {
         <RouterLink
           v-for="item in primaryLinks"
           :key="item.to"
-          class="relative inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-black transition"
+          class="relative inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-black transition duration-200 ease-out"
           :class="
             routeMatches(item.to)
               ? 'border-ink bg-ink text-paper'
@@ -220,8 +218,33 @@ onMounted(() => {
 
       <div class="hidden items-center gap-2 md:flex">
         <RouterLink
+          v-if="auth.isAuthenticated"
+          class="relative grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
+          :class="routeMatches('/notifications') ? 'bg-ink text-paper hover:bg-ink' : ''"
+          to="/notifications"
+          aria-label="Уведомления"
+        >
+          <Bell :size="17" />
+          <span
+            v-if="communication.unreadNotifications"
+            class="absolute -right-1 -top-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
+          >
+            {{ communication.unreadNotifications }}
+          </span>
+        </RouterLink>
+        <RouterLink
+          v-if="auth.isAuthenticated"
+          class="grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
+          :class="routeMatches('/finance') ? 'bg-ink text-paper hover:bg-ink' : ''"
+          to="/finance"
+          aria-label="Финансы"
+        >
+          <WalletCards :size="17" />
+        </RouterLink>
+        <RouterLink
           v-if="canCreateJob"
-          class="inline-flex items-center gap-2 rounded-full border border-ink bg-ember px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
+          class="inline-flex items-center gap-2 rounded-full border border-ink px-4 py-2 text-sm font-black transition duration-200 ease-out hover:bg-bolt"
+          :class="createJobActive ? 'bg-ink text-paper' : 'bg-ember text-paper'"
           to="/jobs/new"
         >
           <Plus :size="16" />
@@ -245,12 +268,12 @@ onMounted(() => {
         </RouterLink>
         <button
           v-if="auth.isAuthenticated"
-          class="inline-flex items-center gap-2 rounded-full border border-ink bg-[#fffaf0] px-4 py-2 text-sm font-black transition hover:bg-ink hover:text-paper"
+          class="grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-ink hover:text-paper"
           type="button"
+          aria-label="Выйти"
           @click="logout"
         >
           <LogOut :size="16" />
-          Выйти
         </button>
       </div>
     </div>

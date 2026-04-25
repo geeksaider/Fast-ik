@@ -179,7 +179,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/jobs',
       title: 'Биржа',
-      label: 'market',
+      label: 'поиск',
       text: 'Список заказов, фильтры, отклики и публикация задач.',
       icon: BriefcaseBusiness,
       tone: 'dark',
@@ -187,7 +187,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/orders',
       title: 'Заказы',
-      label: `${activeOrders.value.length} активных`,
+      label: `${activeOrders.value.length} акт.`,
       text: 'Статусы, сдача результата, приемка, отмена и спор.',
       icon: ClipboardList,
       tone: 'ember',
@@ -195,7 +195,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/messages',
       title: 'Чат',
-      label: `${communication.unreadMessages} новых`,
+      label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : 'нет',
       text: 'Рабочие диалоги появляются после выбора исполнителя.',
       icon: MessageCircle,
       tone: 'bolt',
@@ -203,7 +203,7 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/finance',
       title: 'Финансы',
-      label: formatAmount(escrowAmount.value),
+      label: escrowAmount.value ? formatAmount(escrowAmount.value) : 'гарант',
       text: 'Мок-кошелек, пополнение, удержания гаранта и транзакции.',
       icon: WalletCards,
       tone: 'moss',
@@ -211,7 +211,9 @@ const hubLinks = computed<HubLink[]>(() => {
     {
       to: '/notifications',
       title: 'События',
-      label: `${communication.unreadNotifications} новых`,
+      label: communication.unreadNotifications
+        ? `${communication.unreadNotifications} нов.`
+        : 'нет',
       text: 'Отклики, сообщения, статусы заказов и изменения уровня.',
       icon: Bell,
       tone: 'light',
@@ -265,7 +267,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <section class="grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
@@ -353,7 +355,7 @@ onMounted(() => {
             <RouterLink
               v-for="link in hubLinks"
               :key="link.to"
-              class="group rounded-[1.35rem] border border-ink p-5 transition hover:-translate-y-1"
+              class="group rounded-[1.35rem] border border-ink p-4 transition hover:-translate-y-0.5 sm:p-5"
               :class="[
                 link.tone === 'dark'
                   ? 'bg-ink text-paper hover:bg-bolt'
@@ -366,9 +368,9 @@ onMounted(() => {
               :to="link.to"
             >
               <div class="flex items-start justify-between gap-4">
-                <component :is="link.icon" :size="28" />
+                <component :is="link.icon" :size="25" />
                 <span
-                  class="rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.14em]"
+                  class="max-w-28 truncate rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.12em]"
                   :class="
                     link.tone === 'light' ? 'border-line bg-paper text-ink/65' : 'border-paper/30'
                   "
@@ -376,14 +378,14 @@ onMounted(() => {
                   {{ link.label }}
                 </span>
               </div>
-              <h3 class="mt-5 text-2xl font-black tracking-[-0.05em]">{{ link.title }}</h3>
+              <h3 class="mt-4 text-xl font-black tracking-[-0.05em]">{{ link.title }}</h3>
               <p
-                class="mt-3 text-sm font-semibold leading-6"
+                class="mt-2 text-sm font-semibold leading-5"
                 :class="link.tone === 'light' ? 'text-ink/68' : 'text-paper/72'"
               >
                 {{ link.text }}
               </p>
-              <span class="mt-5 inline-flex items-center gap-2 text-sm font-black">
+              <span class="mt-4 inline-flex items-center gap-2 text-sm font-black">
                 Открыть
                 <ArrowRight :size="16" class="transition group-hover:translate-x-1" />
               </span>

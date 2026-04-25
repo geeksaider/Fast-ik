@@ -4,7 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, BriefcaseBusiness, Loader2, Send, ShieldCheck } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDate } from '../lib/format';
+import { formatDateTime } from '../lib/format';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
@@ -46,7 +46,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-5xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <header
         class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
@@ -115,7 +115,7 @@ onMounted(() => {
                 ]"
               >
                 <p class="text-xs font-black uppercase tracking-[0.14em] opacity-60">
-                  {{ message.senderName }} · {{ formatDate(message.createdAt) }}
+                  {{ message.senderName }} · {{ formatDateTime(message.createdAt) }}
                 </p>
                 <p class="mt-2 whitespace-pre-line text-sm font-semibold leading-6">
                   {{ message.body }}

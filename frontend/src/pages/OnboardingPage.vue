@@ -203,9 +203,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
+  <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <div v-if="profile.isLoading" class="grid min-h-[420px] place-items-center">
         <div
@@ -216,9 +216,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-else class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+      <div v-else class="grid gap-4 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
         <aside class="space-y-5">
-          <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
+          <section class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
             <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Roadmap</p>
             <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
               {{ progress?.percentage ?? 0 }}% готовности
@@ -245,7 +245,7 @@ onMounted(() => {
             </RouterLink>
           </section>
 
-          <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5">
+          <section class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5">
             <h2 class="flex items-center gap-2 text-xl font-black tracking-[-0.04em]">
               <Trophy :size="24" class="text-ember" />
               Шаги
@@ -281,7 +281,7 @@ onMounted(() => {
 
         <section class="space-y-5">
           <form
-            class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+            class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
             @submit.prevent="saveProfile"
           >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -420,7 +420,7 @@ onMounted(() => {
 
           <section
             v-if="isPerformer"
-            class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+            class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
           >
             <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -490,7 +490,7 @@ onMounted(() => {
 
           <section
             v-if="isPerformer"
-            class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6"
+            class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6"
           >
             <div class="flex items-start gap-3">
               <FolderKanban :size="28" class="text-ember" />

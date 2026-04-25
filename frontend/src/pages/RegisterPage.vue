@@ -32,7 +32,7 @@ const submit = async () => {
 <template>
   <main class="min-h-screen px-4 py-6 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto grid max-w-5xl gap-5 rounded-[2rem] border border-ink bg-paper/95 p-4 md:grid-cols-[0.92fr_1.08fr] md:p-6"
+      class="mx-auto grid max-w-[1044px] gap-5 rounded-[2rem] border border-ink bg-paper/95 p-4 md:grid-cols-[0.92fr_1.08fr] md:p-6"
     >
       <aside class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-6 md:p-8">
         <RouterLink

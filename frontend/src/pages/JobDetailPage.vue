@@ -89,7 +89,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <header class="border-b border-ink pb-5">
         <RouterLink

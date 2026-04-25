@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Loader2, Plus, WalletCards } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useFinanceStore } from '../stores/finance';
-import { formatAmount, formatDate } from '../lib/format';
+import { formatAmount, formatDateTime } from '../lib/format';
 
 const auth = useAuthStore();
 const finance = useFinanceStore();
 const router = useRouter();
+const page = ref(1);
+const pageSize = 10;
 
 const form = reactive({ amount: 150000 });
+const visibleTransactions = computed(() => finance.transactions.slice(0, page.value * pageSize));
+const hasMoreTransactions = computed(
+  () => visibleTransactions.value.length < finance.transactions.length,
+);
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -19,6 +25,7 @@ const load = async () => {
   }
 
   await finance.load(auth.accessToken);
+  page.value = 1;
 };
 
 const topUp = async () => {
@@ -37,7 +44,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-5xl rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
+      class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <div v-if="finance.isLoading" class="grid min-h-[420px] place-items-center">
         <span
@@ -113,7 +120,7 @@ onMounted(() => {
           </div>
           <div class="mt-5 space-y-3">
             <article
-              v-for="transaction in finance.transactions"
+              v-for="transaction in visibleTransactions"
               :key="transaction.id"
               class="rounded-2xl border border-line bg-paper p-4"
             >
@@ -122,7 +129,7 @@ onMounted(() => {
                   <p class="font-black">{{ transaction.description }}</p>
                   <p class="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-ink/50">
                     {{ transaction.type }} · {{ transaction.direction }} ·
-                    {{ formatDate(transaction.createdAt) }}
+                    {{ formatDateTime(transaction.createdAt) }}
                   </p>
                 </div>
                 <p
@@ -139,6 +146,14 @@ onMounted(() => {
             >
               Транзакций пока нет. Пополните баланс или выберите исполнителя по заказу.
             </p>
+            <button
+              v-if="hasMoreTransactions"
+              class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+              type="button"
+              @click="page += 1"
+            >
+              Показать еще операции
+            </button>
           </div>
         </section>
       </section>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
 import { ArrowRight, BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
@@ -8,6 +8,8 @@ import { formatDate, formatMoney } from '../lib/format';
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
+const page = ref(1);
+const pageSize = 6;
 
 const filters = reactive({
   search: '',
@@ -20,8 +22,11 @@ const canCreateJob = computed(
     auth.user?.role === 'admin' ||
     auth.user?.role === 'super_admin',
 );
+const visibleJobs = computed(() => marketplace.jobs.slice(0, page.value * pageSize));
+const hasMoreJobs = computed(() => visibleJobs.value.length < marketplace.jobs.length);
 
 const load = async () => {
+  page.value = 1;
   await marketplace.loadCategories();
   await marketplace.loadJobs({
     search: filters.search || undefined,
@@ -37,7 +42,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-5xl rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
+      class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
@@ -121,7 +126,7 @@ onMounted(() => {
         </div>
 
         <article
-          v-for="job in marketplace.jobs"
+          v-for="job in visibleJobs"
           :key="job.id"
           class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 transition hover:-translate-y-0.5 hover:bg-white sm:p-6"
         >
@@ -139,11 +144,17 @@ onMounted(() => {
                 {{ job.description }}
               </p>
             </div>
-            <div class="shrink-0 rounded-2xl border border-line bg-paper px-4 py-3 text-right">
-              <p class="text-sm font-black text-bolt">
+            <div class="flex flex-wrap gap-2 sm:justify-end">
+              <span
+                class="rounded-full border border-line bg-paper px-3 py-1 text-sm font-black text-bolt"
+              >
                 {{ formatMoney(job.budgetMin, job.budgetMax) }}
-              </p>
-              <p class="mt-1 text-xs font-bold text-ink/55">{{ job.applicationsCount }} откликов</p>
+              </span>
+              <span
+                class="rounded-full border border-line bg-paper px-3 py-1 text-sm font-black text-ink/62"
+              >
+                {{ job.applicationsCount }} откликов
+              </span>
             </div>
           </div>
 
@@ -177,6 +188,15 @@ onMounted(() => {
             Попробуйте другой фильтр или создайте первый заказ.
           </p>
         </div>
+
+        <button
+          v-if="hasMoreJobs"
+          class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+          type="button"
+          @click="page += 1"
+        >
+          Показать еще заказы
+        </button>
       </section>
     </section>
   </main>

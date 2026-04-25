@@ -71,9 +71,12 @@ Core idea:
 - Use subtle, purposeful motion only.
 - Responsive design is required.
 - Mobile navigation should have one clear source of truth: compact top brand/actions plus bottom tab bar.
-- Desktop navigation should stay in the top shell without extra duplicated page headers.
+- Desktop navigation should stay in the top shell without extra duplicated page headers or too many text buttons.
 - Dashboard is the product hub and should explain where each core section lives.
 - Work pages should use dense hero blocks plus separate functional cards, so the first screen shows actionable content.
+- Outer content shells should use the shared 1044px width.
+- Lists should have simple front-end pagination or "show more" controls when they can grow long.
+- Dates should be rendered through format helpers, never as raw timestamps.
 - Dark theme is optional, not MVP-critical.
 
 ## Important Product Features

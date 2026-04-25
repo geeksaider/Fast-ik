@@ -14,7 +14,7 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useOrdersStore } from '../stores/orders';
-import { formatAmount, formatDate } from '../lib/format';
+import { formatAmount, formatDateTime } from '../lib/format';
 
 const auth = useAuthStore();
 const orders = useOrdersStore();
@@ -96,7 +96,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <header
         class="flex flex-col gap-4 border-b border-ink pb-5 md:flex-row md:items-center md:justify-between"
@@ -147,7 +147,7 @@ onMounted(() => {
             </h1>
             <p class="mt-5 text-sm font-semibold leading-6 text-ink/70">
               Заказчик: {{ order.customerName }} · Исполнитель: {{ order.performerName }} · Создан:
-              {{ formatDate(order.createdAt) }}
+              {{ formatDateTime(order.createdAt) }}
             </p>
           </article>
 
@@ -256,7 +256,7 @@ onMounted(() => {
               >
                 <p class="font-black">{{ item.status }}</p>
                 <p class="mt-1 text-xs font-bold text-ink/55">
-                  {{ item.actorName || 'Система' }} · {{ formatDate(item.createdAt) }}
+                  {{ item.actorName || 'Система' }} · {{ formatDateTime(item.createdAt) }}
                 </p>
                 <p v-if="item.note" class="mt-2 text-sm leading-5 text-ink/65">{{ item.note }}</p>
               </article>

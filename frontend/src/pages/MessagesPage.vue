@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import { ArrowRight, Inbox, Loader2, MessageCircle } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
-import { formatDate } from '../lib/format';
+import { formatDateTime } from '../lib/format';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
 const router = useRouter();
+const page = ref(1);
+const pageSize = 8;
 
 const unreadCount = computed(() => communication.unreadMessages);
+const visibleConversations = computed(() =>
+  communication.conversations.slice(0, page.value * pageSize),
+);
+const hasMoreConversations = computed(
+  () => visibleConversations.value.length < communication.conversations.length,
+);
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -29,7 +37,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
       <section class="grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
         <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
@@ -59,7 +67,7 @@ onMounted(() => {
           </div>
 
           <article
-            v-for="conversation in communication.conversations"
+            v-for="conversation in visibleConversations"
             :key="conversation.id"
             class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 transition hover:-translate-y-1 hover:bg-white sm:p-6"
           >
@@ -68,7 +76,9 @@ onMounted(() => {
                 <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
                   {{ conversation.type }} ·
                   {{
-                    conversation.lastMessageAt ? formatDate(conversation.lastMessageAt) : 'новый'
+                    conversation.lastMessageAt
+                      ? formatDateTime(conversation.lastMessageAt)
+                      : 'новый'
                   }}
                 </p>
                 <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
@@ -82,13 +92,12 @@ onMounted(() => {
                   <span v-else>Сообщений пока нет</span>
                 </p>
               </div>
-              <div
-                class="rounded-2xl border border-line bg-paper px-4 py-3 text-right"
+              <span
+                class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-ink/60"
                 :class="conversation.unreadCount ? 'border-ink bg-bolt text-paper' : ''"
               >
-                <p class="text-sm font-black">{{ conversation.unreadCount }}</p>
-                <p class="mt-1 text-xs font-bold opacity-70">unread</p>
-              </div>
+                {{ conversation.unreadCount ? `${conversation.unreadCount} новых` : 'нет новых' }}
+              </span>
             </div>
 
             <RouterLink
@@ -110,6 +119,15 @@ onMounted(() => {
               Выберите исполнителя по заказу, и Fastik автоматически создаст рабочий чат.
             </p>
           </div>
+
+          <button
+            v-if="hasMoreConversations"
+            class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+            type="button"
+            @click="page += 1"
+          >
+            Показать еще диалоги
+          </button>
         </section>
       </section>
     </section>

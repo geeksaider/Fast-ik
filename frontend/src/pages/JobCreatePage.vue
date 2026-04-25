@@ -50,34 +50,34 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
+  <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-4xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
-      <header class="border-b border-ink pb-5">
+      <header class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
         <RouterLink
           to="/jobs"
-          class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-ink/65 transition hover:text-ink"
+          class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-paper/65 transition hover:text-paper"
         >
           <ArrowLeft :size="16" />
           К заказам
         </RouterLink>
-        <div class="mt-8 flex items-start gap-4">
-          <span
-            class="grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-ink bg-ink text-paper"
-          >
+        <div class="mt-6 flex items-start gap-4">
+          <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-paper text-ink">
             <BriefcaseBusiness :size="28" />
           </span>
           <div>
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">Новый заказ</p>
-            <h1 class="mt-2 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
+            <p class="text-xs font-black uppercase tracking-[0.22em] text-paper/55">Новый заказ</p>
+            <h1
+              class="mt-2 max-w-3xl text-[2.35rem] font-black leading-[0.94] tracking-[-0.07em] sm:text-5xl"
+            >
               Опишите задачу так, чтобы сильный исполнитель понял темп.
             </h1>
           </div>
         </div>
       </header>
 
-      <form class="mt-7 space-y-5" @submit.prevent="submit">
+      <form class="mt-4 space-y-5" @submit.prevent="submit">
         <label class="block">
           <span class="mb-2 block text-sm font-black">Название</span>
           <input

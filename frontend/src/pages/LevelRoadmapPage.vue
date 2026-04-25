@@ -15,7 +15,7 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useLevelsStore } from '../stores/levels';
-import { formatDate } from '../lib/format';
+import { formatDateTime } from '../lib/format';
 import type { LevelRequirement } from '../lib/api';
 
 const auth = useAuthStore();
@@ -60,7 +60,7 @@ onMounted(() => {
 <template>
   <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-5xl rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
+      class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <div v-if="levels.isLoading" class="grid min-h-[420px] place-items-center">
         <span
@@ -261,7 +261,7 @@ onMounted(() => {
                       class="mt-2 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-ink/45"
                     >
                       <Clock3 :size="14" />
-                      {{ formatDate(event.createdAt) }} · {{ event.type }}
+                      {{ formatDateTime(event.createdAt) }} · {{ event.type }}
                     </p>
                   </div>
                   <p class="text-xl font-black" :class="event.xp >= 0 ? 'text-moss' : 'text-ember'">
