@@ -73,7 +73,7 @@ const heroText = computed(() => {
   }
 
   if (auth.user?.role === 'performer') {
-    return 'Главная петля исполнителя: профиль -> LVL-roadmap -> отклики -> заказ в работе -> сдача результата -> XP.';
+    return 'Главная петля исполнителя: профиль, LVL-roadmap, отклики, заказ в работе, сдача результата и рост XP.';
   }
 
   if (auth.user?.role && managerRoles.has(auth.user.role)) {

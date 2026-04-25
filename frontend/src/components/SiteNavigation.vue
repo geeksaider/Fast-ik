@@ -143,9 +143,13 @@ onMounted(() => {
 </script>
 
 <template>
-  <nav v-if="showNavigation" class="sticky top-0 z-40 px-3 pt-3 text-ink sm:px-5 lg:px-8">
+  <nav
+    v-if="showNavigation"
+    class="sticky top-0 z-40 px-3 pt-3 text-ink sm:px-5 lg:px-8"
+    aria-label="Основная навигация"
+  >
     <div
-      class="mx-auto flex max-w-6xl flex-col gap-3 rounded-[1.5rem] border border-ink bg-paper/95 p-3 backdrop-blur md:flex-row md:items-center md:justify-between"
+      class="mx-auto flex max-w-6xl flex-col gap-3 rounded-[1.35rem] border border-ink bg-paper/95 p-2.5 backdrop-blur md:flex-row md:items-center md:justify-between md:rounded-[2rem] md:p-4"
     >
       <div class="flex items-center justify-between gap-3">
         <RouterLink class="flex items-center gap-3" :to="logoTarget">
@@ -248,29 +252,6 @@ onMounted(() => {
           <LogOut :size="16" />
           Выйти
         </button>
-      </div>
-
-      <div class="flex gap-2 overflow-x-auto pb-1 md:hidden">
-        <RouterLink
-          v-for="item in primaryLinks"
-          :key="item.to"
-          class="relative inline-flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-sm font-black transition"
-          :class="
-            routeMatches(item.to)
-              ? 'border-ink bg-ink text-paper'
-              : 'border-line bg-[#fffaf0] text-ink/72'
-          "
-          :to="item.to"
-        >
-          <component :is="item.icon" :size="16" />
-          {{ item.label }}
-          <span
-            v-if="item.badge"
-            class="ml-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
-          >
-            {{ item.badge }}
-          </span>
-        </RouterLink>
       </div>
     </div>
   </nav>

@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: RPG level roadmap implementation.
+Stage: Navigation and UX polish.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, and a performer RPG roadmap with XP events.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, a performer RPG roadmap with XP events, and a global navigation shell.
 
 Development can run in two modes:
 
@@ -70,6 +70,9 @@ Core idea:
 - Avoid overloaded animations.
 - Use subtle, purposeful motion only.
 - Responsive design is required.
+- Mobile navigation should have one clear source of truth: compact top brand/actions plus bottom tab bar.
+- Desktop navigation should stay in the top shell without extra duplicated page headers.
+- Dashboard is the product hub and should explain where each core section lives.
 - Dark theme is optional, not MVP-critical.
 
 ## Important Product Features
@@ -103,7 +106,7 @@ Core idea:
 
 ## Current Next Block
 
-After the RPG roadmap is verified, the next implementation block should be admin/moderation or reviews:
+After the navigation polish is verified, the next implementation block should be admin/moderation or reviews:
 
 - admin/support views for disputes and moderation;
 - reviews and rating events after completed orders;
