@@ -73,6 +73,7 @@ Core idea:
 - Mobile navigation should have one clear source of truth: compact top brand/actions plus bottom tab bar.
 - Desktop navigation should stay in the top shell without extra duplicated page headers.
 - Dashboard is the product hub and should explain where each core section lives.
+- Work pages should use dense hero blocks plus separate functional cards, so the first screen shows actionable content.
 - Dark theme is optional, not MVP-critical.
 
 ## Important Product Features

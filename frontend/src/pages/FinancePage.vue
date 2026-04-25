@@ -35,9 +35,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
+  <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-5xl rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <div v-if="finance.isLoading" class="grid min-h-[420px] place-items-center">
         <span
@@ -48,50 +48,70 @@ onMounted(() => {
         </span>
       </div>
 
-      <section v-else class="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
-        <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <WalletCards class="text-ember" :size="34" />
-          <p class="mt-6 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
-            Mock wallet
-          </p>
-          <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-            Финансы без реальных платежей.
-          </h1>
-          <div class="mt-7 grid gap-3">
-            <div class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-              <p class="text-sm font-bold text-paper/55">Доступно</p>
+      <section v-else class="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        <aside class="space-y-4">
+          <section class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
+            <div class="flex items-start justify-between gap-4">
+              <WalletCards class="text-ember" :size="32" />
+              <span
+                class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
+              >
+                Mock
+              </span>
+            </div>
+            <p class="mt-5 text-xs font-black uppercase tracking-[0.24em] text-paper/55">Wallet</p>
+            <h1
+              class="mt-3 text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
+            >
+              Финансы без реальных платежей.
+            </h1>
+          </section>
+
+          <section class="grid gap-3 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:p-5">
+            <div class="rounded-2xl border border-line bg-paper p-4">
+              <p class="text-sm font-bold text-ink/55">Доступно</p>
               <p class="mt-1 text-3xl font-black">
                 {{ formatAmount(finance.wallet?.availableBalance ?? 0) }}
               </p>
             </div>
-            <div class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-              <p class="text-sm font-bold text-paper/55">В гаранте</p>
+            <div class="rounded-2xl border border-line bg-paper p-4">
+              <p class="text-sm font-bold text-ink/55">В гаранте</p>
               <p class="mt-1 text-3xl font-black">
                 {{ formatAmount(finance.wallet?.heldBalance ?? 0) }}
               </p>
             </div>
-          </div>
 
-          <form class="mt-5 space-y-3" @submit.prevent="topUp">
-            <input
-              v-model.number="form.amount"
-              class="w-full rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
-              type="number"
-              min="100"
-            />
-            <button
-              class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-              type="submit"
-            >
-              <Plus :size="18" />
-              Моково пополнить
-            </button>
-          </form>
+            <form class="space-y-3" @submit.prevent="topUp">
+              <input
+                v-model.number="form.amount"
+                class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold text-ink outline-none focus:border-ink"
+                type="number"
+                min="100"
+              />
+              <button
+                class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
+                type="submit"
+              >
+                <Plus :size="18" />
+                Моково пополнить
+              </button>
+            </form>
+          </section>
         </aside>
 
-        <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-          <h2 class="text-4xl font-black tracking-[-0.06em]">История транзакций</h2>
-          <div class="mt-6 space-y-3">
+        <section class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">
+                Движение средств
+              </p>
+              <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">История транзакций</h2>
+            </div>
+            <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
+              {{ finance.transactions.length }} операций
+            </span>
+          </div>
+          <div class="mt-5 space-y-3">
             <article
               v-for="transaction in finance.transactions"
               :key="transaction.id"

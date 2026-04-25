@@ -58,9 +58,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen px-4 py-5 text-ink sm:px-6 lg:px-8">
+  <main class="min-h-screen px-4 py-4 text-ink sm:px-6 lg:px-8">
     <section
-      class="mx-auto max-w-6xl rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
+      class="mx-auto max-w-5xl rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
       <div v-if="levels.isLoading" class="grid min-h-[420px] place-items-center">
         <span
@@ -71,12 +71,32 @@ onMounted(() => {
         </span>
       </div>
 
+      <section
+        v-else-if="levels.error"
+        class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-6"
+      >
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-ember">Roadmap недоступен</p>
+        <h1 class="mt-3 text-4xl font-black tracking-[-0.06em]">
+          Не получилось открыть дорогу к славе.
+        </h1>
+        <p class="mt-3 max-w-xl text-sm font-semibold leading-6 text-ink/65">
+          {{ levels.error }}
+        </p>
+        <RouterLink
+          class="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+          to="/dashboard"
+        >
+          Вернуться в центр
+          <ArrowRight :size="18" />
+        </RouterLink>
+      </section>
+
       <section v-else-if="summary && currentLevel">
-        <div class="grid gap-5 lg:grid-cols-[0.75fr_1.25fr]">
-          <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
+        <div class="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+          <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
             <div class="flex items-start justify-between gap-4">
-              <div class="grid h-16 w-16 place-items-center rounded-2xl bg-paper text-ink">
-                <Trophy :size="32" />
+              <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
+                <Trophy :size="28" />
               </div>
               <span
                 class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
@@ -85,19 +105,21 @@ onMounted(() => {
               </span>
             </div>
 
-            <p class="mt-7 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
+            <p class="mt-5 text-xs font-black uppercase tracking-[0.24em] text-paper/55">
               Текущий уровень
             </p>
-            <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
+            <h1
+              class="mt-3 text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
+            >
               {{ currentLevel.title }}
             </h1>
-            <p class="mt-5 text-sm font-semibold leading-6 text-paper/68">
+            <p class="mt-4 text-sm font-semibold leading-6 text-paper/68">
               {{ currentLevel.description }}
             </p>
 
-            <div class="mt-7 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
+            <div class="mt-5 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
               <p class="text-sm font-bold text-paper/55">Всего опыта</p>
-              <p class="mt-1 text-4xl font-black">{{ summary.progress.xp }} XP</p>
+              <p class="mt-1 text-3xl font-black">{{ summary.progress.xp }} XP</p>
             </div>
 
             <div
@@ -123,7 +145,7 @@ onMounted(() => {
               XP уже достаточно для Elite-зоны. Последний замок: онлайн-интервью с HR Fastik.
             </p>
             <RouterLink
-              class="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-ember hover:text-paper"
+              class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-ember hover:text-paper"
               to="/jobs"
             >
               Найти заказ для XP
@@ -132,9 +154,9 @@ onMounted(() => {
           </aside>
 
           <section class="space-y-5">
-            <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-              <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">Roadmap</p>
-              <h2 class="mt-3 text-4xl font-black tracking-[-0.06em]">Дорога к славе</h2>
+            <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Roadmap</p>
+              <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">Дорога к славе</h2>
               <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-ink/68">
                 Уровень растет не от пустой галочки, а от действий: профиль, отклики, выбранные
                 заявки, сдача результата и завершенные заказы.
@@ -145,7 +167,7 @@ onMounted(() => {
               <article
                 v-for="level in summary.roadmap"
                 :key="level.code"
-                class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5"
+                class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5"
                 :class="level.status === 'current' ? 'shadow-cut' : ''"
               >
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -198,9 +220,9 @@ onMounted(() => {
           </section>
         </div>
 
-        <section class="mt-5 grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
-          <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">Метрики</p>
+        <section class="mt-4 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Метрики</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
               <div
                 v-for="metric in summary.metrics"
@@ -218,8 +240,8 @@ onMounted(() => {
             </div>
           </article>
 
-          <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">Журнал XP</p>
+          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Журнал XP</p>
             <div class="mt-4 space-y-3">
               <div
                 v-for="event in summary.events"
@@ -257,13 +279,6 @@ onMounted(() => {
           </article>
         </section>
       </section>
-
-      <p
-        v-if="levels.error"
-        class="rounded-2xl border border-ember bg-ember/10 px-4 py-3 text-sm font-bold text-ember"
-      >
-        {{ levels.error }}
-      </p>
     </section>
   </main>
 </template>
