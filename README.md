@@ -100,7 +100,10 @@ npm run docker:dev:down
 ```text
 customer@fastik.local / Fastik123!
 performer@fastik.local / Fastik123!
+support@fastik.local / Fastik123!
+moderator@fastik.local / Fastik123!
 admin@fastik.local / Fastik123!
+superadmin@fastik.local / Fastik123!
 ```
 
 ## Проверки
@@ -141,3 +144,5 @@ npm run format:check
 - XP начисляется за отклик, выбранную заявку, сдачу работы и завершенный заказ.
 - страница `/level-roadmap`.
 - Swagger-раздел Levels.
+- базовая админка `/admin`: сводка, споры, модерация заказов, пользователи и audit-log.
+- Swagger-раздел Admin.

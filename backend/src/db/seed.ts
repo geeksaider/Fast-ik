@@ -82,7 +82,10 @@ const levels = [
 const demoUsers = [
   ['customer@fastik.local', 'Антон Заказчик', 'customer'],
   ['performer@fastik.local', 'Мария Исполнитель', 'performer'],
+  ['support@fastik.local', 'Fastik Support', 'support'],
+  ['moderator@fastik.local', 'Fastik Moderator', 'moderator'],
   ['admin@fastik.local', 'Fastik Admin', 'admin'],
+  ['superadmin@fastik.local', 'Fastik Super Admin', 'super_admin'],
 ];
 
 const demoJobs = [
@@ -94,6 +97,7 @@ const demoJobs = [
     budgetMin: 45_000,
     budgetMax: 90_000,
     tags: ['vue', 'tailwind', 'landing'],
+    moderationStatus: 'approved',
   },
   {
     title: 'Разработать дизайн личного кабинета',
@@ -103,6 +107,7 @@ const demoJobs = [
     budgetMin: 70_000,
     budgetMax: 140_000,
     tags: ['ui-ux', 'figma', 'dashboard'],
+    moderationStatus: 'approved',
   },
   {
     title: 'Настроить PostgreSQL и Docker для MVP',
@@ -112,6 +117,17 @@ const demoJobs = [
     budgetMin: 30_000,
     budgetMax: 60_000,
     tags: ['docker', 'postgresql', 'backend'],
+    moderationStatus: 'approved',
+  },
+  {
+    title: 'Проверить мобильный UX кабинета',
+    description:
+      'Нужна аккуратная проверка адаптива, навигации и читаемости карточек. Заказ специально оставлен в очереди модерации для demo admin flow.',
+    categorySlug: 'qa',
+    budgetMin: 18_000,
+    budgetMax: 35_000,
+    tags: ['qa', 'mobile', 'ux'],
+    moderationStatus: 'pending',
   },
 ];
 
@@ -204,7 +220,10 @@ const run = async () => {
   const demoWallets = [
     ['customer@fastik.local', 750_000],
     ['performer@fastik.local', 80_000],
+    ['support@fastik.local', 0],
+    ['moderator@fastik.local', 0],
     ['admin@fastik.local', 0],
+    ['superadmin@fastik.local', 0],
   ];
 
   for (const wallet of demoWallets) {
@@ -230,16 +249,23 @@ const run = async () => {
          status,
          moderation_status
        )
-       select customer.id, categories.id, $1, $2, $3, $4, 'published', 'approved'
+       select customer.id, categories.id, $1, $2, $3, $4, 'published', $6
        from users customer
        join categories on categories.slug = $5
        where customer.email = 'customer@fastik.local'
          and not exists (
            select 1 from jobs existing
            where existing.customer_id = customer.id and existing.title = $1
-         )
+       )
        returning id`,
-      [job.title, job.description, job.budgetMin, job.budgetMax, job.categorySlug],
+      [
+        job.title,
+        job.description,
+        job.budgetMin,
+        job.budgetMax,
+        job.categorySlug,
+        job.moderationStatus,
+      ],
     );
     const jobId = jobResult.rows[0]?.id;
 

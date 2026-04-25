@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { env } from '../config/env.js';
 import { openApiSpec } from '../docs/openapi.js';
 import { errorHandler } from './middlewares/error-handler.js';
+import { adminRouter } from '../modules/admin/admin.routes.js';
 import { authRouter } from '../modules/auth/auth.routes.js';
 import { communicationRouter } from '../modules/communication/communication.routes.js';
 import { financeRouter } from '../modules/finance/finance.routes.js';
@@ -33,6 +34,7 @@ export const createApp = () => {
 
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(openApiSpec));
   app.get('/openapi.json', (_request, response) => response.json(openApiSpec));
+  app.use('/api/admin', adminRouter);
   app.use('/api/auth', authRouter);
   app.use('/api', communicationRouter);
   app.use('/api/finance', financeRouter);

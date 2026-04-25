@@ -246,6 +246,8 @@
 
 ## Блок 8. Админка и модерация
 
+Статус: готово, базовый слой.
+
 Цель:
 
 - пользователи;
@@ -256,6 +258,30 @@
 - уровни;
 - категории;
 - audit log.
+
+Сделано:
+
+- миграция `admin_actions` для audit-log;
+- demo-аккаунты `support`, `moderator`, `admin`, `super_admin`;
+- `GET /api/admin/overview`;
+- `GET /api/admin/users`;
+- `PATCH /api/admin/users/:id/status`;
+- `GET /api/admin/disputes`;
+- `POST /api/admin/disputes/:id/resolve`;
+- `GET /api/admin/moderation/jobs`;
+- `POST /api/admin/moderation/jobs/:id`;
+- `GET /api/admin/audit-log`;
+- разграничение прав: support видит споры, moderator видит модерацию, admin/super admin видят полный операционный контур;
+- решение спора реально меняет order, escrow, wallets, transactions, history и notifications;
+- страница `/admin` с вкладками сводки, споров, модерации, пользователей и журнала действий;
+- навигация показывает админку только manager-ролям.
+
+Осталось расширить позже:
+
+- отдельный HR/interview экран для Elite-уровня;
+- более глубокая модерация профилей и портфолио;
+- категории и системные настройки;
+- фильтры и backend pagination внутри админки.
 
 ## Блок 9. Дипломный polish
 

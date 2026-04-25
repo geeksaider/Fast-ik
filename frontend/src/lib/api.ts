@@ -461,6 +461,148 @@ export const cancelOrder = async (token: string, id: string, reason: string) =>
     body: JSON.stringify({ reason }),
   });
 
+export type AdminPermission = 'overview' | 'users' | 'moderation' | 'disputes' | 'auditLog';
+
+export type AdminActionItem = {
+  id: string;
+  actorId: string | null;
+  actorName: string | null;
+  actorRole: AuthRole | null;
+  targetType: string;
+  targetId: string | null;
+  action: string;
+  note: string | null;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type AdminOverview = {
+  stats: {
+    totalUsers: number;
+    activeUsers: number;
+    pendingJobs: number;
+    openDisputes: number;
+    activeOrders: number;
+    escrowHeldAmount: number;
+  };
+  permissions: AdminPermission[];
+  recentActions: AdminActionItem[];
+};
+
+export type AdminUserItem = {
+  id: string;
+  email: string;
+  displayName: string;
+  role: AuthRole;
+  status: string;
+  emailVerified: boolean;
+  availableBalance: number;
+  heldBalance: number;
+  performerXp: number | null;
+  performerLevelTitle: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt: string | null;
+};
+
+export type AdminDisputeItem = {
+  id: string;
+  jobId: string;
+  customerId: string;
+  customerName: string;
+  performerId: string;
+  performerName: string;
+  title: string;
+  amount: number;
+  status: OrderStatus;
+  escrowStatus: EscrowStatus | null;
+  disputeReason: string | null;
+  createdAt: string;
+  disputedAt: string | null;
+};
+
+export type AdminModerationJobItem = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  categoryName: string | null;
+  title: string;
+  description: string;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  status: JobStatus;
+  moderationStatus: string;
+  applicationsCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const getAdminOverview = async (token: string) =>
+  apiFetch<AdminOverview>('/admin/overview', {
+    headers: authHeaders(token),
+  });
+
+export const getAdminUsers = async (token: string) =>
+  apiFetch<{ users: AdminUserItem[] }>('/admin/users', {
+    headers: authHeaders(token),
+  });
+
+export const updateAdminUserStatus = async (
+  token: string,
+  id: string,
+  payload: { status: 'active' | 'blocked'; note?: string },
+) =>
+  apiFetch<{ user: AdminUserItem }>(`/admin/users/${id}/status`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getAdminDisputes = async (token: string) =>
+  apiFetch<{ disputes: AdminDisputeItem[] }>('/admin/disputes', {
+    headers: authHeaders(token),
+  });
+
+export const resolveAdminDispute = async (
+  token: string,
+  id: string,
+  payload: { action: 'refund_customer' | 'pay_performer'; note: string },
+) =>
+  apiFetch<{
+    disputes: AdminDisputeItem[];
+    result: {
+      orderId: string;
+      performerId: string;
+      title: string;
+      action: 'refund_customer' | 'pay_performer';
+    };
+  }>(`/admin/disputes/${id}/resolve`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getAdminModerationJobs = async (token: string) =>
+  apiFetch<{ jobs: AdminModerationJobItem[] }>('/admin/moderation/jobs', {
+    headers: authHeaders(token),
+  });
+
+export const moderateAdminJob = async (
+  token: string,
+  id: string,
+  payload: { action: 'approve' | 'reject'; note?: string },
+) =>
+  apiFetch<{ job: AdminModerationJobItem }>(`/admin/moderation/jobs/${id}`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getAdminAuditLog = async (token: string) =>
+  apiFetch<{ actions: AdminActionItem[] }>('/admin/audit-log', {
+    headers: authHeaders(token),
+  });
+
 export type ConversationType = 'job' | 'order' | 'support';
 export type MessageKind = 'text' | 'system';
 

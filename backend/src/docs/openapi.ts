@@ -45,6 +45,10 @@ export const openApiSpec = {
       description: 'Performer RPG roadmap, XP and level requirements',
     },
     {
+      name: 'Admin',
+      description: 'Operational dashboard, moderation, disputes and audit log',
+    },
+    {
       name: 'Profile',
       description: 'Onboarding, skills and portfolio',
     },
@@ -183,6 +187,106 @@ export const openApiSpec = {
             description: 'Current user',
           },
           '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/admin/overview': {
+      get: {
+        tags: ['Admin'],
+        summary: 'Get admin operational overview',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Admin stats, permissions and recent actions' },
+          '403': { description: 'Manager role required' },
+        },
+      },
+    },
+    '/admin/users': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List platform users for admins',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'User list with balances and role state' },
+          '403': { description: 'Admin role required' },
+        },
+      },
+    },
+    '/admin/users/{id}/status': {
+      patch: {
+        tags: ['Admin'],
+        summary: 'Update user status',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated user' },
+          '403': { description: 'Admin role required' },
+          '404': { description: 'User not found' },
+        },
+      },
+    },
+    '/admin/disputes': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List open order disputes',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Disputed orders' },
+          '403': { description: 'Support/admin role required' },
+        },
+      },
+    },
+    '/admin/disputes/{id}/resolve': {
+      post: {
+        tags: ['Admin'],
+        summary: 'Resolve dispute through mock escrow',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated dispute queue and resolution result' },
+          '403': { description: 'Support/admin role required' },
+          '409': { description: 'Dispute already resolved or invalid escrow state' },
+        },
+      },
+    },
+    '/admin/moderation/jobs': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List jobs for moderation',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Jobs ordered by moderation priority' },
+          '403': { description: 'Moderator/admin role required' },
+        },
+      },
+    },
+    '/admin/moderation/jobs/{id}': {
+      post: {
+        tags: ['Admin'],
+        summary: 'Approve or reject a job',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Moderated job' },
+          '403': { description: 'Moderator/admin role required' },
+          '404': { description: 'Job not found' },
+        },
+      },
+    },
+    '/admin/audit-log': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List admin audit events',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Recent admin actions' },
+          '403': { description: 'Admin role required' },
         },
       },
     },

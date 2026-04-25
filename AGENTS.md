@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Navigation and UX polish.
+Stage: Admin/moderation foundation.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, a performer RPG roadmap with XP events, and a global navigation shell.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, a performer RPG roadmap with XP events, a global navigation shell, and a basic admin/moderation panel.
 
 Development can run in two modes:
 
@@ -112,10 +112,11 @@ Core idea:
 
 ## Current Next Block
 
-After the navigation polish is verified, the next implementation block should be admin/moderation or reviews:
+After the admin/moderation foundation is verified, the next implementation block should be reviews or RPG expansion:
 
-- admin/support views for disputes and moderation;
 - reviews and rating events after completed orders;
+- review impact on performer RPG progress;
+- admin HR/interview screen for Elite level;
 - optional file attachments in order conversations.
 
 ## Demo Accounts
@@ -124,4 +125,7 @@ After running `npm run db:seed`, these accounts are available:
 
 - `customer@fastik.local` / `Fastik123!`
 - `performer@fastik.local` / `Fastik123!`
+- `support@fastik.local` / `Fastik123!`
+- `moderator@fastik.local` / `Fastik123!`
 - `admin@fastik.local` / `Fastik123!`
+- `superadmin@fastik.local` / `Fastik123!`

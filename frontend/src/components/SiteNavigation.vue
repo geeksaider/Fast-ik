@@ -12,6 +12,7 @@ import {
   Plus,
   Rocket,
   ScrollText,
+  ShieldCheck,
   Trophy,
   UserRound,
   WalletCards,
@@ -50,30 +51,35 @@ const roleTitle = computed(() => {
 });
 
 const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
+const canOpenAdmin = computed(() => Boolean(auth.user?.role && managerRoles.has(auth.user.role)));
 const canCreateJob = computed(
   () =>
     auth.user?.role === 'customer' || Boolean(auth.user?.role && managerRoles.has(auth.user.role)),
 );
 
 const primaryLinks = computed<NavigationItem[]>(() => {
-  const links: NavigationItem[] = [
+  const guestLinks: NavigationItem[] = [
     { to: '/', label: 'Главная', icon: Rocket },
     { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
   ];
 
   if (!auth.isAuthenticated) {
-    return links;
+    return guestLinks;
   }
 
-  return [
+  const links: NavigationItem[] = [
     { to: '/dashboard', label: 'Центр', icon: Gauge },
     { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
     { to: '/orders', label: 'Заказы', icon: ClipboardList },
     { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
-    auth.user?.role === 'performer'
-      ? { to: '/level-roadmap', label: 'LVL', icon: Trophy }
-      : { to: '/onboarding', label: 'Профиль', icon: UserRound },
+    canOpenAdmin.value
+      ? { to: '/admin', label: 'Админ', icon: ShieldCheck }
+      : auth.user?.role === 'performer'
+        ? { to: '/level-roadmap', label: 'LVL', icon: Trophy }
+        : { to: '/onboarding', label: 'Профиль', icon: UserRound },
   ];
+
+  return links;
 });
 
 const mobileLinks = computed<NavigationItem[]>(() => {
@@ -91,9 +97,13 @@ const mobileLinks = computed<NavigationItem[]>(() => {
     { to: '/orders', label: 'Заказы', icon: ClipboardList },
     { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
     {
-      to: auth.user?.role === 'performer' ? '/level-roadmap' : '/onboarding',
-      label: auth.user?.role === 'performer' ? 'LVL' : 'Профиль',
-      icon: auth.user?.role === 'performer' ? Trophy : UserRound,
+      to: canOpenAdmin.value
+        ? '/admin'
+        : auth.user?.role === 'performer'
+          ? '/level-roadmap'
+          : '/onboarding',
+      label: canOpenAdmin.value ? 'Админ' : auth.user?.role === 'performer' ? 'LVL' : 'Профиль',
+      icon: canOpenAdmin.value ? ShieldCheck : auth.user?.role === 'performer' ? Trophy : UserRound,
     },
   ];
 });

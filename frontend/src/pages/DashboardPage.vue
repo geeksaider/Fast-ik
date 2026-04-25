@@ -11,6 +11,7 @@ import {
   MessageCircle,
   Plus,
   Sparkles,
+  ShieldCheck,
   Trophy,
   UserRound,
   WalletCards,
@@ -97,6 +98,10 @@ const primaryAction = computed(() => {
     return { to: '/level-roadmap', label: 'Открыть LVL', icon: Trophy };
   }
 
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
+    return { to: '/admin', label: 'Открыть админку', icon: ShieldCheck };
+  }
+
   return { to: '/jobs', label: 'Открыть биржу', icon: BriefcaseBusiness };
 });
 
@@ -159,14 +164,14 @@ const nextSteps = computed(() => {
     {
       title: 'Открыть споры в заказах',
       text: 'Это подготовка к админке и support-панели.',
-      to: '/orders',
+      to: '/admin',
       done: activeOrders.value.some((order) => order.status === 'disputed'),
     },
     {
-      title: 'Следующий блок: админка',
-      text: 'Пользователи, модерация, споры, роли и audit-log.',
-      to: '/orders',
-      done: false,
+      title: 'Проверить журнал действий',
+      text: 'Модерация и решения споров фиксируются в audit-log.',
+      to: '/admin',
+      done: true,
     },
   ];
 });
@@ -243,6 +248,17 @@ const hubLinks = computed<HubLink[]>(() => {
       text: 'Быстрый вход в публикацию задачи для исполнителей.',
       icon: Plus,
       tone: 'ember',
+    });
+  }
+
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
+    links.unshift({
+      to: '/admin',
+      title: 'Админка',
+      label: 'ops',
+      text: 'Споры, модерация, пользователи и audit-log.',
+      icon: ShieldCheck,
+      tone: 'dark',
     });
   }
 

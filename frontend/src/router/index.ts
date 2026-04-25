@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
+import AdminPage from '../pages/AdminPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
@@ -38,6 +39,12 @@ export const router = createRouter({
       path: '/dashboard',
       name: 'dashboard',
       component: DashboardPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminPage,
       meta: { requiresAuth: true },
     },
     {
