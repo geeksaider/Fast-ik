@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, BriefcaseBusiness, Loader2, Send, ShieldCheck } from 'lucide-vue-next';
+import { ArrowLeft, BriefcaseBusiness, Loader2, ShieldCheck } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
@@ -137,7 +137,6 @@ onMounted(() => {
               type="submit"
               :disabled="communication.isSaving"
             >
-              <Send :size="18" />
               Отправить
             </button>
           </form>
@@ -148,7 +147,7 @@ onMounted(() => {
         >
           <ShieldCheck class="mt-1 shrink-0 text-moss" :size="18" />
           В этом блоке файлы пока отмечены как будущий слой. Основа уже есть: рабочий диалог,
-          уведомления и привязка к order/escrow.
+          уведомления и привязка к заказу и гаранту.
         </p>
       </section>
     </section>

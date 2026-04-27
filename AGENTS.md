@@ -78,6 +78,9 @@ Core idea:
 - Lists should have simple front-end pagination or "show more" controls when they can grow long.
 - Dates should be rendered through format helpers, never as raw timestamps.
 - System codes such as statuses, event types and transaction directions should be rendered through readable Russian labels.
+- Money should use `руб.` instead of the ruble glyph if the current font stack renders `₽` inconsistently.
+- Avoid technical UI labels such as API status, ESCROW or XP SYSTEM unless they are translated into clear product language.
+- Avoid global floating actions that can overlap forms or content; keep primary actions inside the relevant screen.
 - Dashboard should prioritize guided next steps and compact navigation over many equally loud cards.
 - Dark theme is optional, not MVP-critical.
 

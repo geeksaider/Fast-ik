@@ -1,23 +1,23 @@
-export const formatMoney = (min: number | null, max: number | null) => {
-  const rub = new Intl.NumberFormat('ru-RU');
+const moneyFormatter = new Intl.NumberFormat('ru-RU');
 
+export const formatAmount = (amount: number | null | undefined) =>
+  `${moneyFormatter.format(amount ?? 0)} руб.`;
+
+export const formatMoney = (min: number | null, max: number | null) => {
   if (min && max) {
-    return `${rub.format(min)} - ${rub.format(max)} ₽`;
+    return `${moneyFormatter.format(min)} - ${moneyFormatter.format(max)} руб.`;
   }
 
   if (min) {
-    return `от ${rub.format(min)} ₽`;
+    return `от ${moneyFormatter.format(min)} руб.`;
   }
 
   if (max) {
-    return `до ${rub.format(max)} ₽`;
+    return `до ${moneyFormatter.format(max)} руб.`;
   }
 
   return 'Бюджет обсуждается';
 };
-
-export const formatAmount = (amount: number) =>
-  `${new Intl.NumberFormat('ru-RU').format(amount)} ₽`;
 
 const parseDate = (value: string | null) => {
   if (!value) {

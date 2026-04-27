@@ -37,8 +37,10 @@ const submit = async () => {
           <div class="mt-12 grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
             <Zap :size="30" />
           </div>
-          <h1 class="mt-7 max-w-sm text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-            Быстрый вход в рабочую зону Fastik.
+          <h1
+            class="mt-7 max-w-sm text-4xl font-black leading-[1.02] tracking-[-0.04em] sm:text-5xl"
+          >
+            Вход в рабочую зону Fastik.
           </h1>
           <p class="mt-5 max-w-sm text-base font-medium leading-7 text-paper/68">
             Используй demo-аккаунт или войди после регистрации. Следующий шаг после входа -

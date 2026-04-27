@@ -58,10 +58,7 @@ const canCreateJob = computed(
 );
 
 const primaryLinks = computed<NavigationItem[]>(() => {
-  const guestLinks: NavigationItem[] = [
-    { to: '/', label: 'Главная', icon: Rocket },
-    { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
-  ];
+  const guestLinks: NavigationItem[] = [{ to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness }];
 
   if (!auth.isAuthenticated) {
     return guestLinks;
@@ -253,12 +250,13 @@ onMounted(() => {
         </RouterLink>
         <RouterLink
           v-if="canCreateJob"
-          class="inline-flex items-center gap-2 rounded-full border border-ink px-4 py-2 text-sm font-black transition duration-200 ease-out hover:bg-bolt"
+          class="grid h-10 w-10 place-items-center rounded-full border border-ink transition duration-200 ease-out hover:bg-bolt"
           :class="createJobActive ? 'bg-ink text-paper' : 'bg-ember text-paper'"
           to="/jobs/new"
+          aria-label="Создать заказ"
+          title="Создать заказ"
         >
           <Plus :size="16" />
-          Заказ
         </RouterLink>
         <RouterLink
           v-if="!auth.isAuthenticated"
@@ -316,13 +314,4 @@ onMounted(() => {
       </RouterLink>
     </div>
   </div>
-
-  <RouterLink
-    v-if="showNavigation && canCreateJob"
-    class="fixed bottom-24 right-4 z-30 grid h-14 w-14 place-items-center rounded-2xl border border-ink bg-ember text-paper md:hidden"
-    to="/jobs/new"
-    aria-label="Создать заказ"
-  >
-    <Plus :size="24" />
-  </RouterLink>
 </template>

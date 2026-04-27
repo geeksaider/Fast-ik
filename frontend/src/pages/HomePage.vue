@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
 import {
   ArrowRight,
   BadgeCheck,
@@ -11,9 +10,6 @@ import {
   Sparkles,
   Trophy,
 } from 'lucide-vue-next';
-import { useSystemStore } from '../stores/system';
-
-const system = useSystemStore();
 
 const roadmap = [
   { level: '01', title: 'Новичок', text: 'Профиль, роль, базовые навыки' },
@@ -44,22 +40,6 @@ const features = [
     text: 'Панели для заказчиков, исполнителей и администраторов с понятными метриками.',
   },
 ];
-
-const apiStatusText = computed(() => {
-  if (system.isLoading) {
-    return 'Проверяем API';
-  }
-
-  if (system.health) {
-    return 'API online';
-  }
-
-  return 'API offline';
-});
-
-onMounted(() => {
-  void system.checkHealth();
-});
 </script>
 
 <template>
@@ -91,29 +71,20 @@ onMounted(() => {
             </p>
           </div>
 
-          <div class="mt-8 grid gap-3 sm:grid-cols-[auto_auto_1fr] sm:items-center">
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <RouterLink
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ember px-6 py-3 font-black text-paper transition hover:-translate-y-0.5"
+              class="inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-ink bg-ember px-6 py-3 font-black text-paper transition hover:-translate-y-0.5"
               to="/register"
             >
               Опубликовать заказ
               <ArrowRight :size="18" />
             </RouterLink>
             <RouterLink
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-6 py-3 font-black transition hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+              class="inline-flex min-w-0 items-center justify-center rounded-full border border-ink bg-paper px-6 py-3 font-black transition hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
               to="/register"
             >
               Стать исполнителем
             </RouterLink>
-            <div
-              class="rounded-full border border-ink px-4 py-3 text-sm font-bold sm:justify-self-end"
-            >
-              <span
-                :class="system.health ? 'bg-moss' : 'bg-ember'"
-                class="mr-2 inline-block h-2.5 w-2.5 rounded-full"
-              />
-              {{ apiStatusText }}
-            </div>
           </div>
         </section>
 
@@ -123,11 +94,6 @@ onMounted(() => {
               <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Roadmap</p>
               <h2 class="mt-2 text-3xl font-black tracking-[-0.05em]">Дорога к славе</h2>
             </div>
-            <span
-              class="rounded-full border border-paper/30 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
-            >
-              XP system
-            </span>
           </div>
 
           <div class="mt-7 space-y-3">

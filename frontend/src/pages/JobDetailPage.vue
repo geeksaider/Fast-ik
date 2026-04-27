@@ -15,7 +15,13 @@ import {
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
-import { formatDate, formatDisplayText, formatMoney, formatSystemLabel } from '../lib/format';
+import {
+  formatAmount,
+  formatDate,
+  formatDisplayText,
+  formatMoney,
+  formatSystemLabel,
+} from '../lib/format';
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
@@ -217,11 +223,7 @@ onMounted(() => {
                     <p class="font-black">{{ application.performerName }}</p>
                     <p class="mt-2 text-sm leading-6 text-ink/68">{{ application.coverLetter }}</p>
                     <p class="mt-3 text-sm font-black text-bolt">
-                      {{
-                        application.price
-                          ? `${application.price.toLocaleString('ru-RU')} ₽`
-                          : 'Цена обсуждается'
-                      }}
+                      {{ application.price ? formatAmount(application.price) : 'Цена обсуждается' }}
                       ·
                       {{
                         application.deliveryDays

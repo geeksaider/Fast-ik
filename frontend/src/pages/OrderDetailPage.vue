@@ -136,7 +136,7 @@ onMounted(() => {
         </span>
       </div>
 
-      <div v-else-if="order" class="grid gap-5 py-7 lg:grid-cols-[1.2fr_0.8fr]">
+      <div v-else-if="order" class="grid gap-5 py-7 lg:grid-cols-[1.2fr_0.8fr] lg:items-stretch">
         <section class="space-y-5">
           <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-7">
             <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">
@@ -235,9 +235,9 @@ onMounted(() => {
           </section>
         </section>
 
-        <aside class="space-y-4">
+        <aside class="grid gap-4 lg:grid-rows-[auto_1fr]">
           <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Escrow</p>
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Мок-гарант</p>
             <p class="mt-3 text-4xl font-black tracking-[-0.06em]">
               {{ formatAmount(order.amount) }}
             </p>
@@ -247,7 +247,7 @@ onMounted(() => {
             </p>
           </section>
 
-          <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5">
+          <section class="h-full rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5">
             <h2 class="text-2xl font-black tracking-[-0.04em]">История</h2>
             <div class="mt-4 space-y-3">
               <article

@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Bell,
   BriefcaseBusiness,
-  CheckCircle2,
   ClipboardList,
   Gauge,
   MessageCircle,
@@ -72,6 +71,9 @@ const escrowAmount = computed(() =>
     0,
   ),
 );
+const disputedOrders = computed(() =>
+  activeOrders.value.filter((order) => order.status === 'disputed'),
+);
 
 const heroText = computed(() => {
   if (auth.user?.role === 'customer') {
@@ -83,7 +85,7 @@ const heroText = computed(() => {
   }
 
   if (auth.user?.role && managerRoles.has(auth.user.role)) {
-    return 'Операционная зона: сейчас доступны пользовательские сценарии, а админские панели будут следующим крупным блоком.';
+    return 'Операционный вход: споры, модерация, пользователи и audit-log теперь собраны в отдельной админке.';
   }
 
   return 'Это рабочий центр Fastik: все разделы собраны в одном месте, чтобы не искать их по URL.';
@@ -156,20 +158,20 @@ const nextSteps = computed(() => {
 
   return [
     {
-      title: 'Проверить пользовательский flow',
-      text: 'Биржа, заказы, гарант и чат уже связаны в один сценарий.',
+      title: 'Проверить flow',
+      text: 'Биржа -> заказ -> гарант -> чат.',
       to: '/jobs',
       done: true,
     },
     {
-      title: 'Открыть споры в заказах',
-      text: 'Это подготовка к админке и support-панели.',
+      title: 'Споры',
+      text: 'Очередь support-панели.',
       to: '/admin',
       done: activeOrders.value.some((order) => order.status === 'disputed'),
     },
     {
-      title: 'Проверить журнал действий',
-      text: 'Модерация и решения споров фиксируются в audit-log.',
+      title: 'Журнал',
+      text: 'Действия фиксируются в audit-log.',
       to: '/admin',
       done: true,
     },
@@ -177,6 +179,50 @@ const nextSteps = computed(() => {
 });
 
 const hubLinks = computed<HubLink[]>(() => {
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
+    return [
+      {
+        to: '/admin',
+        title: 'Админка',
+        label: disputedOrders.value.length ? `${disputedOrders.value.length} спор.` : undefined,
+        text: 'Споры и модерация.',
+        icon: ShieldCheck,
+        tone: 'dark',
+      },
+      {
+        to: '/orders',
+        title: 'Заказы',
+        label: activeOrders.value.length ? `${activeOrders.value.length} акт.` : undefined,
+        text: 'Рабочие статусы.',
+        icon: ClipboardList,
+        tone: 'ember',
+      },
+      {
+        to: '/jobs',
+        title: 'Биржа',
+        text: 'Задачи и отклики.',
+        icon: BriefcaseBusiness,
+        tone: 'dark',
+      },
+      {
+        to: '/messages',
+        title: 'Чат',
+        label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : undefined,
+        text: 'Рабочие диалоги.',
+        icon: MessageCircle,
+        tone: 'bolt',
+      },
+      {
+        to: '/finance',
+        title: 'Финансы',
+        label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
+        text: 'Мок-гарант.',
+        icon: WalletCards,
+        tone: 'moss',
+      },
+    ];
+  }
+
   const links: HubLink[] = [
     {
       to: '/onboarding',
@@ -251,18 +297,21 @@ const hubLinks = computed<HubLink[]>(() => {
     });
   }
 
+  return links;
+});
+
+const sideStats = computed(() => {
   if (auth.user?.role && managerRoles.has(auth.user.role)) {
-    links.unshift({
-      to: '/admin',
-      title: 'Админка',
-      label: 'ops',
-      text: 'Споры, модерация, пользователи и audit-log.',
-      icon: ShieldCheck,
-      tone: 'dark',
-    });
+    return [
+      { label: 'Споры', value: disputedOrders.value.length },
+      { label: 'Активные', value: activeOrders.value.length },
+    ];
   }
 
-  return links;
+  return [
+    { label: 'Профиль', value: `${profilePercent.value}%` },
+    { label: 'Заказы', value: activeOrders.value.length },
+  ];
 });
 
 const loadDashboard = async () => {
@@ -289,8 +338,8 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <section class="grid min-w-0 gap-5 lg:grid-cols-[0.78fr_1.22fr]">
-        <aside class="min-w-0 rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
+      <section class="grid min-w-0 gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
+        <aside class="min-w-0 rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <div class="flex items-start justify-between gap-4">
             <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
               <Gauge :size="28" />
@@ -322,13 +371,15 @@ onMounted(() => {
           </RouterLink>
 
           <div class="mt-5 grid grid-cols-2 gap-3">
-            <div class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-              <p class="text-xs font-black uppercase tracking-[0.16em] text-paper/45">Профиль</p>
-              <p class="mt-1 text-2xl font-black">{{ profilePercent }}%</p>
-            </div>
-            <div class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-              <p class="text-xs font-black uppercase tracking-[0.16em] text-paper/45">Заказы</p>
-              <p class="mt-1 text-2xl font-black">{{ activeOrders.length }}</p>
+            <div
+              v-for="stat in sideStats"
+              :key="stat.label"
+              class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4"
+            >
+              <p class="text-xs font-black uppercase tracking-[0.16em] text-paper/45">
+                {{ stat.label }}
+              </p>
+              <p class="mt-1 text-2xl font-black">{{ stat.value }}</p>
             </div>
           </div>
         </aside>
@@ -347,31 +398,28 @@ onMounted(() => {
               <span
                 class="inline-flex items-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black"
               >
-                <Sparkles :size="16" />
+                <Sparkles class="shrink-0" :size="20" />
                 {{ auth.user?.email }}
               </span>
             </div>
 
-            <div class="mt-5 grid gap-3 md:grid-cols-3">
+            <div class="mt-4 grid gap-2">
               <RouterLink
                 v-for="step in nextSteps"
                 :key="step.title"
-                class="rounded-2xl border border-line bg-paper p-4 transition hover:-translate-y-1 hover:border-ink hover:bg-white"
+                class="flex items-center justify-between gap-4 rounded-2xl border border-line bg-paper p-4 transition hover:-translate-y-0.5 hover:border-ink hover:bg-white"
                 :to="step.to"
               >
-                <div class="flex items-start justify-between gap-3">
-                  <span>
-                    <span class="block font-black">{{ step.title }}</span>
-                    <span class="mt-2 block text-sm font-semibold leading-5 text-ink/65">
-                      {{ step.text }}
-                    </span>
+                <span class="min-w-0">
+                  <span class="block truncate font-black">{{ step.title }}</span>
+                  <span class="mt-1 block truncate text-sm font-semibold text-ink/65">
+                    {{ step.text }}
                   </span>
-                  <CheckCircle2
-                    :class="step.done ? 'text-moss' : 'text-ink/25'"
-                    :size="22"
-                    class="shrink-0"
-                  />
-                </div>
+                </span>
+                <span
+                  class="h-3 w-3 shrink-0 rounded-full border"
+                  :class="step.done ? 'border-moss bg-moss' : 'border-ink/25 bg-transparent'"
+                />
               </RouterLink>
             </div>
           </article>
@@ -380,14 +428,11 @@ onMounted(() => {
             <div class="flex items-center justify-between gap-3">
               <div>
                 <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Разделы</p>
-                <h2 class="mt-1 text-2xl font-black tracking-[-0.05em]">Куда перейти</h2>
+                <h2 class="mt-1 text-2xl font-black tracking-[-0.05em]">Быстрый переход</h2>
               </div>
-              <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
-                {{ hubLinks.length }}
-              </span>
             </div>
 
-            <div class="mt-4 grid gap-2">
+            <div class="mt-4 grid gap-2 sm:grid-cols-2">
               <RouterLink
                 v-for="link in hubLinks"
                 :key="link.to"
@@ -395,9 +440,9 @@ onMounted(() => {
                 :to="link.to"
               >
                 <span
-                  class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-line bg-[#fffaf0]"
+                  class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-line bg-[#fffaf0]"
                 >
-                  <component :is="link.icon" :size="22" />
+                  <component :is="link.icon" :size="20" />
                 </span>
                 <span class="min-w-0 flex-1">
                   <span class="block font-black tracking-[-0.03em]">{{ link.title }}</span>
