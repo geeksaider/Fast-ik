@@ -15,6 +15,7 @@ import NotificationsPage from '../pages/NotificationsPage.vue';
 import OnboardingPage from '../pages/OnboardingPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
 import OrdersPage from '../pages/OrdersPage.vue';
+import PerformerPublicPage from '../pages/PerformerPublicPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
 
 export const router = createRouter({
@@ -74,6 +75,11 @@ export const router = createRouter({
       path: '/jobs/:id',
       name: 'jobs-detail',
       component: JobDetailPage,
+    },
+    {
+      path: '/performers/:id',
+      name: 'performers-detail',
+      component: PerformerPublicPage,
     },
     {
       path: '/orders',

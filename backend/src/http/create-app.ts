@@ -14,6 +14,7 @@ import { healthRouter } from '../modules/health/health.routes.js';
 import { levelsRouter } from '../modules/levels/levels.routes.js';
 import { marketplaceRouter } from '../modules/marketplace/marketplace.routes.js';
 import { ordersRouter } from '../modules/orders/orders.routes.js';
+import { performersRouter } from '../modules/performers/performers.routes.js';
 import { profileRouter } from '../modules/profile/profile.routes.js';
 
 export const createApp = () => {
@@ -42,6 +43,7 @@ export const createApp = () => {
   app.use('/api/levels', levelsRouter);
   app.use('/api/marketplace', marketplaceRouter);
   app.use('/api/orders', ordersRouter);
+  app.use('/api/performers', performersRouter);
   app.use('/api/profile', profileRouter);
   app.use(errorHandler);
 

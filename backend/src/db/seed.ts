@@ -135,6 +135,7 @@ const skills = [
   ['Vue', 'vue', 'development'],
   ['TypeScript', 'typescript', 'development'],
   ['Node.js', 'node-js', 'development'],
+  ['Tailwind CSS', 'tailwind', 'development'],
   ['PostgreSQL', 'postgresql', 'development'],
   ['UI/UX', 'ui-ux', 'design'],
   ['Figma', 'figma', 'design'],
@@ -234,6 +235,99 @@ const run = async () => {
        where users.email = $1
        on conflict (user_id) do nothing`,
       wallet,
+    );
+  }
+
+  await pool.query(
+    `insert into user_profiles (user_id, bio, city, website_url, telegram, preferred_language)
+     select
+       users.id,
+       'Frontend/Vue разработчик, который любит аккуратные кабинеты, быстрые интерфейсы и понятную коммуникацию по задачам.',
+       'Санкт-Петербург',
+       'https://fastik.local/performers/maria',
+       '@maria_fastik',
+       'ru'
+     from users
+     where users.email = 'performer@fastik.local'
+     on conflict (user_id) do update set
+       bio = excluded.bio,
+       city = excluded.city,
+       website_url = excluded.website_url,
+       telegram = excluded.telegram,
+       preferred_language = excluded.preferred_language,
+       updated_at = now()`,
+  );
+
+  await pool.query(
+    `insert into performer_profiles (
+       user_id,
+       headline,
+       hourly_rate,
+       availability,
+       experience_years,
+       specialization,
+       onboarding_completed
+     )
+     select
+       users.id,
+       'Vue / UI engineer для быстрых продуктовых интерфейсов',
+       2500,
+       'project',
+       4,
+       'Frontend, dashboard, marketplace UX',
+       true
+     from users
+     where users.email = 'performer@fastik.local'
+     on conflict (user_id) do update set
+       headline = excluded.headline,
+       hourly_rate = excluded.hourly_rate,
+       availability = excluded.availability,
+       experience_years = excluded.experience_years,
+       specialization = excluded.specialization,
+       onboarding_completed = excluded.onboarding_completed,
+       updated_at = now()`,
+  );
+
+  for (const skill of [
+    ['vue', 'senior'],
+    ['typescript', 'middle'],
+    ['ui-ux', 'middle'],
+    ['tailwind', 'middle'],
+    ['qa', 'middle'],
+  ]) {
+    await pool.query(
+      `insert into user_skills (user_id, skill_id, level)
+       select users.id, skills.id, $2
+       from users
+       join skills on skills.slug = $1
+       where users.email = 'performer@fastik.local'
+       on conflict (user_id, skill_id) do update set level = excluded.level`,
+      skill,
+    );
+  }
+
+  for (const item of [
+    [
+      'Кабинет для маркетплейса задач',
+      'Собрала адаптивный dashboard: статусы, фильтры, карточки заказов и мягкую навигацию без перегруза.',
+      'https://fastik.local/cases/marketplace-dashboard',
+    ],
+    [
+      'Мобильный UX-аудит сервиса',
+      'Проверила адаптив, читаемость, состояния форм и подготовила список быстрых улучшений для команды.',
+      'https://fastik.local/cases/mobile-audit',
+    ],
+  ]) {
+    await pool.query(
+      `insert into portfolio_items (user_id, title, description, project_url)
+       select users.id, $1, $2, $3
+       from users
+       where users.email = 'performer@fastik.local'
+         and not exists (
+           select 1 from portfolio_items existing
+           where existing.user_id = users.id and existing.title = $1
+         )`,
+      item,
     );
   }
 

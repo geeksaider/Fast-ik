@@ -220,7 +220,12 @@ onMounted(() => {
               >
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
-                    <p class="font-black">{{ application.performerName }}</p>
+                    <RouterLink
+                      class="inline-flex items-center gap-2 font-black underline decoration-2 underline-offset-4 transition hover:text-bolt"
+                      :to="`/performers/${application.performerId}`"
+                    >
+                      {{ application.performerName }}
+                    </RouterLink>
                     <p class="mt-2 text-sm leading-6 text-ink/68">{{ application.coverLetter }}</p>
                     <p class="mt-3 text-sm font-black text-bolt">
                       {{ application.price ? formatAmount(application.price) : 'Цена обсуждается' }}

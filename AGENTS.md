@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Reviews, ratings and RPG trust loop.
+Stage: Public performer trust profile.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, and a basic admin/moderation panel.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, and a basic admin/moderation panel.
 
 Development can run in two modes:
 
@@ -95,6 +95,7 @@ Core idea:
 - Chat attached to order workflow
 - Notifications with unread state
 - Reviews and ratings
+- Public performer profiles with level, rating, reviews, skills and portfolio
 - Search and filters
 - Mock escrow/guarantor system
 - Mock finances and transactions
@@ -115,10 +116,10 @@ Core idea:
 
 ## Current Next Block
 
-After the reviews/RPG trust loop is verified, the next implementation block should be public performer profiles or RPG expansion:
+After the public performer profile is verified, the next implementation block should be RPG expansion or collaboration depth:
 
 - admin HR/interview screen for Elite level;
-- public performer profile with rating, reviews, portfolio and level;
+- invite performer to a specific customer order;
 - optional file attachments in order conversations.
 
 ## Demo Accounts

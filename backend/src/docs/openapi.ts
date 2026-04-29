@@ -45,6 +45,10 @@ export const openApiSpec = {
       description: 'Performer RPG roadmap, XP and level requirements',
     },
     {
+      name: 'Performers',
+      description: 'Public performer trust profiles, portfolio and reviews',
+    },
+    {
       name: 'Admin',
       description: 'Operational dashboard, moderation, disputes and audit log',
     },
@@ -385,6 +389,22 @@ export const openApiSpec = {
           '200': { description: 'Job moved to in progress' },
           '403': { description: 'Only owner or manager can select' },
           '404': { description: 'Job or application not found' },
+        },
+      },
+    },
+    '/performers/{id}': {
+      get: {
+        tags: ['Performers'],
+        summary: 'Get public performer profile',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': {
+            description:
+              'Public performer profile with base profile, RPG level, stats, portfolio and reviews',
+          },
+          '404': { description: 'Performer not found' },
         },
       },
     },

@@ -168,7 +168,14 @@ onMounted(() => {
               {{ formatDisplayText(order.title) }}
             </h1>
             <p class="mt-5 text-sm font-semibold leading-6 text-ink/70">
-              Заказчик: {{ order.customerName }} · Исполнитель: {{ order.performerName }} · Создан:
+              Заказчик: {{ order.customerName }} · Исполнитель:
+              <RouterLink
+                class="font-black underline decoration-2 underline-offset-4 transition hover:text-bolt"
+                :to="`/performers/${order.performerId}`"
+              >
+                {{ order.performerName }}
+              </RouterLink>
+              · Создан:
               {{ formatDateTime(order.createdAt) }}
             </p>
           </article>
@@ -220,7 +227,9 @@ onMounted(() => {
             v-if="order.status === 'completed'"
             class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
           >
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div
+              class="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between"
+            >
               <div>
                 <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Репутация</p>
                 <h2 class="mt-2 flex items-center gap-2 text-2xl font-black tracking-[-0.04em]">
@@ -233,6 +242,12 @@ onMounted(() => {
               >
                 XP за качество
               </span>
+              <RouterLink
+                class="inline-flex items-center justify-center rounded-full border border-ink bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.12em] transition hover:bg-ink hover:text-paper"
+                :to="`/performers/${order.performerId}`"
+              >
+                Профиль исполнителя
+              </RouterLink>
             </div>
 
             <div v-if="order.reviews.length" class="mt-4 space-y-3">
