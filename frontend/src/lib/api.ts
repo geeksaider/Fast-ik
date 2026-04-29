@@ -408,8 +408,22 @@ export type OrderStatusHistoryItem = {
   createdAt: string;
 };
 
+export type OrderReview = {
+  id: string;
+  orderId: string;
+  reviewerId: string;
+  reviewerName: string;
+  performerId: string;
+  performerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type OrderDetail = OrderListItem & {
   statusHistory: OrderStatusHistoryItem[];
+  reviews: OrderReview[];
 };
 
 export const getFinanceSummary = async (token: string) =>
@@ -459,6 +473,17 @@ export const cancelOrder = async (token: string, id: string, reason: string) =>
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify({ reason }),
+  });
+
+export const createOrderReview = async (
+  token: string,
+  id: string,
+  payload: { rating: number; comment: string },
+) =>
+  apiFetch<OrderDetail>(`/orders/${id}/review`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
   });
 
 export type AdminPermission = 'overview' | 'users' | 'moderation' | 'disputes' | 'auditLog';
@@ -648,6 +673,7 @@ export type NotificationType =
   | 'application_selected'
   | 'order_submitted'
   | 'order_completed'
+  | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
   | 'message_received'

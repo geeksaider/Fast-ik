@@ -5,6 +5,7 @@ export type NotificationType =
   | 'application_selected'
   | 'order_submitted'
   | 'order_completed'
+  | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
   | 'message_received'

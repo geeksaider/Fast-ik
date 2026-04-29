@@ -23,6 +23,8 @@ export type PerformerMetrics = {
   submittedOrdersCount: number;
   completedOrdersCount: number;
   disputedOrdersCount: number;
+  reviewsCount: number;
+  averageRating: number | null;
   totalEventXp: number;
 };
 
@@ -51,7 +53,7 @@ export const getPerformerProgress = async (userId: string) => {
        level_id as "levelId",
        xp,
        completed_orders as "completedOrders",
-       rating,
+       rating::float8 as rating,
        interview_required as "interviewRequired",
        interview_passed as "interviewPassed",
        updated_at as "updatedAt"
@@ -90,6 +92,12 @@ export const getPerformerMetrics = async (userId: string): Promise<PerformerMetr
        (select count(*)::int from orders where performer_id = $1 and submitted_at is not null) as "submittedOrdersCount",
        (select count(*)::int from orders where performer_id = $1 and status = 'completed') as "completedOrdersCount",
        (select count(*)::int from orders where performer_id = $1 and status = 'disputed') as "disputedOrdersCount",
+       (select count(*)::int from order_reviews where performer_id = $1) as "reviewsCount",
+       (
+         select round(avg(rating)::numeric, 2)::float8
+         from order_reviews
+         where performer_id = $1
+       ) as "averageRating",
        coalesce((select sum(xp)::int from performer_xp_events where user_id = $1), 0) as "totalEventXp"`,
     [userId],
   );
@@ -165,15 +173,17 @@ export const upsertPerformerProgress = async (input: {
   levelId: number;
   xp: number;
   completedOrders: number;
+  rating: number | null;
   interviewRequired: boolean;
 }) => {
   const result = await pool.query<PerformerProgressRow>(
-    `insert into performer_progress (user_id, level_id, xp, completed_orders, interview_required, updated_at)
-     values ($1, $2, $3, $4, $5, now())
+    `insert into performer_progress (user_id, level_id, xp, completed_orders, rating, interview_required, updated_at)
+     values ($1, $2, $3, $4, $5, $6, now())
      on conflict (user_id) do update set
        level_id = excluded.level_id,
        xp = excluded.xp,
        completed_orders = excluded.completed_orders,
+       rating = excluded.rating,
        interview_required = excluded.interview_required,
        updated_at = now()
      returning
@@ -181,11 +191,18 @@ export const upsertPerformerProgress = async (input: {
        level_id as "levelId",
        xp,
        completed_orders as "completedOrders",
-       rating,
+       rating::float8 as rating,
        interview_required as "interviewRequired",
        interview_passed as "interviewPassed",
        updated_at as "updatedAt"`,
-    [input.userId, input.levelId, input.xp, input.completedOrders, input.interviewRequired],
+    [
+      input.userId,
+      input.levelId,
+      input.xp,
+      input.completedOrders,
+      input.rating,
+      input.interviewRequired,
+    ],
   );
 
   return result.rows[0];

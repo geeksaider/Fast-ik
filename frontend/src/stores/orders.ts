@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import {
   acceptOrder,
   cancelOrder,
+  createOrderReview,
   disputeOrder,
   getOrder,
   getOrders,
@@ -93,6 +94,19 @@ export const useOrdersStore = defineStore('orders', {
         this.currentOrder = await cancelOrder(token, id, reason);
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Не удалось отменить заказ';
+        throw error;
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async review(token: string, id: string, payload: { rating: number; comment: string }) {
+      this.isSaving = true;
+      this.error = null;
+
+      try {
+        this.currentOrder = await createOrderReview(token, id, payload);
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Не удалось оставить отзыв';
         throw error;
       } finally {
         this.isSaving = false;

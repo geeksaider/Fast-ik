@@ -4,18 +4,40 @@ import { createNotification } from '../communication/communication.repository.js
 import { awardPerformerXp } from '../levels/levels.service.js';
 import {
   completeOrder,
+  createOrderReview,
   disputeOrder as markOrderDisputed,
   getOrderDetail,
   listOrders,
   refundOrder,
   submitOrder as submitOrderResult,
 } from './orders.repository.js';
-import type { CancelOrderInput, DisputeOrderInput, SubmitOrderInput } from './orders.schemas.js';
+import type {
+  CancelOrderInput,
+  CreateOrderReviewInput,
+  DisputeOrderInput,
+  SubmitOrderInput,
+} from './orders.schemas.js';
 import type { OrderDetail } from './orders.types.js';
 
 const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
 
 const canManage = (user: AuthUser) => managerRoles.has(user.role);
+
+const reviewXpByRating = (rating: number) => {
+  if (rating >= 5) {
+    return 140;
+  }
+
+  if (rating === 4) {
+    return 90;
+  }
+
+  if (rating === 3) {
+    return 30;
+  }
+
+  return 0;
+};
 
 const ensureOrderAccess = async (user: AuthUser, orderId: string) => {
   const order = await getOrderDetail(orderId);
@@ -160,6 +182,60 @@ export const cancelOrder = async (user: AuthUser, orderId: string, input: Cancel
     type: 'order_cancelled',
     title: 'Заказ отменен',
     body: `Заказ «${order.title}» отменен, средства возвращены заказчику`,
+  });
+
+  return ensureOrderAccess(user, orderId);
+};
+
+export const reviewOrder = async (
+  user: AuthUser,
+  orderId: string,
+  input: CreateOrderReviewInput,
+) => {
+  const order = await ensureOrderAccess(user, orderId);
+
+  if (order.customerId !== user.id) {
+    throw new HttpError(403, 'Отзыв по заказу может оставить только заказчик');
+  }
+
+  if (order.status !== 'completed') {
+    throw new HttpError(409, 'Отзыв можно оставить только после завершения заказа');
+  }
+
+  if (order.reviews.some((review) => review.reviewerId === user.id)) {
+    throw new HttpError(409, 'Отзыв по этому заказу уже оставлен');
+  }
+
+  const review = await createOrderReview({
+    orderId,
+    reviewerId: user.id,
+    performerId: order.performerId,
+    rating: input.rating,
+    comment: input.comment,
+  });
+  const xp = reviewXpByRating(input.rating);
+
+  await awardPerformerXp({
+    userId: order.performerId,
+    type: 'order_reviewed',
+    dedupeKey: `order_reviewed:${order.id}`,
+    xp,
+    title: `Получен отзыв ${input.rating}/5`,
+    description:
+      xp > 0
+        ? `Заказчик оценил заказ «${order.title}» и добавил ${xp} XP к репутации`
+        : `Заказчик оставил отзыв по заказу «${order.title}». XP-бонус не начислен из-за низкой оценки`,
+    sourceType: 'order_review',
+    sourceId: review.id,
+  });
+
+  await createNotification({
+    userId: order.performerId,
+    actorId: user.id,
+    type: 'order_reviewed',
+    title: 'Получен отзыв по заказу',
+    body: `Заказчик поставил ${input.rating}/5 по заказу «${order.title}»`,
+    linkUrl: `/orders/${order.id}`,
   });
 
   return ensureOrderAccess(user, orderId);

@@ -103,6 +103,20 @@ const buildMetrics = (metrics: PerformerMetrics): LevelMetric[] => [
     completed: metrics.completedOrdersCount >= 3,
   },
   {
+    code: 'reviews',
+    title: 'Отзывы заказчиков',
+    value: metrics.reviewsCount,
+    target: 3,
+    completed: metrics.reviewsCount >= 3,
+  },
+  {
+    code: 'rating',
+    title: 'Средняя оценка',
+    value: metrics.averageRating,
+    target: 4.5,
+    completed: (metrics.averageRating ?? 0) >= 4.5,
+  },
+  {
     code: 'disputes',
     title: 'Активные споры',
     value: metrics.disputedOrdersCount,
@@ -195,6 +209,14 @@ const buildRequirements = (
         3,
       ),
       requirement(
+        'reviews',
+        'Первый сильный отзыв',
+        'Хотя бы один заказчик подтвердил качество работы оценкой 4+.',
+        metrics.reviewsCount >= 1 && (metrics.averageRating ?? 0) >= 4,
+        metrics.averageRating,
+        4,
+      ),
+      requirement(
         'no_disputes',
         'Без активных споров',
         'Споры не запрещают работу, но блокируют рост надежности до решения.',
@@ -223,6 +245,14 @@ const buildRequirements = (
         metrics.applicationsCount >= 10,
         metrics.applicationsCount,
         10,
+      ),
+      requirement(
+        'rating',
+        'Рейтинг 4.5+',
+        'Профи должен быть не только активным, но и стабильно хорошо оцененным.',
+        metrics.reviewsCount >= 3 && (metrics.averageRating ?? 0) >= 4.5,
+        metrics.averageRating,
+        4.5,
       ),
     ];
   }
@@ -283,6 +313,7 @@ export const recalculatePerformerProgress = async (userId: string) => {
     levelId: currentLevel.id,
     xp,
     completedOrders: metrics.completedOrdersCount,
+    rating: metrics.averageRating,
     interviewRequired: eliteUnlockedByXp && !interviewPassed,
   });
 };

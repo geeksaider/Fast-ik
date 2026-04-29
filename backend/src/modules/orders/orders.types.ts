@@ -25,6 +25,7 @@ export type OrderListItem = {
 
 export type OrderDetail = OrderListItem & {
   statusHistory: OrderStatusHistoryItem[];
+  reviews: OrderReview[];
 };
 
 export type OrderStatusHistoryItem = {
@@ -35,4 +36,17 @@ export type OrderStatusHistoryItem = {
   actorName: string | null;
   note: string | null;
   createdAt: string;
+};
+
+export type OrderReview = {
+  id: string;
+  orderId: string;
+  reviewerId: string;
+  reviewerName: string;
+  performerId: string;
+  performerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  updatedAt: string;
 };

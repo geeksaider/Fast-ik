@@ -4,7 +4,12 @@ import {
   createNotification,
   ensureOrderConversation,
 } from '../communication/communication.repository.js';
-import type { OrderDetail, OrderListItem, OrderStatusHistoryItem } from './orders.types.js';
+import type {
+  OrderDetail,
+  OrderListItem,
+  OrderReview,
+  OrderStatusHistoryItem,
+} from './orders.types.js';
 
 export class EscrowBalanceError extends Error {
   constructor() {
@@ -84,6 +89,30 @@ export const listOrderHistory = async (orderId: string) => {
   return result.rows;
 };
 
+export const listOrderReviews = async (orderId: string) => {
+  const result = await pool.query<OrderReview>(
+    `select
+       order_reviews.id,
+       order_reviews.order_id as "orderId",
+       order_reviews.reviewer_id as "reviewerId",
+       reviewer.display_name as "reviewerName",
+       order_reviews.performer_id as "performerId",
+       performer.display_name as "performerName",
+       order_reviews.rating,
+       order_reviews.comment,
+       order_reviews.created_at as "createdAt",
+       order_reviews.updated_at as "updatedAt"
+     from order_reviews
+     join users reviewer on reviewer.id = order_reviews.reviewer_id
+     join users performer on performer.id = order_reviews.performer_id
+     where order_reviews.order_id = $1
+     order by order_reviews.created_at desc`,
+    [orderId],
+  );
+
+  return result.rows;
+};
+
 export const getOrderDetail = async (id: string): Promise<OrderDetail | null> => {
   const order = await getOrderById(id);
 
@@ -94,7 +123,41 @@ export const getOrderDetail = async (id: string): Promise<OrderDetail | null> =>
   return {
     ...order,
     statusHistory: await listOrderHistory(id),
+    reviews: await listOrderReviews(id),
   };
+};
+
+export const createOrderReview = async (input: {
+  orderId: string;
+  reviewerId: string;
+  performerId: string;
+  rating: number;
+  comment: string;
+}) => {
+  const result = await pool.query<OrderReview>(
+    `with inserted as (
+       insert into order_reviews (order_id, reviewer_id, performer_id, rating, comment)
+       values ($1, $2, $3, $4, $5)
+       returning *
+     )
+     select
+       inserted.id,
+       inserted.order_id as "orderId",
+       inserted.reviewer_id as "reviewerId",
+       reviewer.display_name as "reviewerName",
+       inserted.performer_id as "performerId",
+       performer.display_name as "performerName",
+       inserted.rating,
+       inserted.comment,
+       inserted.created_at as "createdAt",
+       inserted.updated_at as "updatedAt"
+     from inserted
+     join users reviewer on reviewer.id = inserted.reviewer_id
+     join users performer on performer.id = inserted.performer_id`,
+    [input.orderId, input.reviewerId, input.performerId, input.rating, input.comment],
+  );
+
+  return result.rows[0];
 };
 
 export const selectApplicationAndCreateOrder = async (input: {

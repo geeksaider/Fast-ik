@@ -8,10 +8,12 @@ import {
   disputeOrder,
   getOrder,
   getOrders,
+  reviewOrder,
   submitOrder,
 } from './orders.service.js';
 import {
   cancelOrderSchema,
+  createOrderReviewSchema,
   disputeOrderSchema,
   orderIdParamSchema,
   submitOrderSchema,
@@ -85,6 +87,17 @@ ordersRouter.post('/:id/cancel', async (request, response, next) => {
     const input = cancelOrderSchema.parse(request.body);
 
     response.json(await cancelOrder(getUser(request), params.id, input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+ordersRouter.post('/:id/review', async (request, response, next) => {
+  try {
+    const params = orderIdParamSchema.parse(request.params);
+    const input = createOrderReviewSchema.parse(request.body);
+
+    response.json(await reviewOrder(getUser(request), params.id, input));
   } catch (error) {
     next(error);
   }

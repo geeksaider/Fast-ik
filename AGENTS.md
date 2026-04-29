@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Admin/moderation foundation.
+Stage: Reviews, ratings and RPG trust loop.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, a performer RPG roadmap with XP events, a global navigation shell, and a basic admin/moderation panel.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, and a basic admin/moderation panel.
 
 Development can run in two modes:
 
@@ -115,11 +115,10 @@ Core idea:
 
 ## Current Next Block
 
-After the admin/moderation foundation is verified, the next implementation block should be reviews or RPG expansion:
+After the reviews/RPG trust loop is verified, the next implementation block should be public performer profiles or RPG expansion:
 
-- reviews and rating events after completed orders;
-- review impact on performer RPG progress;
 - admin HR/interview screen for Elite level;
+- public performer profile with rating, reviews, portfolio and level;
 - optional file attachments in order conversations.
 
 ## Demo Accounts

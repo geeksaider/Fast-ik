@@ -86,6 +86,7 @@ const systemLabels: Record<string, string> = {
   blocked: 'Заблокирован',
   order_submitted: 'Работа сдана',
   order_completed: 'Заказ завершен',
+  order_reviewed: 'Отзыв получен',
   order_disputed: 'Открыт спор',
   order_cancelled: 'Заказ отменен',
   message_received: 'Новое сообщение',

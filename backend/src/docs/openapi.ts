@@ -468,6 +468,36 @@ export const openApiSpec = {
         },
       },
     },
+    '/orders/{id}/review': {
+      post: {
+        tags: ['Orders'],
+        summary: 'Create customer review after completed order',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['rating', 'comment'],
+                properties: {
+                  rating: { type: 'integer', minimum: 1, maximum: 5 },
+                  comment: { type: 'string', minLength: 20, maxLength: 1600 },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          '200': { description: 'Order detail with created review and updated RPG impact' },
+          '403': { description: 'Only customer can review the order' },
+          '409': { description: 'Order is not completed or review already exists' },
+        },
+      },
+    },
     '/conversations': {
       get: {
         tags: ['Communication'],

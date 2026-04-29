@@ -10,6 +10,7 @@ import {
   RotateCcw,
   Send,
   ShieldCheck,
+  Star,
   WalletCards,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
@@ -25,12 +26,20 @@ const forms = reactive({
   workResult: '',
   disputeReason: '',
   cancelReason: '',
+  reviewRating: 5,
+  reviewComment: '',
 });
 
 const orderId = computed(() => String(route.params.id));
 const order = computed(() => orders.currentOrder);
 const isPerformer = computed(() => auth.user?.id === order.value?.performerId);
 const isCustomer = computed(() => auth.user?.id === order.value?.customerId);
+const customerReview = computed(
+  () => order.value?.reviews.find((review) => review.reviewerId === auth.user?.id) ?? null,
+);
+const canReview = computed(() =>
+  Boolean(isCustomer.value && order.value?.status === 'completed' && !customerReview.value),
+);
 
 const statusTitle = computed(() => {
   const map: Record<string, string> = {
@@ -86,6 +95,19 @@ const cancel = async () => {
 
   await orders.cancel(auth.accessToken, orderId.value, forms.cancelReason || 'Отмена заказчиком');
   forms.cancelReason = '';
+};
+
+const submitReview = async () => {
+  if (!auth.accessToken || !forms.reviewComment.trim()) {
+    return;
+  }
+
+  await orders.review(auth.accessToken, orderId.value, {
+    rating: forms.reviewRating,
+    comment: forms.reviewComment,
+  });
+  forms.reviewRating = 5;
+  forms.reviewComment = '';
 };
 
 onMounted(() => {
@@ -192,6 +214,101 @@ onMounted(() => {
               <Check :size="18" />
               Принять и выплатить
             </button>
+          </section>
+
+          <section
+            v-if="order.status === 'completed'"
+            class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Репутация</p>
+                <h2 class="mt-2 flex items-center gap-2 text-2xl font-black tracking-[-0.04em]">
+                  <Star class="text-ember" :size="22" />
+                  Отзыв после заказа
+                </h2>
+              </div>
+              <span
+                class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-ink/62"
+              >
+                XP за качество
+              </span>
+            </div>
+
+            <div v-if="order.reviews.length" class="mt-4 space-y-3">
+              <article
+                v-for="review in order.reviews"
+                :key="review.id"
+                class="rounded-2xl border border-line bg-paper p-4"
+              >
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <p class="font-black">{{ review.reviewerName }}</p>
+                    <p class="mt-1 text-sm font-semibold leading-6 text-ink/68">
+                      {{ review.comment }}
+                    </p>
+                  </div>
+                  <p class="shrink-0 rounded-full border border-ink px-3 py-1 font-black">
+                    {{ review.rating }}/5
+                  </p>
+                </div>
+                <p class="mt-3 text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+                  {{ formatDateTime(review.createdAt) }}
+                </p>
+              </article>
+            </div>
+
+            <form v-if="canReview" class="mt-4 grid gap-3" @submit.prevent="submitReview">
+              <label class="block">
+                <span class="mb-2 block text-sm font-black">Оценка исполнителя</span>
+                <select
+                  v-model.number="forms.reviewRating"
+                  class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none focus:border-ink"
+                >
+                  <option :value="5">5 - отлично, хочу работать снова</option>
+                  <option :value="4">4 - хорошо, задачу закрыли</option>
+                  <option :value="3">3 - нормально, были шероховатости</option>
+                  <option :value="2">2 - слабый результат</option>
+                  <option :value="1">1 - не рекомендую</option>
+                </select>
+              </label>
+              <textarea
+                v-model="forms.reviewComment"
+                class="min-h-32 rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none focus:border-ink"
+                placeholder="Опишите, что получилось хорошо, как исполнитель вел коммуникацию и результат"
+                required
+              />
+              <button
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt disabled:cursor-not-allowed disabled:opacity-60"
+                type="submit"
+                :disabled="orders.isSaving"
+              >
+                <Star :size="18" />
+                Оставить отзыв
+              </button>
+              <p class="text-sm font-semibold leading-6 text-ink/58">
+                Оценки 4-5 дают исполнителю заметный XP-бонус, а средний рейтинг попадет в roadmap.
+              </p>
+            </form>
+
+            <p
+              v-else-if="isCustomer && customerReview"
+              class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
+            >
+              Отзыв уже оставлен. Он учитывается в рейтинге и RPG-прогрессе исполнителя.
+            </p>
+            <p
+              v-else-if="isPerformer && !order.reviews.length"
+              class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
+            >
+              Заказ завершен. Когда заказчик оставит отзыв, он появится здесь и попадет в XP-журнал.
+            </p>
+            <p
+              v-else-if="!order.reviews.length"
+              class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
+            >
+              Отзыв еще не оставлен.
+            </p>
           </section>
 
           <section
