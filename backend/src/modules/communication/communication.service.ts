@@ -49,9 +49,24 @@ export const sendMessage = async (
 ) => {
   await assertConversationAccess(user, conversationId);
 
-  const message = await createMessage(conversationId, user.id, input.body);
+  const attachmentsCount = input.attachments.length;
+  const body =
+    input.body ||
+    (attachmentsCount === 1
+      ? `Прикреплен файл: ${input.attachments[0]?.fileName}`
+      : `Прикреплено файлов: ${attachmentsCount}`);
+  const message = await createMessage(conversationId, user.id, body, input.attachments);
+
+  if (!message) {
+    throw new HttpError(500, 'Не удалось отправить сообщение');
+  }
+
   const participants = await listConversationParticipants(conversationId);
   const conversation = await getConversationDetail(conversationId, user.id);
+  const notificationBody =
+    attachmentsCount > 0
+      ? `${user.displayName}: ${body.slice(0, 90)} · файлов: ${attachmentsCount}`
+      : `${user.displayName}: ${body.slice(0, 120)}`;
 
   await Promise.all(
     participants
@@ -62,7 +77,7 @@ export const sendMessage = async (
           actorId: user.id,
           type: 'message_received',
           title: 'Новое сообщение',
-          body: `${user.displayName}: ${input.body.slice(0, 120)}`,
+          body: notificationBody,
           linkUrl: `/messages/${conversationId}`,
         }),
       ),

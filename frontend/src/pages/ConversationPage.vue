@@ -1,20 +1,36 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, BriefcaseBusiness, Loader2, ShieldCheck } from 'lucide-vue-next';
+import {
+  ArrowLeft,
+  BriefcaseBusiness,
+  Download,
+  FileText,
+  Loader2,
+  Paperclip,
+  Send,
+  ShieldCheck,
+  X,
+} from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
+import type { SendMessageAttachmentPayload } from '../lib/api';
 
 const auth = useAuthStore();
 const communication = useCommunicationStore();
 const route = useRoute();
 const router = useRouter();
 const messagesEnd = ref<HTMLElement | null>(null);
+const fileInput = ref<HTMLInputElement | null>(null);
+const localError = ref<string | null>(null);
 
 const form = reactive({ body: '' });
+const attachments = ref<SendMessageAttachmentPayload[]>([]);
 const conversationId = computed(() => String(route.params.id));
 const conversation = computed(() => communication.currentConversation);
+const maxAttachmentSize = 524_288;
+const maxAttachments = 3;
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -27,13 +43,75 @@ const load = async () => {
   messagesEnd.value?.scrollIntoView({ block: 'end' });
 };
 
-const send = async () => {
-  if (!auth.accessToken || !form.body.trim()) {
+const formatFileSize = (bytes: number) => {
+  if (bytes < 1024) {
+    return `${bytes} Б`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${Math.round(bytes / 1024)} КБ`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} МБ`;
+};
+
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.addEventListener('load', () => resolve(String(reader.result)));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
+
+const addFiles = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const files = Array.from(input.files ?? []);
+  localError.value = null;
+
+  if (attachments.value.length + files.length > maxAttachments) {
+    localError.value = `Можно прикрепить до ${maxAttachments} файлов за сообщение.`;
+    input.value = '';
     return;
   }
 
-  await communication.sendMessage(auth.accessToken, conversationId.value, form.body);
+  for (const file of files) {
+    if (file.size > maxAttachmentSize) {
+      localError.value = `Файл «${file.name}» больше 512 КБ. Для demo-чата держим файлы маленькими.`;
+      input.value = '';
+      return;
+    }
+
+    const fileUrl = await readFileAsDataUrl(file);
+    attachments.value.push({
+      fileName: file.name,
+      fileUrl,
+      mimeType: file.type || null,
+      sizeBytes: file.size,
+    });
+  }
+
+  input.value = '';
+};
+
+const removeAttachment = (index: number) => {
+  attachments.value = attachments.value.filter((_, attachmentIndex) => attachmentIndex !== index);
+};
+
+const send = async () => {
+  if (!auth.accessToken || (!form.body.trim() && !attachments.value.length)) {
+    return;
+  }
+
+  localError.value = null;
+  await communication.sendMessage(
+    auth.accessToken,
+    conversationId.value,
+    form.body,
+    attachments.value,
+  );
   form.body = '';
+  attachments.value = [];
   await nextTick();
   messagesEnd.value?.scrollIntoView({ block: 'end' });
 };
@@ -120,6 +198,29 @@ onMounted(() => {
                 <p class="mt-2 whitespace-pre-line text-sm font-semibold leading-6">
                   {{ message.body }}
                 </p>
+                <div v-if="message.attachments.length" class="mt-3 grid gap-2">
+                  <a
+                    v-for="attachment in message.attachments"
+                    :key="attachment.id"
+                    class="flex items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-sm font-black transition hover:opacity-80"
+                    :class="
+                      message.senderId === auth.user?.id
+                        ? 'border-paper/25 bg-paper/10 text-paper'
+                        : 'border-line bg-[#fffaf0] text-ink'
+                    "
+                    :href="attachment.fileUrl"
+                    :download="attachment.fileName"
+                  >
+                    <span class="flex min-w-0 items-center gap-2">
+                      <FileText class="shrink-0" :size="17" />
+                      <span class="min-w-0 truncate">{{ attachment.fileName }}</span>
+                    </span>
+                    <span class="flex shrink-0 items-center gap-2 opacity-70">
+                      {{ formatFileSize(attachment.sizeBytes) }}
+                      <Download :size="16" />
+                    </span>
+                  </a>
+                </div>
               </div>
             </article>
             <div ref="messagesEnd" />
@@ -130,15 +231,54 @@ onMounted(() => {
               v-model="form.body"
               class="min-h-28 w-full rounded-2xl border border-ink bg-paper px-4 py-3 font-semibold outline-none focus:bg-white"
               placeholder="Напишите сообщение, ссылку или договоренность по заказу"
-              required
             />
-            <button
-              class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-              type="submit"
-              :disabled="communication.isSaving"
+            <div v-if="attachments.length" class="grid gap-2">
+              <div
+                v-for="(attachment, index) in attachments"
+                :key="`${attachment.fileName}-${index}`"
+                class="flex items-center justify-between gap-3 rounded-2xl border border-line bg-paper px-4 py-3"
+              >
+                <span class="flex min-w-0 items-center gap-2 text-sm font-black">
+                  <FileText class="shrink-0" :size="17" />
+                  <span class="truncate">{{ attachment.fileName }}</span>
+                  <span class="shrink-0 text-ink/45">{{
+                    formatFileSize(attachment.sizeBytes)
+                  }}</span>
+                </span>
+                <button
+                  class="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-ink transition hover:bg-ink hover:text-paper"
+                  type="button"
+                  @click="removeAttachment(index)"
+                >
+                  <X :size="15" />
+                </button>
+              </div>
+            </div>
+            <p
+              v-if="localError || communication.error"
+              class="rounded-2xl border border-ember bg-ember/10 px-4 py-3 text-sm font-black text-ember"
             >
-              Отправить
-            </button>
+              {{ localError || communication.error }}
+            </p>
+            <input ref="fileInput" class="hidden" type="file" multiple @change="addFiles" />
+            <div class="grid gap-3 sm:grid-cols-[auto_1fr]">
+              <button
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-white"
+                type="button"
+                @click="fileInput?.click()"
+              >
+                <Paperclip :size="18" />
+                Прикрепить файл
+              </button>
+              <button
+                class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt disabled:opacity-50"
+                type="submit"
+                :disabled="communication.isSaving || (!form.body.trim() && !attachments.length)"
+              >
+                <Send :size="18" />
+                Отправить
+              </button>
+            </div>
           </form>
         </section>
 
@@ -146,8 +286,9 @@ onMounted(() => {
           class="mt-4 flex items-start gap-2 rounded-2xl border border-line bg-[#fffaf0] p-4 text-sm font-bold leading-6 text-ink/68"
         >
           <ShieldCheck class="mt-1 shrink-0 text-moss" :size="18" />
-          В этом блоке файлы пока отмечены как будущий слой. Основа уже есть: рабочий диалог,
-          уведомления и привязка к заказу и гаранту.
+          Файлы хранятся как demo-вложения в сообщениях: до 3 файлов и до 512 КБ каждый. Для диплома
+          этого достаточно, а в production слой можно заменить на S3/VPS-хранилище без изменения
+          сценария чата.
         </p>
       </section>
     </section>

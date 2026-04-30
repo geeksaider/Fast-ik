@@ -778,6 +778,16 @@ export type ConversationParticipant = {
   lastReadAt: string | null;
 };
 
+export type MessageAttachment = {
+  id: string;
+  messageId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string | null;
+  sizeBytes: number;
+  createdAt: string;
+};
+
 export type ConversationMessage = {
   id: string;
   conversationId: string;
@@ -786,6 +796,7 @@ export type ConversationMessage = {
   senderRole: AuthRole;
   body: string;
   kind: MessageKind;
+  attachments: MessageAttachment[];
   createdAt: string;
 };
 
@@ -831,13 +842,24 @@ export const getConversation = async (token: string, id: string) =>
     headers: authHeaders(token),
   });
 
-export const sendConversationMessage = async (token: string, id: string, body: string) =>
+export type SendMessageAttachmentPayload = {
+  fileName: string;
+  fileUrl: string;
+  mimeType?: string | null;
+  sizeBytes: number;
+};
+
+export const sendConversationMessage = async (
+  token: string,
+  id: string,
+  payload: { body?: string; attachments?: SendMessageAttachmentPayload[] },
+) =>
   apiFetch<{ message: ConversationMessage; conversation: ConversationDetail }>(
     `/conversations/${id}/messages`,
     {
       method: 'POST',
       headers: authHeaders(token),
-      body: JSON.stringify({ body }),
+      body: JSON.stringify(payload),
     },
   );
 

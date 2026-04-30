@@ -588,11 +588,38 @@ export const openApiSpec = {
     '/conversations/{id}/messages': {
       post: {
         tags: ['Communication'],
-        summary: 'Send text message to a conversation',
+        summary: 'Send text message and optional demo attachments to a conversation',
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
         ],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  body: { type: 'string', maxLength: 4000 },
+                  attachments: {
+                    type: 'array',
+                    maxItems: 3,
+                    items: {
+                      type: 'object',
+                      required: ['fileName', 'fileUrl', 'sizeBytes'],
+                      properties: {
+                        fileName: { type: 'string', maxLength: 180 },
+                        fileUrl: { type: 'string', description: 'Data URL or demo file URL' },
+                        mimeType: { type: 'string', nullable: true },
+                        sizeBytes: { type: 'integer', maximum: 524288 },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         responses: {
           '201': { description: 'Created message and refreshed conversation' },
           '400': { description: 'Validation error' },

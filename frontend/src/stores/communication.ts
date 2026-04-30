@@ -9,6 +9,7 @@ import {
   type ConversationDetail,
   type ConversationListItem,
   type NotificationListItem,
+  type SendMessageAttachmentPayload,
 } from '../lib/api';
 
 export const useCommunicationStore = defineStore('communication', {
@@ -54,12 +55,17 @@ export const useCommunicationStore = defineStore('communication', {
         this.isLoading = false;
       }
     },
-    async sendMessage(token: string, id: string, body: string) {
+    async sendMessage(
+      token: string,
+      id: string,
+      body: string,
+      attachments: SendMessageAttachmentPayload[] = [],
+    ) {
       this.isSaving = true;
       this.error = null;
 
       try {
-        const response = await sendConversationMessage(token, id, body);
+        const response = await sendConversationMessage(token, id, { body, attachments });
         this.currentConversation = response.conversation;
         await this.loadConversations(token);
       } catch (error) {

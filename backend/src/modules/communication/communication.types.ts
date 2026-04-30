@@ -35,6 +35,16 @@ export type ConversationParticipant = {
   lastReadAt: string | null;
 };
 
+export type MessageAttachment = {
+  id: string;
+  messageId: string;
+  fileName: string;
+  fileUrl: string;
+  mimeType: string | null;
+  sizeBytes: number;
+  createdAt: string;
+};
+
 export type ConversationMessage = {
   id: string;
   conversationId: string;
@@ -43,6 +53,7 @@ export type ConversationMessage = {
   senderRole: string;
   body: string;
   kind: MessageKind;
+  attachments: MessageAttachment[];
   createdAt: string;
 };
 

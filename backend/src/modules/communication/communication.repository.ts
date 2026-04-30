@@ -5,6 +5,7 @@ import type {
   ConversationListItem,
   ConversationMessage,
   ConversationParticipant,
+  MessageAttachment,
   NotificationListItem,
   NotificationType,
 } from './communication.types.js';
@@ -20,6 +21,13 @@ type NotificationInput = {
   title: string;
   body: string;
   linkUrl?: string | null;
+};
+
+type MessageAttachmentInput = {
+  fileName: string;
+  fileUrl: string;
+  mimeType?: string | null;
+  sizeBytes: number;
 };
 
 const conversationSelect = `
@@ -162,6 +170,7 @@ export const listConversationMessages = async (conversationId: string) => {
        roles.code as "senderRole",
        messages.body,
        messages.kind,
+       '[]'::jsonb as attachments,
        messages.created_at as "createdAt"
      from messages
      join users on users.id = messages.sender_id
@@ -172,7 +181,39 @@ export const listConversationMessages = async (conversationId: string) => {
     [conversationId],
   );
 
-  return result.rows;
+  const messageIds = result.rows.map((message) => message.id);
+
+  if (!messageIds.length) {
+    return result.rows;
+  }
+
+  const attachmentsResult = await pool.query<MessageAttachment>(
+    `select
+       id,
+       message_id as "messageId",
+       file_name as "fileName",
+       file_url as "fileUrl",
+       mime_type as "mimeType",
+       size_bytes as "sizeBytes",
+       created_at as "createdAt"
+     from message_attachments
+     where message_id = any($1::uuid[])
+     order by created_at asc`,
+    [messageIds],
+  );
+  const attachmentsByMessage = new Map<string, MessageAttachment[]>();
+
+  for (const attachment of attachmentsResult.rows) {
+    attachmentsByMessage.set(attachment.messageId, [
+      ...(attachmentsByMessage.get(attachment.messageId) ?? []),
+      attachment,
+    ]);
+  }
+
+  return result.rows.map((message) => ({
+    ...message,
+    attachments: attachmentsByMessage.get(message.id) ?? [],
+  }));
 };
 
 export const markConversationRead = async (conversationId: string, userId: string) => {
@@ -201,24 +242,42 @@ export const getConversationDetail = async (
   };
 };
 
-export const createMessage = async (conversationId: string, senderId: string, body: string) => {
+export const createMessage = async (
+  conversationId: string,
+  senderId: string,
+  body: string,
+  attachments: MessageAttachmentInput[] = [],
+) => {
   const client = await pool.connect();
 
   try {
     await client.query('begin');
 
-    const result = await client.query<ConversationMessage>(
+    const result = await client.query<{ id: string }>(
       `insert into messages (conversation_id, sender_id, body, kind)
        values ($1, $2, $3, 'text')
-       returning
-         id,
-         conversation_id as "conversationId",
-         sender_id as "senderId",
-         body,
-         kind,
-         created_at as "createdAt"`,
+       returning id`,
       [conversationId, senderId, body],
     );
+    const messageId = result.rows[0]?.id;
+
+    if (!messageId) {
+      throw new Error('MESSAGE_NOT_CREATED');
+    }
+
+    for (const attachment of attachments) {
+      await client.query(
+        `insert into message_attachments (message_id, file_name, file_url, mime_type, size_bytes)
+         values ($1, $2, $3, $4, $5)`,
+        [
+          messageId,
+          attachment.fileName,
+          attachment.fileUrl,
+          attachment.mimeType ?? null,
+          attachment.sizeBytes,
+        ],
+      );
+    }
 
     await client.query(
       `update conversations
@@ -234,9 +293,41 @@ export const createMessage = async (conversationId: string, senderId: string, bo
       [conversationId, senderId],
     );
 
+    const messageResult = await client.query<Omit<ConversationMessage, 'attachments'>>(
+      `select
+         messages.id,
+         messages.conversation_id as "conversationId",
+         messages.sender_id as "senderId",
+         users.display_name as "senderName",
+         roles.code as "senderRole",
+         messages.body,
+         messages.kind,
+         messages.created_at as "createdAt"
+       from messages
+       join users on users.id = messages.sender_id
+       join roles on roles.id = users.role_id
+       where messages.id = $1`,
+      [messageId],
+    );
+    const attachmentsResult = await client.query<MessageAttachment>(
+      `select
+         id,
+         message_id as "messageId",
+         file_name as "fileName",
+         file_url as "fileUrl",
+         mime_type as "mimeType",
+         size_bytes as "sizeBytes",
+         created_at as "createdAt"
+       from message_attachments
+       where message_id = $1
+       order by created_at asc`,
+      [messageId],
+    );
+    const message = messageResult.rows[0];
+
     await client.query('commit');
 
-    return result.rows[0];
+    return message ? { ...message, attachments: attachmentsResult.rows } : null;
   } catch (error) {
     await client.query('rollback');
     throw error;
