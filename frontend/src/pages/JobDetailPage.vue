@@ -18,6 +18,7 @@ import { useMarketplaceStore } from '../stores/marketplace';
 import {
   formatAmount,
   formatDate,
+  formatDateTime,
   formatDisplayText,
   formatMoney,
   formatSystemLabel,
@@ -148,6 +149,21 @@ onMounted(() => {
           </article>
 
           <section
+            v-if="job.myInvite && !job.myApplication"
+            class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
+            <h2 class="flex items-center gap-2 text-2xl font-black tracking-[-0.04em]">
+              <BadgeCheck class="text-moss" :size="24" /> Вас пригласили
+            </h2>
+            <p class="mt-3 text-sm font-semibold leading-6 text-ink/70">
+              {{ job.myInvite.message }}
+            </p>
+            <p class="mt-3 text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+              {{ job.myInvite.customerName }} · {{ formatDateTime(job.myInvite.createdAt) }}
+            </p>
+          </section>
+
+          <section
             v-if="canApply"
             class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6"
           >
@@ -256,6 +272,44 @@ onMounted(() => {
               >
                 Откликов пока нет. Когда исполнитель откликнется, заказчик увидит его здесь.
               </p>
+            </div>
+          </section>
+
+          <section
+            v-if="canManage && job.invites.length"
+            class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
+            <h2 class="flex items-center gap-2 text-2xl font-black tracking-[-0.04em]">
+              <MessageSquareText class="text-bolt" :size="24" /> Приглашения
+            </h2>
+            <div class="mt-4 grid gap-3">
+              <article
+                v-for="invite in job.invites"
+                :key="invite.id"
+                class="rounded-2xl border border-line bg-paper p-4"
+              >
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <RouterLink
+                      class="inline-flex items-center gap-2 font-black underline decoration-2 underline-offset-4 transition hover:text-bolt"
+                      :to="`/performers/${invite.performerId}`"
+                    >
+                      {{ invite.performerName }}
+                    </RouterLink>
+                    <p class="mt-2 text-sm font-semibold leading-6 text-ink/68">
+                      {{ invite.message }}
+                    </p>
+                  </div>
+                  <div
+                    class="shrink-0 rounded-2xl border border-line bg-[#fffaf0] px-4 py-3 text-right"
+                  >
+                    <p class="text-sm font-black">{{ formatSystemLabel(invite.status) }}</p>
+                    <p class="mt-1 text-xs font-bold text-ink/50">
+                      {{ formatDateTime(invite.createdAt) }}
+                    </p>
+                  </div>
+                </div>
+              </article>
             </div>
           </section>
         </section>

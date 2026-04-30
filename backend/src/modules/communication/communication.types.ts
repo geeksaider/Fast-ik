@@ -3,6 +3,7 @@ export type MessageKind = 'text' | 'system';
 export type NotificationType =
   | 'application_received'
   | 'application_selected'
+  | 'job_invited'
   | 'order_submitted'
   | 'order_completed'
   | 'order_reviewed'

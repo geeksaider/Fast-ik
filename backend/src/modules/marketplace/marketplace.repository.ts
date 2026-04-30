@@ -2,9 +2,10 @@ import { pool } from '../../db/pool.js';
 import type {
   ApplicationCreateInput,
   JobCreateInput,
+  JobInviteCreateInput,
   JobListQuery,
 } from './marketplace.schemas.js';
-import type { Category, JobApplication, JobListItem } from './marketplace.types.js';
+import type { Category, JobApplication, JobInvite, JobListItem } from './marketplace.types.js';
 
 const jobSelect = `
   select
@@ -155,6 +156,55 @@ export const listApplicationsByJob = async (jobId: string) => {
   return result.rows;
 };
 
+export const listInvitesByJob = async (jobId: string) => {
+  const result = await pool.query<JobInvite>(
+    `select
+       job_invites.id,
+       job_invites.job_id as "jobId",
+       job_invites.customer_id as "customerId",
+       customer.display_name as "customerName",
+       job_invites.performer_id as "performerId",
+       performer.display_name as "performerName",
+       job_invites.message,
+       job_invites.status,
+       job_invites.created_at as "createdAt",
+       job_invites.updated_at as "updatedAt"
+     from job_invites
+     join users customer on customer.id = job_invites.customer_id
+     join users performer on performer.id = job_invites.performer_id
+     where job_invites.job_id = $1
+     order by job_invites.created_at desc`,
+    [jobId],
+  );
+
+  return result.rows;
+};
+
+export const getPerformerInviteTarget = async (performerId: string) => {
+  const result = await pool.query<{ id: string; displayName: string; status: string }>(
+    `select users.id, users.display_name as "displayName", users.status
+     from users
+     join roles on roles.id = users.role_id
+     where users.id = $1
+       and roles.code = 'performer'`,
+    [performerId],
+  );
+
+  return result.rows[0] ?? null;
+};
+
+export const hasApplicationForJob = async (jobId: string, performerId: string) => {
+  const result = await pool.query<{ exists: boolean }>(
+    `select exists(
+       select 1 from job_applications
+       where job_id = $1 and performer_id = $2
+     ) as exists`,
+    [jobId, performerId],
+  );
+
+  return Boolean(result.rows[0]?.exists);
+};
+
 export const getApplicationById = async (id: string) => {
   const result = await pool.query<JobApplication>(
     `select
@@ -202,6 +252,16 @@ export const createApplication = async (
       [jobId],
     );
 
+    await client.query(
+      `update job_invites
+       set status = 'accepted',
+           updated_at = now()
+       where job_id = $1
+         and performer_id = $2
+         and status = 'pending'`,
+      [jobId, performerId],
+    );
+
     await client.query('commit');
 
     return result.rows[0]?.id;
@@ -211,6 +271,21 @@ export const createApplication = async (
   } finally {
     client.release();
   }
+};
+
+export const createJobInvite = async (
+  jobId: string,
+  customerId: string,
+  input: JobInviteCreateInput,
+) => {
+  const result = await pool.query<{ id: string }>(
+    `insert into job_invites (job_id, customer_id, performer_id, message)
+     values ($1, $2, $3, $4)
+     returning id`,
+    [jobId, customerId, input.performerId, input.message],
+  );
+
+  return result.rows[0]?.id ?? null;
 };
 
 export const acceptApplication = async (jobId: string, applicationId: string) => {

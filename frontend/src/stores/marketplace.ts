@@ -5,10 +5,12 @@ import {
   getMarketplaceCategories,
   getMarketplaceJob,
   getMarketplaceJobs,
+  invitePerformerToMarketplaceJob,
   selectJobApplication,
   type ApplicationCreatePayload,
   type JobCreatePayload,
   type JobDetail,
+  type JobInviteCreatePayload,
   type JobListItem,
   type MarketplaceCategory,
 } from '../lib/api';
@@ -27,12 +29,15 @@ export const useMarketplaceStore = defineStore('marketplace', {
       const response = await getMarketplaceCategories();
       this.categories = response.categories;
     },
-    async loadJobs(params: { category?: string; search?: string; mine?: boolean } = {}) {
+    async loadJobs(
+      params: { category?: string; search?: string; mine?: boolean } = {},
+      token?: string | null,
+    ) {
       this.isLoading = true;
       this.error = null;
 
       try {
-        const response = await getMarketplaceJobs(params);
+        const response = await getMarketplaceJobs(params, token);
         this.jobs = response.jobs;
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Не удалось загрузить заказы';
@@ -76,6 +81,22 @@ export const useMarketplaceStore = defineStore('marketplace', {
         this.currentJob = await applyToMarketplaceJob(token, jobId, payload);
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Не удалось отправить отклик';
+        throw error;
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async invitePerformer(token: string, jobId: string, payload: JobInviteCreatePayload) {
+      this.isSaving = true;
+      this.error = null;
+
+      try {
+        this.currentJob = await invitePerformerToMarketplaceJob(token, jobId, payload);
+        this.jobs = this.jobs.map((job) =>
+          job.id === this.currentJob?.id ? { ...job, updatedAt: this.currentJob.updatedAt } : job,
+        );
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Не удалось отправить приглашение';
         throw error;
       } finally {
         this.isSaving = false;

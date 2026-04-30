@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, watch } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import {
   ArrowLeft,
@@ -11,6 +11,7 @@ import {
   MapPin,
   Medal,
   MessageCircle,
+  Send,
   ShieldCheck,
   Sparkles,
   Star,
@@ -18,6 +19,7 @@ import {
   UserRound,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
+import { useMarketplaceStore } from '../stores/marketplace';
 import { usePerformersStore } from '../stores/performers';
 import { formatAmount, formatDateTime } from '../lib/format';
 import type { UserSkill } from '../lib/api';
@@ -25,9 +27,24 @@ import type { UserSkill } from '../lib/api';
 const auth = useAuthStore();
 const route = useRoute();
 const performers = usePerformersStore();
+const marketplace = useMarketplaceStore();
+
+const inviteForm = reactive({
+  jobId: '',
+  message: '',
+});
+const inviteSuccess = ref<string | null>(null);
+const inviteError = ref<string | null>(null);
 
 const performerId = computed(() => String(route.params.id));
 const profile = computed(() => performers.current);
+const isCustomer = computed(() => auth.user?.role === 'customer');
+const invitableJobs = computed(() =>
+  marketplace.jobs.filter((job) => job.status === 'published' && job.customerId === auth.user?.id),
+);
+const selectedInviteJob = computed(
+  () => invitableJobs.value.find((job) => job.id === inviteForm.jobId) ?? null,
+);
 const ratingLabel = computed(() => {
   const rating = profile.value?.stats.averageRating;
 
@@ -39,7 +56,7 @@ const inviteTarget = computed(() => {
   }
 
   if (auth.user?.role === 'customer') {
-    return { to: '/jobs/new', label: 'Пригласить в заказ' };
+    return { to: '#invite-performer', label: 'Пригласить в заказ' };
   }
 
   return { to: '/jobs', label: 'Открыть биржу' };
@@ -67,6 +84,38 @@ const availabilityLabel = (value: string | null | undefined) => {
 
 const load = async () => {
   await performers.load(performerId.value);
+
+  if (auth.accessToken && isCustomer.value) {
+    await marketplace.loadJobs({ mine: true }, auth.accessToken);
+  }
+};
+
+const submitInvite = async () => {
+  if (!auth.accessToken || !profile.value) {
+    return;
+  }
+
+  inviteError.value = null;
+  inviteSuccess.value = null;
+
+  if (!inviteForm.jobId) {
+    inviteError.value = 'Выберите заказ, куда пригласить исполнителя.';
+    return;
+  }
+
+  try {
+    await marketplace.invitePerformer(auth.accessToken, inviteForm.jobId, {
+      performerId: profile.value.user.id,
+      message: inviteForm.message,
+    });
+  } catch {
+    return;
+  }
+
+  inviteSuccess.value = selectedInviteJob.value
+    ? `Приглашение отправлено в заказ «${selectedInviteJob.value.title}».`
+    : 'Приглашение отправлено исполнителю.';
+  inviteForm.message = '';
 };
 
 onMounted(() => {
@@ -76,6 +125,16 @@ onMounted(() => {
 watch(performerId, () => {
   void load();
 });
+
+watch(
+  invitableJobs,
+  (jobs) => {
+    if (!inviteForm.jobId && jobs[0]) {
+      inviteForm.jobId = jobs[0].id;
+    }
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -177,7 +236,16 @@ watch(performerId, () => {
             </div>
 
             <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+              <a
+                v-if="isCustomer"
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
+                :href="inviteTarget.to"
+              >
+                <MessageCircle :size="18" />
+                {{ inviteTarget.label }}
+              </a>
               <RouterLink
+                v-else
                 class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
                 :to="inviteTarget.to"
               >
@@ -261,6 +329,80 @@ watch(performerId, () => {
               </div>
             </section>
           </aside>
+        </section>
+
+        <section
+          v-if="isCustomer"
+          id="invite-performer"
+          class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+        >
+          <div class="grid gap-5 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+            <div>
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">
+                Прямое приглашение
+              </p>
+              <h2 class="mt-2 text-3xl font-black tracking-[-0.06em]">
+                Позвать исполнителя в заказ
+              </h2>
+              <p class="mt-3 text-sm font-semibold leading-6 text-ink/65">
+                Если профиль подходит, заказчик может не ждать случайных откликов, а отправить
+                персональное приглашение. Исполнитель получит уведомление и перейдет прямо к заказу.
+              </p>
+            </div>
+
+            <form v-if="invitableJobs.length" class="grid gap-3" @submit.prevent="submitInvite">
+              <select
+                v-model="inviteForm.jobId"
+                class="rounded-2xl border border-line bg-paper px-4 py-3 font-black outline-none transition focus:border-ink"
+                required
+              >
+                <option v-for="job in invitableJobs" :key="job.id" :value="job.id">
+                  {{ job.title }}
+                </option>
+              </select>
+              <textarea
+                v-model="inviteForm.message"
+                class="min-h-28 rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none transition focus:border-ink"
+                placeholder="Коротко объясните, почему зовете именно этого исполнителя и что нужно сделать"
+                minlength="10"
+                required
+              />
+              <button
+                class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt disabled:opacity-50"
+                type="submit"
+                :disabled="marketplace.isSaving"
+              >
+                <Send :size="18" />
+                Отправить приглашение
+              </button>
+              <p
+                v-if="inviteSuccess"
+                class="rounded-2xl border border-moss bg-moss/10 px-4 py-3 text-sm font-black text-moss"
+              >
+                {{ inviteSuccess }}
+              </p>
+              <p
+                v-if="inviteError || marketplace.error"
+                class="rounded-2xl border border-ember bg-ember/10 px-4 py-3 text-sm font-black text-ember"
+              >
+                {{ inviteError || marketplace.error }}
+              </p>
+            </form>
+
+            <div v-else class="rounded-2xl border border-line bg-paper p-4">
+              <p class="text-sm font-bold leading-6 text-ink/65">
+                У вас пока нет опубликованных заказов для приглашения. Создайте заказ, а затем
+                вернитесь к профилю исполнителя.
+              </p>
+              <RouterLink
+                class="mt-4 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+                to="/jobs/new"
+              >
+                Создать заказ
+                <ArrowRight :size="18" />
+              </RouterLink>
+            </div>
+          </div>
         </section>
 
         <section class="grid gap-4 lg:grid-cols-[0.86fr_1.14fr]">

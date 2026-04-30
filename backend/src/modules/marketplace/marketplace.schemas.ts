@@ -50,6 +50,11 @@ export const applicationCreateSchema = z.object({
   deliveryDays: nullableNumber(365),
 });
 
+export const jobInviteCreateSchema = z.object({
+  performerId: z.string().uuid(),
+  message: z.string().trim().min(10).max(1200),
+});
+
 export const idParamSchema = z.object({ id: z.string().uuid() });
 export const selectApplicationParamsSchema = z.object({
   jobId: z.string().uuid(),
@@ -59,3 +64,4 @@ export const selectApplicationParamsSchema = z.object({
 export type JobListQuery = z.infer<typeof jobListQuerySchema>;
 export type JobCreateInput = z.infer<typeof jobCreateSchema>;
 export type ApplicationCreateInput = z.infer<typeof applicationCreateSchema>;
+export type JobInviteCreateInput = z.infer<typeof jobInviteCreateSchema>;

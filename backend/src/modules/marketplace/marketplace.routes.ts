@@ -5,6 +5,7 @@ import { HttpError } from '../../http/errors/http-error.js';
 import {
   applicationCreateSchema,
   idParamSchema,
+  jobInviteCreateSchema,
   jobCreateSchema,
   jobListQuerySchema,
   selectApplicationParamsSchema,
@@ -14,6 +15,7 @@ import {
   getMarketplaceCategories,
   getMarketplaceJob,
   getMarketplaceJobs,
+  invitePerformerToJob,
   publishJob,
   selectApplication,
 } from './marketplace.service.js';
@@ -72,6 +74,17 @@ marketplaceRouter.post('/jobs/:id/applications', requireAuth, async (request, re
     const input = applicationCreateSchema.parse(request.body);
 
     response.status(201).json(await applyToJob(getUser(request), params.id, input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.post('/jobs/:id/invites', requireAuth, async (request, response, next) => {
+  try {
+    const params = idParamSchema.parse(request.params);
+    const input = jobInviteCreateSchema.parse(request.body);
+
+    response.status(201).json(await invitePerformerToJob(getUser(request), params.id, input));
   } catch (error) {
     next(error);
   }

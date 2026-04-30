@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Admin Elite HR interview flow.
+Stage: Direct performer invitations.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
 
 Development can run in two modes:
 
@@ -116,11 +116,11 @@ Core idea:
 
 ## Current Next Block
 
-After the admin Elite HR interview screen is verified, the next implementation block should deepen collaboration flows:
+After direct performer invitations are verified, the next implementation block should deepen collaboration flows:
 
-- invite performer to a specific customer order;
 - optional file attachments in order conversations.
 - lightweight analytics for customers, performers and admins.
+- contests with level-based participation.
 
 ## Demo Accounts
 

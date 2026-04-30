@@ -76,6 +76,8 @@ export const formatDisplayText = (value: string | null | undefined) => {
 const systemLabels: Record<string, string> = {
   application_sent: 'Отклик отправлен',
   application_selected: 'Исполнитель выбран',
+  application_received: 'Новый отклик',
+  job_invited: 'Приглашение в заказ',
   pending: 'Ожидает решения',
   approved: 'Одобрено',
   draft: 'Черновик',

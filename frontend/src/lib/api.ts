@@ -284,6 +284,7 @@ export type MarketplaceCategory = {
 
 export type JobStatus = 'published' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
 export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+export type JobInviteStatus = 'pending' | 'accepted' | 'declined';
 
 export type JobListItem = {
   id: string;
@@ -318,11 +319,26 @@ export type JobApplication = {
   updatedAt: string;
 };
 
+export type JobInvite = {
+  id: string;
+  jobId: string;
+  customerId: string;
+  customerName: string;
+  performerId: string;
+  performerName: string;
+  message: string;
+  status: JobInviteStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type JobDetail = JobListItem & {
   applications: JobApplication[];
+  invites: JobInvite[];
   canApply: boolean;
   canManage: boolean;
   myApplication: JobApplication | null;
+  myInvite: JobInvite | null;
 };
 
 export type JobCreatePayload = {
@@ -341,11 +357,17 @@ export type ApplicationCreatePayload = {
   deliveryDays?: number | null;
 };
 
+export type JobInviteCreatePayload = {
+  performerId: string;
+  message: string;
+};
+
 export const getMarketplaceCategories = async () =>
   apiFetch<{ categories: MarketplaceCategory[] }>('/marketplace/categories');
 
 export const getMarketplaceJobs = async (
   params: { category?: string; search?: string; mine?: boolean } = {},
+  token?: string | null,
 ) => {
   const query = new URLSearchParams();
 
@@ -361,7 +383,9 @@ export const getMarketplaceJobs = async (
     query.set('mine', 'true');
   }
 
-  return apiFetch<{ jobs: JobListItem[] }>(`/marketplace/jobs${query.size ? `?${query}` : ''}`);
+  return apiFetch<{ jobs: JobListItem[] }>(`/marketplace/jobs${query.size ? `?${query}` : ''}`, {
+    headers: token ? authHeaders(token) : undefined,
+  });
 };
 
 export const createJob = async (token: string, payload: JobCreatePayload) =>
@@ -382,6 +406,17 @@ export const applyToMarketplaceJob = async (
   payload: ApplicationCreatePayload,
 ) =>
   apiFetch<JobDetail>(`/marketplace/jobs/${id}/applications`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const invitePerformerToMarketplaceJob = async (
+  token: string,
+  id: string,
+  payload: JobInviteCreatePayload,
+) =>
+  apiFetch<JobDetail>(`/marketplace/jobs/${id}/invites`, {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(payload),
@@ -762,6 +797,7 @@ export type ConversationDetail = ConversationListItem & {
 export type NotificationType =
   | 'application_received'
   | 'application_selected'
+  | 'job_invited'
   | 'order_submitted'
   | 'order_completed'
   | 'order_reviewed'

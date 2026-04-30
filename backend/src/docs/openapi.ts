@@ -397,6 +397,22 @@ export const openApiSpec = {
         },
       },
     },
+    '/marketplace/jobs/{id}/invites': {
+      post: {
+        tags: ['Marketplace'],
+        summary: 'Invite a performer to a customer job',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '201': { description: 'Updated job detail with invitation' },
+          '403': { description: 'Only the job owner can invite performers' },
+          '404': { description: 'Job or performer not found' },
+          '409': { description: 'Invite conflict or job is not published' },
+        },
+      },
+    },
     '/marketplace/jobs/{jobId}/applications/{applicationId}/select': {
       post: {
         tags: ['Marketplace'],

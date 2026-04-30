@@ -7,6 +7,7 @@ export type Category = {
 
 export type JobStatus = 'published' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
 export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+export type JobInviteStatus = 'pending' | 'accepted' | 'declined';
 
 export type JobListItem = {
   id: string;
@@ -41,9 +42,24 @@ export type JobApplication = {
   updatedAt: string;
 };
 
+export type JobInvite = {
+  id: string;
+  jobId: string;
+  customerId: string;
+  customerName: string;
+  performerId: string;
+  performerName: string;
+  message: string;
+  status: JobInviteStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type JobDetail = JobListItem & {
   applications: JobApplication[];
+  invites: JobInvite[];
   canApply: boolean;
   canManage: boolean;
   myApplication: JobApplication | null;
+  myInvite: JobInvite | null;
 };
