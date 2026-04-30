@@ -4,6 +4,7 @@ import { createNotification } from '../communication/communication.repository.js
 import type {
   AdminActionItem,
   AdminDisputeItem,
+  AdminInterviewItem,
   AdminModerationJobItem,
   AdminOverview,
   AdminUserItem,
@@ -56,36 +57,53 @@ export const recordAdminAction = async (input: RecordActionInput, queryable: Que
 };
 
 export const getAdminOverview = async (permissions: AdminOverview['permissions']) => {
-  const [usersResult, jobsResult, disputesResult, ordersResult, escrowResult, actionsResult] =
-    await Promise.all([
-      pool.query<{ total: string; active: string }>(
-        `select
+  const [
+    usersResult,
+    jobsResult,
+    disputesResult,
+    interviewsResult,
+    ordersResult,
+    escrowResult,
+    actionsResult,
+  ] = await Promise.all([
+    pool.query<{ total: string; active: string }>(
+      `select
            count(*)::text as total,
            count(*) filter (where status = 'active')::text as active
          from users`,
-      ),
-      pool.query<{ pending: string }>(
-        `select count(*)::text as pending
+    ),
+    pool.query<{ pending: string }>(
+      `select count(*)::text as pending
          from jobs
          where moderation_status = 'pending'`,
-      ),
-      pool.query<{ disputed: string }>(
-        `select count(*)::text as disputed
+    ),
+    pool.query<{ disputed: string }>(
+      `select count(*)::text as disputed
          from orders
          where status = 'disputed'`,
-      ),
-      pool.query<{ active: string }>(
-        `select count(*)::text as active
+    ),
+    pool.query<{ requests: string }>(
+      `select count(*)::text as requests
+         from users
+         join roles on roles.id = users.role_id
+         join performer_progress on performer_progress.user_id = users.id
+         where roles.code = 'performer'
+           and users.status = 'active'
+           and performer_progress.interview_required = true
+           and performer_progress.interview_passed = false`,
+    ),
+    pool.query<{ active: string }>(
+      `select count(*)::text as active
          from orders
          where status in ('in_progress', 'submitted', 'disputed')`,
-      ),
-      pool.query<{ held: string }>(
-        `select coalesce(sum(amount), 0)::text as held
+    ),
+    pool.query<{ held: string }>(
+      `select coalesce(sum(amount), 0)::text as held
          from escrow_holds
          where status in ('held', 'disputed')`,
-      ),
-      pool.query<AdminActionItem>(`${actionSelect} order by admin_actions.created_at desc limit 6`),
-    ]);
+    ),
+    pool.query<AdminActionItem>(`${actionSelect} order by admin_actions.created_at desc limit 6`),
+  ]);
 
   return {
     stats: {
@@ -93,6 +111,7 @@ export const getAdminOverview = async (permissions: AdminOverview['permissions']
       activeUsers: toNumber(usersResult.rows[0]?.active),
       pendingJobs: toNumber(jobsResult.rows[0]?.pending),
       openDisputes: toNumber(disputesResult.rows[0]?.disputed),
+      interviewRequests: toNumber(interviewsResult.rows[0]?.requests),
       activeOrders: toNumber(ordersResult.rows[0]?.active),
       escrowHeldAmount: toNumber(escrowResult.rows[0]?.held),
     },
@@ -127,6 +146,144 @@ export const listAdminUsers = async () => {
   );
 
   return result.rows;
+};
+
+export const listAdminInterviews = async () => {
+  const result = await pool.query<AdminInterviewItem>(
+    `select
+       users.id as "userId",
+       users.email,
+       users.display_name as "displayName",
+       users.status,
+       performer_profiles.headline,
+       performer_profiles.specialization,
+       coalesce(performer_progress.xp, 0)::int as xp,
+       coalesce(performer_progress.completed_orders, 0)::int as "completedOrders",
+       performer_progress.rating::float8 as rating,
+       coalesce(performer_progress.interview_required, false) as "interviewRequired",
+       coalesce(performer_progress.interview_passed, false) as "interviewPassed",
+       current_level.code as "levelCode",
+       current_level.title as "levelTitle",
+       coalesce(elite_level.required_xp, 0)::int as "eliteRequiredXp",
+       latest_interview.status as "latestInterviewStatus",
+       latest_interview.note as "latestInterviewNote",
+       latest_interview.created_at as "latestInterviewAt"
+     from users
+     join roles on roles.id = users.role_id and roles.code = 'performer'
+     left join performer_profiles on performer_profiles.user_id = users.id
+     left join performer_progress on performer_progress.user_id = users.id
+     left join performer_levels current_level on current_level.id = performer_progress.level_id
+     left join performer_levels elite_level on elite_level.code = 'elite'
+     left join lateral (
+       select status, note, created_at
+       from performer_interviews
+       where performer_interviews.performer_id = users.id
+       order by created_at desc
+       limit 1
+     ) latest_interview on true
+     order by
+       coalesce(performer_progress.interview_required, false) desc,
+       coalesce(performer_progress.interview_passed, false) asc,
+       coalesce(performer_progress.xp, 0) desc,
+       users.created_at desc
+     limit 120`,
+  );
+
+  return result.rows;
+};
+
+export const decideAdminPerformerInterview = async (input: {
+  actorId: string;
+  performerId: string;
+  status: 'passed' | 'failed';
+  note: string;
+}) => {
+  const client = await pool.connect();
+
+  try {
+    await client.query('begin');
+
+    const performerResult = await client.query<{ id: string; displayName: string }>(
+      `select users.id, users.display_name as "displayName"
+       from users
+       join roles on roles.id = users.role_id
+       where users.id = $1
+         and roles.code = 'performer'
+       for update of users`,
+      [input.performerId],
+    );
+    const performer = performerResult.rows[0];
+
+    if (!performer) {
+      throw new Error('PERFORMER_NOT_FOUND');
+    }
+
+    await client.query(
+      `insert into performer_interviews (performer_id, reviewer_id, status, note)
+       values ($1, $2, $3, $4)`,
+      [input.performerId, input.actorId, input.status, input.note],
+    );
+
+    await client.query(
+      `insert into performer_progress (
+         user_id,
+         level_id,
+         xp,
+         completed_orders,
+         rating,
+         interview_required,
+         interview_passed,
+         updated_at
+       )
+       select $1, performer_levels.id, 0, 0, null, false, $2, now()
+       from performer_levels
+       where performer_levels.code = 'newcomer'
+       on conflict (user_id) do update set
+         interview_passed = excluded.interview_passed,
+         interview_required = false,
+         updated_at = now()`,
+      [input.performerId, input.status === 'passed'],
+    );
+
+    await recordAdminAction(
+      {
+        actorId: input.actorId,
+        targetType: 'performer',
+        targetId: input.performerId,
+        action: 'performer_interview_decided',
+        note: input.note,
+        metadata: { status: input.status },
+      },
+      client,
+    );
+
+    await createNotification(
+      {
+        userId: input.performerId,
+        actorId: input.actorId,
+        type: input.status === 'passed' ? 'interview_passed' : 'interview_failed',
+        title:
+          input.status === 'passed'
+            ? 'HR-интервью Fastik пройдено'
+            : 'HR-интервью Fastik не зачтено',
+        body:
+          input.status === 'passed'
+            ? `Решение платформы: интервью пройдено. ${input.note}`
+            : `Платформа оставила комментарий для повторной попытки: ${input.note}`,
+        linkUrl: '/level-roadmap',
+      },
+      client,
+    );
+
+    await client.query('commit');
+
+    return { performerId: input.performerId, performerName: performer.displayName, input };
+  } catch (error) {
+    await client.query('rollback');
+    throw error;
+  } finally {
+    client.release();
+  }
 };
 
 export const updateAdminUserStatus = async (input: {

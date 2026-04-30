@@ -2,7 +2,13 @@ import type { AuthUser } from '../auth/auth.types.js';
 import type { EscrowStatus, OrderStatus } from '../orders/orders.types.js';
 import type { JobStatus } from '../marketplace/marketplace.types.js';
 
-export type AdminPermission = 'overview' | 'users' | 'moderation' | 'disputes' | 'auditLog';
+export type AdminPermission =
+  | 'overview'
+  | 'users'
+  | 'moderation'
+  | 'disputes'
+  | 'interviews'
+  | 'auditLog';
 
 export type AdminOverview = {
   stats: {
@@ -10,6 +16,7 @@ export type AdminOverview = {
     activeUsers: number;
     pendingJobs: number;
     openDisputes: number;
+    interviewRequests: number;
     activeOrders: number;
     escrowHeldAmount: number;
   };
@@ -63,6 +70,26 @@ export type AdminModerationJobItem = {
   applicationsCount: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AdminInterviewItem = {
+  userId: string;
+  email: string;
+  displayName: string;
+  status: string;
+  headline: string | null;
+  specialization: string | null;
+  xp: number;
+  completedOrders: number;
+  rating: number | null;
+  interviewRequired: boolean;
+  interviewPassed: boolean;
+  levelCode: string | null;
+  levelTitle: string | null;
+  eliteRequiredXp: number;
+  latestInterviewStatus: 'passed' | 'failed' | null;
+  latestInterviewNote: string | null;
+  latestInterviewAt: string | null;
 };
 
 export type AdminActionItem = {

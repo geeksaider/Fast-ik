@@ -4,6 +4,7 @@ import { RouterLink, useRouter } from 'vue-router';
 import {
   Activity,
   AlertTriangle,
+  BadgeCheck,
   Ban,
   Check,
   ClipboardList,
@@ -24,7 +25,7 @@ import {
   formatMoney,
   formatSystemLabel,
 } from '../lib/format';
-import type { AdminPermission } from '../lib/api';
+import type { AdminInterviewItem, AdminPermission } from '../lib/api';
 
 const auth = useAuthStore();
 const admin = useAdminStore();
@@ -35,14 +36,17 @@ const activeTab = ref<AdminPermission>('overview');
 const localError = ref<string | null>(null);
 const moderationPage = ref(1);
 const usersPage = ref(1);
+const interviewPage = ref(1);
 const auditPage = ref(1);
 const moderationPageSize = 4;
 const usersPageSize = 6;
+const interviewPageSize = 5;
 const auditPageSize = 8;
 
 const disputeNotes = reactive<Record<string, string>>({});
 const moderationNotes = reactive<Record<string, string>>({});
 const userNotes = reactive<Record<string, string>>({});
+const interviewNotes = reactive<Record<string, string>>({});
 
 type AdminTab = {
   key: AdminPermission;
@@ -73,6 +77,15 @@ const tabs = computed<AdminTab[]>(() => {
     items.push({ key: 'users', label: 'Пользователи', icon: Users, count: admin.users.length });
   }
 
+  if (admin.can('interviews')) {
+    items.push({
+      key: 'interviews',
+      label: 'Elite HR',
+      icon: BadgeCheck,
+      count: admin.interviews.filter((candidate) => candidate.interviewRequired).length,
+    });
+  }
+
   if (admin.can('auditLog')) {
     items.push({
       key: 'auditLog',
@@ -90,6 +103,9 @@ const pendingJobs = computed(() =>
   admin.jobs.filter((job) => ['pending', 'draft'].includes(job.moderationStatus)),
 );
 const blockedUsers = computed(() => admin.users.filter((user) => user.status === 'blocked'));
+const interviewQueue = computed(() =>
+  admin.interviews.filter((candidate) => candidate.interviewRequired && !candidate.interviewPassed),
+);
 const visibleModerationJobs = computed(() =>
   admin.jobs.slice(0, moderationPage.value * moderationPageSize),
 );
@@ -98,35 +114,52 @@ const hasMoreModerationJobs = computed(
 );
 const visibleUsers = computed(() => admin.users.slice(0, usersPage.value * usersPageSize));
 const hasMoreUsers = computed(() => visibleUsers.value.length < admin.users.length);
+const visibleInterviews = computed(() =>
+  admin.interviews.slice(0, interviewPage.value * interviewPageSize),
+);
+const hasMoreInterviews = computed(() => visibleInterviews.value.length < admin.interviews.length);
 const visibleActions = computed(() => admin.actions.slice(0, auditPage.value * auditPageSize));
 const hasMoreActions = computed(() => visibleActions.value.length < admin.actions.length);
 
-const statCards = computed(() => [
-  {
-    title: 'Пользователи',
-    value: stats.value?.totalUsers ?? 0,
-    detail: `${stats.value?.activeUsers ?? 0} активных`,
-    icon: Users,
-  },
-  {
-    title: 'Споры',
-    value: stats.value?.openDisputes ?? 0,
-    detail: 'требуют решения',
-    icon: Scale,
-  },
-  {
-    title: 'Модерация',
-    value: stats.value?.pendingJobs ?? 0,
-    detail: 'заказов в очереди',
-    icon: ClipboardList,
-  },
-  {
-    title: 'В гаранте',
-    value: formatAmount(stats.value?.escrowHeldAmount ?? 0),
-    detail: `${stats.value?.activeOrders ?? 0} активных заказов`,
-    icon: WalletCards,
-  },
-]);
+const statCards = computed(() => {
+  const cards = [
+    {
+      title: 'Пользователи',
+      value: stats.value?.totalUsers ?? 0,
+      detail: `${stats.value?.activeUsers ?? 0} активных`,
+      icon: Users,
+    },
+    {
+      title: 'Споры',
+      value: stats.value?.openDisputes ?? 0,
+      detail: 'требуют решения',
+      icon: Scale,
+    },
+    {
+      title: 'Модерация',
+      value: stats.value?.pendingJobs ?? 0,
+      detail: 'заказов в очереди',
+      icon: ClipboardList,
+    },
+    {
+      title: 'В гаранте',
+      value: formatAmount(stats.value?.escrowHeldAmount ?? 0),
+      detail: `${stats.value?.activeOrders ?? 0} активных заказов`,
+      icon: WalletCards,
+    },
+  ];
+
+  if (admin.can('interviews')) {
+    cards.splice(3, 0, {
+      title: 'Elite HR',
+      value: stats.value?.interviewRequests ?? 0,
+      detail: 'ожидают интервью',
+      icon: BadgeCheck,
+    });
+  }
+
+  return cards;
+});
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -141,6 +174,7 @@ const load = async () => {
   await admin.load(auth.accessToken);
   moderationPage.value = 1;
   usersPage.value = 1;
+  interviewPage.value = 1;
   auditPage.value = 1;
 };
 
@@ -196,6 +230,53 @@ const updateUserStatus = async (id: string, status: 'active' | 'blocked') => {
 
   await admin.updateUserStatus(auth.accessToken, id, status, note || undefined);
   userNotes[id] = '';
+};
+
+const decideInterview = async (id: string, status: 'passed' | 'failed') => {
+  if (!auth.accessToken) {
+    return;
+  }
+
+  localError.value = null;
+  const note = requireNote(
+    interviewNotes[id],
+    'Для HR-решения нужен комментарий минимум 10 символов.',
+  );
+
+  if (!note) {
+    return;
+  }
+
+  await admin.decideInterview(auth.accessToken, id, status, note);
+  interviewNotes[id] = '';
+};
+
+const getInterviewState = (candidate: AdminInterviewItem) => {
+  if (candidate.interviewPassed) {
+    return 'Интервью пройдено';
+  }
+
+  if (candidate.interviewRequired) {
+    return 'Нужна HR-проверка';
+  }
+
+  if (candidate.xp >= candidate.eliteRequiredXp) {
+    return 'Можно назначать';
+  }
+
+  return 'Копит XP';
+};
+
+const getInterviewDetail = (candidate: AdminInterviewItem) => {
+  if (candidate.interviewPassed) {
+    return 'Финальный барьер Elite уже закрыт.';
+  }
+
+  if (candidate.interviewRequired) {
+    return 'Исполнитель дошел до порога Elite и ждет решения платформы.';
+  }
+
+  return `${Math.max(0, candidate.eliteRequiredXp - candidate.xp)} XP до порога Elite.`;
 };
 
 watch(
@@ -369,6 +450,20 @@ onMounted(() => {
                     </span>
                   </span>
                   <span class="text-2xl font-black">{{ blockedUsers.length }}</span>
+                </button>
+                <button
+                  v-if="admin.can('interviews')"
+                  class="flex items-center justify-between gap-4 rounded-2xl border border-line bg-paper p-4 text-left transition hover:border-ink hover:bg-white"
+                  type="button"
+                  @click="activeTab = 'interviews'"
+                >
+                  <span>
+                    <span class="block font-black">Провести Elite HR</span>
+                    <span class="mt-1 block text-sm font-semibold text-ink/62">
+                      Финальный уровень требует ручного решения платформы.
+                    </span>
+                  </span>
+                  <span class="text-2xl font-black">{{ interviewQueue.length }}</span>
                 </button>
               </div>
             </article>
@@ -623,6 +718,166 @@ onMounted(() => {
             </button>
           </div>
 
+          <div v-else-if="activeTab === 'interviews'" class="space-y-4">
+            <article class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
+              <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                  <p class="text-xs font-black uppercase tracking-[0.2em] text-paper/55">
+                    Elite HR
+                  </p>
+                  <h2 class="mt-2 text-3xl font-black tracking-[-0.06em]">
+                    Финальная проверка доверия
+                  </h2>
+                  <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-paper/68">
+                    Здесь админ фиксирует итог онлайн-интервью. Решение сразу влияет на roadmap
+                    исполнителя, уведомления и журнал действий.
+                  </p>
+                </div>
+                <div class="rounded-2xl border border-paper/20 px-4 py-3 text-right">
+                  <p class="text-3xl font-black">{{ interviewQueue.length }}</p>
+                  <p class="text-xs font-black uppercase tracking-[0.14em] text-paper/55">
+                    ждут решения
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article
+              v-for="candidate in visibleInterviews"
+              :key="candidate.userId"
+              class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+            >
+              <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="truncate text-3xl font-black tracking-[-0.06em]">
+                      {{ candidate.displayName }}
+                    </h2>
+                    <span
+                      class="rounded-full border px-3 py-1 text-xs font-black"
+                      :class="
+                        candidate.interviewPassed
+                          ? 'border-moss bg-moss/10 text-moss'
+                          : candidate.interviewRequired
+                            ? 'border-ember bg-ember/10 text-ember'
+                            : 'border-line bg-paper text-ink/60'
+                      "
+                    >
+                      {{ getInterviewState(candidate) }}
+                    </span>
+                  </div>
+
+                  <p class="mt-2 text-sm font-semibold text-ink/60">
+                    {{ candidate.email }}
+                  </p>
+                  <p class="mt-4 text-sm font-semibold leading-6 text-ink/70">
+                    {{ candidate.headline || 'Позиционирование пока не заполнено' }}
+                  </p>
+                  <p class="mt-1 text-sm font-bold text-ink/55">
+                    {{ candidate.specialization || 'Специализация не указана' }}
+                  </p>
+
+                  <div class="mt-5 grid gap-3 sm:grid-cols-4">
+                    <div class="rounded-2xl border border-line bg-paper px-4 py-3">
+                      <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">XP</p>
+                      <p class="mt-1 text-xl font-black">{{ candidate.xp }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-line bg-paper px-4 py-3">
+                      <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+                        Уровень
+                      </p>
+                      <p class="mt-1 truncate text-xl font-black">
+                        {{ candidate.levelTitle || 'Новичок' }}
+                      </p>
+                    </div>
+                    <div class="rounded-2xl border border-line bg-paper px-4 py-3">
+                      <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+                        Заказы
+                      </p>
+                      <p class="mt-1 text-xl font-black">{{ candidate.completedOrders }}</p>
+                    </div>
+                    <div class="rounded-2xl border border-line bg-paper px-4 py-3">
+                      <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">
+                        Рейтинг
+                      </p>
+                      <p class="mt-1 text-xl font-black">
+                        {{ candidate.rating ? candidate.rating.toFixed(1) : 'нет' }}
+                      </p>
+                    </div>
+                  </div>
+
+                  <p
+                    class="mt-4 rounded-2xl border border-line bg-paper px-4 py-3 text-sm font-bold text-ink/62"
+                  >
+                    {{ getInterviewDetail(candidate) }}
+                  </p>
+
+                  <p
+                    v-if="candidate.latestInterviewAt"
+                    class="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-ink/45"
+                  >
+                    Последнее решение: {{ formatSystemLabel(candidate.latestInterviewStatus) }} ·
+                    {{ formatDateTime(candidate.latestInterviewAt) }}
+                  </p>
+                  <p
+                    v-if="candidate.latestInterviewNote"
+                    class="mt-2 text-sm font-semibold leading-6 text-ink/65"
+                  >
+                    {{ candidate.latestInterviewNote }}
+                  </p>
+                </div>
+
+                <div class="space-y-3">
+                  <RouterLink
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-paper px-4 py-3 font-black transition hover:bg-white"
+                    :to="`/performers/${candidate.userId}`"
+                  >
+                    <Users :size="17" />
+                    Профиль исполнителя
+                  </RouterLink>
+                  <textarea
+                    v-model="interviewNotes[candidate.userId]"
+                    class="min-h-28 w-full rounded-2xl border border-line bg-paper px-4 py-3 text-sm font-semibold outline-none transition focus:border-ink"
+                    placeholder="Итог интервью: что проверили, почему засчитано или что улучшить"
+                  />
+                  <button
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-moss px-4 py-3 font-black text-paper transition hover:bg-ink disabled:opacity-50"
+                    type="button"
+                    :disabled="admin.isSaving"
+                    @click="decideInterview(candidate.userId, 'passed')"
+                  >
+                    <BadgeCheck :size="18" />
+                    Интервью пройдено
+                  </button>
+                  <button
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-paper px-4 py-3 font-black transition hover:bg-white disabled:opacity-50"
+                    type="button"
+                    :disabled="admin.isSaving"
+                    @click="decideInterview(candidate.userId, 'failed')"
+                  >
+                    <X :size="18" />
+                    Не зачтено
+                  </button>
+                </div>
+              </div>
+            </article>
+
+            <p
+              v-if="!admin.interviews.length"
+              class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-8 text-center text-xl font-black"
+            >
+              Исполнителей для HR-проверки пока нет
+            </p>
+            <button
+              v-if="hasMoreInterviews"
+              class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+              type="button"
+              @click="interviewPage += 1"
+            >
+              Показать еще исполнителей
+            </button>
+          </div>
+
           <div v-else-if="activeTab === 'auditLog'" class="space-y-3">
             <article
               v-for="action in visibleActions"
@@ -648,6 +903,14 @@ onMounted(() => {
                 >
                   <Gavel :size="16" />
                   Открыть заказ
+                </RouterLink>
+                <RouterLink
+                  v-else-if="action.targetType === 'performer' && action.targetId"
+                  class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black transition hover:bg-white"
+                  :to="`/performers/${action.targetId}`"
+                >
+                  <Users :size="16" />
+                  Открыть профиль
                 </RouterLink>
               </div>
               <p v-if="action.note" class="mt-3 text-sm font-semibold leading-6 text-ink/70">

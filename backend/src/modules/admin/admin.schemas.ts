@@ -17,6 +17,12 @@ export const resolveDisputeSchema = z.object({
   note: z.string().trim().min(10).max(1200),
 });
 
+export const decideInterviewSchema = z.object({
+  status: z.enum(['passed', 'failed']),
+  note: z.string().trim().min(10).max(1200),
+});
+
 export type UpdateUserStatusInput = z.infer<typeof updateUserStatusSchema>;
 export type ModerateJobInput = z.infer<typeof moderateJobSchema>;
 export type ResolveDisputeInput = z.infer<typeof resolveDisputeSchema>;
+export type DecideInterviewInput = z.infer<typeof decideInterviewSchema>;

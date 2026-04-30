@@ -527,7 +527,13 @@ export const createOrderReview = async (
     body: JSON.stringify(payload),
   });
 
-export type AdminPermission = 'overview' | 'users' | 'moderation' | 'disputes' | 'auditLog';
+export type AdminPermission =
+  | 'overview'
+  | 'users'
+  | 'moderation'
+  | 'disputes'
+  | 'interviews'
+  | 'auditLog';
 
 export type AdminActionItem = {
   id: string;
@@ -548,6 +554,7 @@ export type AdminOverview = {
     activeUsers: number;
     pendingJobs: number;
     openDisputes: number;
+    interviewRequests: number;
     activeOrders: number;
     escrowHeldAmount: number;
   };
@@ -601,6 +608,26 @@ export type AdminModerationJobItem = {
   applicationsCount: number;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AdminInterviewItem = {
+  userId: string;
+  email: string;
+  displayName: string;
+  status: string;
+  headline: string | null;
+  specialization: string | null;
+  xp: number;
+  completedOrders: number;
+  rating: number | null;
+  interviewRequired: boolean;
+  interviewPassed: boolean;
+  levelCode: string | null;
+  levelTitle: string | null;
+  eliteRequiredXp: number;
+  latestInterviewStatus: 'passed' | 'failed' | null;
+  latestInterviewNote: string | null;
+  latestInterviewAt: string | null;
 };
 
 export const getAdminOverview = async (token: string) =>
@@ -664,6 +691,29 @@ export const moderateAdminJob = async (
     body: JSON.stringify(payload),
   });
 
+export const getAdminInterviews = async (token: string) =>
+  apiFetch<{ interviews: AdminInterviewItem[] }>('/admin/interviews', {
+    headers: authHeaders(token),
+  });
+
+export const decideAdminInterview = async (
+  token: string,
+  id: string,
+  payload: { status: 'passed' | 'failed'; note: string },
+) =>
+  apiFetch<{
+    interviews: AdminInterviewItem[];
+    result: {
+      performerId: string;
+      performerName: string;
+      input: { status: 'passed' | 'failed'; note: string };
+    };
+  }>(`/admin/interviews/${id}/decision`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
 export const getAdminAuditLog = async (token: string) =>
   apiFetch<{ actions: AdminActionItem[] }>('/admin/audit-log', {
     headers: authHeaders(token),
@@ -717,6 +767,8 @@ export type NotificationType =
   | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
+  | 'interview_passed'
+  | 'interview_failed'
   | 'message_received'
   | 'system';
 

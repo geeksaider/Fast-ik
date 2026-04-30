@@ -1,16 +1,20 @@
 import type { AuthUser } from '../auth/auth.types.js';
 import { HttpError } from '../../http/errors/http-error.js';
 import { awardPerformerXp } from '../levels/levels.service.js';
+import { recalculatePerformerProgress } from '../levels/levels.service.js';
 import type { AdminPermission } from './admin.types.js';
 import type {
+  DecideInterviewInput,
   ModerateJobInput,
   ResolveDisputeInput,
   UpdateUserStatusInput,
 } from './admin.schemas.js';
 import {
+  decideAdminPerformerInterview,
   getAdminOverview,
   listAdminActions,
   listAdminDisputes,
+  listAdminInterviews,
   listAdminModerationJobs,
   listAdminUsers,
   moderateAdminJob,
@@ -36,7 +40,7 @@ const getPermissions = (user: AuthUser): AdminPermission[] => {
   }
 
   if (['admin', 'super_admin'].includes(user.role)) {
-    permissions.push('users', 'auditLog');
+    permissions.push('users', 'interviews', 'auditLog');
   }
 
   return permissions;
@@ -55,6 +59,10 @@ const mapAdminError = (error: unknown) => {
 
   if (error.message === 'USER_NOT_FOUND') {
     return new HttpError(404, 'Пользователь не найден');
+  }
+
+  if (error.message === 'PERFORMER_NOT_FOUND') {
+    return new HttpError(404, 'Исполнитель не найден');
   }
 
   if (error.message === 'JOB_NOT_FOUND') {
@@ -152,6 +160,34 @@ export const reviewAdminJob = async (user: AuthUser, jobId: string, input: Moder
 
   try {
     return { job: await moderateAdminJob({ actorId: user.id, jobId, ...input }) };
+  } catch (error) {
+    throw mapAdminError(error);
+  }
+};
+
+export const getAdminInterviews = async (user: AuthUser) => {
+  ensurePermission(user, 'interviews');
+
+  return { interviews: await listAdminInterviews() };
+};
+
+export const decideAdminInterview = async (
+  user: AuthUser,
+  performerId: string,
+  input: DecideInterviewInput,
+) => {
+  ensurePermission(user, 'interviews');
+
+  try {
+    const result = await decideAdminPerformerInterview({
+      actorId: user.id,
+      performerId,
+      ...input,
+    });
+
+    await recalculatePerformerProgress(performerId);
+
+    return { interviews: await listAdminInterviews(), result };
   } catch (error) {
     throw mapAdminError(error);
   }

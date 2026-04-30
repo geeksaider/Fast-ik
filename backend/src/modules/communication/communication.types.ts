@@ -8,6 +8,8 @@ export type NotificationType =
   | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
+  | 'interview_passed'
+  | 'interview_failed'
   | 'message_received'
   | 'system';
 

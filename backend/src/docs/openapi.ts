@@ -50,7 +50,7 @@ export const openApiSpec = {
     },
     {
       name: 'Admin',
-      description: 'Operational dashboard, moderation, disputes and audit log',
+      description: 'Operational dashboard, moderation, disputes, Elite interviews and audit log',
     },
     {
       name: 'Profile',
@@ -280,6 +280,32 @@ export const openApiSpec = {
           '200': { description: 'Moderated job' },
           '403': { description: 'Moderator/admin role required' },
           '404': { description: 'Job not found' },
+        },
+      },
+    },
+    '/admin/interviews': {
+      get: {
+        tags: ['Admin'],
+        summary: 'List performer Elite interview states',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Performer interview queue and latest decisions' },
+          '403': { description: 'Admin role required' },
+        },
+      },
+    },
+    '/admin/interviews/{id}/decision': {
+      post: {
+        tags: ['Admin'],
+        summary: 'Save Elite HR interview decision for performer',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Updated interview queue after RPG progress recalculation' },
+          '403': { description: 'Admin role required' },
+          '404': { description: 'Performer not found' },
         },
       },
     },

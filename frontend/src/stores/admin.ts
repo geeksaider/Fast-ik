@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia';
 import {
+  decideAdminInterview,
   getAdminAuditLog,
   getAdminDisputes,
+  getAdminInterviews,
   getAdminModerationJobs,
   getAdminOverview,
   getAdminUsers,
@@ -10,6 +12,7 @@ import {
   updateAdminUserStatus,
   type AdminActionItem,
   type AdminDisputeItem,
+  type AdminInterviewItem,
   type AdminModerationJobItem,
   type AdminOverview,
   type AdminPermission,
@@ -22,6 +25,7 @@ export const useAdminStore = defineStore('admin', {
     users: [] as AdminUserItem[],
     disputes: [] as AdminDisputeItem[],
     jobs: [] as AdminModerationJobItem[],
+    interviews: [] as AdminInterviewItem[],
     actions: [] as AdminActionItem[],
     isLoading: false,
     isSaving: false,
@@ -55,6 +59,10 @@ export const useAdminStore = defineStore('admin', {
           tasks.push(this.loadModerationJobs(token));
         }
 
+        if (permissions.includes('interviews')) {
+          tasks.push(this.loadInterviews(token));
+        }
+
         if (permissions.includes('auditLog')) {
           tasks.push(this.loadAuditLog(token));
         }
@@ -78,6 +86,10 @@ export const useAdminStore = defineStore('admin', {
     async loadModerationJobs(token: string) {
       const response = await getAdminModerationJobs(token);
       this.jobs = response.jobs;
+    },
+    async loadInterviews(token: string) {
+      const response = await getAdminInterviews(token);
+      this.interviews = response.interviews;
     },
     async loadAuditLog(token: string) {
       const response = await getAdminAuditLog(token);
@@ -148,6 +160,25 @@ export const useAdminStore = defineStore('admin', {
         }
       } catch (error) {
         this.error = error instanceof Error ? error.message : 'Не удалось изменить статус';
+        throw error;
+      } finally {
+        this.isSaving = false;
+      }
+    },
+    async decideInterview(token: string, id: string, status: 'passed' | 'failed', note: string) {
+      this.isSaving = true;
+      this.error = null;
+
+      try {
+        const response = await decideAdminInterview(token, id, { status, note });
+        this.interviews = response.interviews;
+        this.overview = await getAdminOverview(token);
+
+        if (this.can('auditLog')) {
+          await this.loadAuditLog(token);
+        }
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : 'Не удалось сохранить HR-решение';
         throw error;
       } finally {
         this.isSaving = false;

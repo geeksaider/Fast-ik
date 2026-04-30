@@ -6,14 +6,17 @@ import { HttpError } from '../../http/errors/http-error.js';
 import {
   changeAdminUserStatus,
   closeAdminDispute,
+  decideAdminInterview,
   getAdminAuditLog,
   getAdminDashboard,
   getAdminDisputes,
+  getAdminInterviews,
   getAdminModerationJobs,
   getAdminUsers,
   reviewAdminJob,
 } from './admin.service.js';
 import {
+  decideInterviewSchema,
   idParamSchema,
   moderateJobSchema,
   resolveDisputeSchema,
@@ -94,6 +97,25 @@ adminRouter.post('/moderation/jobs/:id', async (request, response, next) => {
     const input = moderateJobSchema.parse(request.body);
 
     response.json(await reviewAdminJob(getUser(request), params.id, input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get('/interviews', async (request, response, next) => {
+  try {
+    response.json(await getAdminInterviews(getUser(request)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.post('/interviews/:id/decision', async (request, response, next) => {
+  try {
+    const params = idParamSchema.parse(request.params);
+    const input = decideInterviewSchema.parse(request.body);
+
+    response.json(await decideAdminInterview(getUser(request), params.id, input));
   } catch (error) {
     next(error);
   }

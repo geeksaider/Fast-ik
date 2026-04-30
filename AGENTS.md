@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Public performer trust profile.
+Stage: Admin Elite HR interview flow.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, and a basic admin/moderation panel.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, order workflow with mock wallet/escrow, REST-based conversations with notifications, customer reviews after completed orders, performer rating impact on RPG progress, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
 
 Development can run in two modes:
 
@@ -116,11 +116,11 @@ Core idea:
 
 ## Current Next Block
 
-After the public performer profile is verified, the next implementation block should be RPG expansion or collaboration depth:
+After the admin Elite HR interview screen is verified, the next implementation block should deepen collaboration flows:
 
-- admin HR/interview screen for Elite level;
 - invite performer to a specific customer order;
 - optional file attachments in order conversations.
+- lightweight analytics for customers, performers and admins.
 
 ## Demo Accounts
 
