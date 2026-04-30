@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import AdminPage from '../pages/AdminPage.vue';
+import AnalyticsPage from '../pages/AnalyticsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
@@ -46,6 +47,12 @@ export const router = createRouter({
       path: '/admin',
       name: 'admin',
       component: AdminPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/analytics',
+      name: 'analytics',
+      component: AnalyticsPage,
       meta: { requiresAuth: true },
     },
     {

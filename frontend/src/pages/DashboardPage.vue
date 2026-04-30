@@ -3,6 +3,7 @@ import { computed, onMounted, type Component } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
   ArrowRight,
+  BarChart3,
   Bell,
   BriefcaseBusiness,
   ClipboardList,
@@ -213,6 +214,13 @@ const hubLinks = computed<HubLink[]>(() => {
         tone: 'bolt',
       },
       {
+        to: '/analytics',
+        title: 'Аналитика',
+        text: 'Роли, деньги, активность.',
+        icon: BarChart3,
+        tone: 'light',
+      },
+      {
         to: '/finance',
         title: 'Финансы',
         label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
@@ -262,6 +270,13 @@ const hubLinks = computed<HubLink[]>(() => {
       text: 'Мок-кошелек, пополнение, удержания гаранта и транзакции.',
       icon: WalletCards,
       tone: 'moss',
+    },
+    {
+      to: '/analytics',
+      title: 'Аналитика',
+      text: 'Сводка по роли, заказам, деньгам и активности.',
+      icon: BarChart3,
+      tone: 'light',
     },
     {
       to: '/notifications',

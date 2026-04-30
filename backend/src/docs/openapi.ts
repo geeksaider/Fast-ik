@@ -53,6 +53,10 @@ export const openApiSpec = {
       description: 'Operational dashboard, moderation, disputes, Elite interviews and audit log',
     },
     {
+      name: 'Analytics',
+      description: 'Role-aware customer, performer and admin product metrics',
+    },
+    {
       name: 'Profile',
       description: 'Onboarding, skills and portfolio',
     },
@@ -190,6 +194,17 @@ export const openApiSpec = {
           '200': {
             description: 'Current user',
           },
+          '401': { description: 'Unauthorized' },
+        },
+      },
+    },
+    '/analytics/me': {
+      get: {
+        tags: ['Analytics'],
+        summary: 'Get role-aware analytics summary for the current user',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': { description: 'Analytics metrics, pipeline, money and activity breakdowns' },
           '401': { description: 'Unauthorized' },
         },
       },
