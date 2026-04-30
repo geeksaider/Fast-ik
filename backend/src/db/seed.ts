@@ -131,6 +131,27 @@ const demoJobs = [
   },
 ];
 
+const demoContests = [
+  {
+    title: 'Конкурс: редизайн карточки заказа Fastik',
+    brief:
+      'Нужно предложить компактную карточку заказа для биржи: бюджет, срок, количество откликов и CTA должны читаться без визуального шума. Победит решение, которое лучше всего поддерживает быстрый выбор исполнителя.',
+    categorySlug: 'design',
+    requiredLevelCode: 'builder',
+    prizeAmount: 25_000,
+    tags: ['ui-ux', 'marketplace', 'cards'],
+  },
+  {
+    title: 'Конкурс: идея для Roadmap исполнителя',
+    brief:
+      'Нужна концепция блока, который объясняет исполнителю путь роста: что уже сделано, что мешает следующему уровню и зачем проходить HR-интервью на Elite. Формат: краткое описание, структура и ссылка на мокап по желанию.',
+    categorySlug: 'analytics',
+    requiredLevelCode: 'verified',
+    prizeAmount: 45_000,
+    tags: ['roadmap', 'rpg', 'trust'],
+  },
+];
+
 const skills = [
   ['Vue', 'vue', 'development'],
   ['TypeScript', 'typescript', 'development'],
@@ -371,6 +392,49 @@ const run = async () => {
       await pool.query(
         'insert into job_tags (job_id, tag) values ($1, $2) on conflict do nothing',
         [jobId, tag],
+      );
+    }
+  }
+
+  for (const contest of demoContests) {
+    const contestResult = await pool.query<{ id: string }>(
+      `insert into contests (
+         customer_id,
+         category_id,
+         required_level_id,
+         title,
+         brief,
+         prize_amount,
+         status
+       )
+       select customer.id, categories.id, performer_levels.id, $1, $2, $3, 'open'
+       from users customer
+       join categories on categories.slug = $4
+       join performer_levels on performer_levels.code = $5
+       where customer.email = 'customer@fastik.local'
+         and not exists (
+           select 1 from contests existing
+           where existing.customer_id = customer.id and existing.title = $1
+       )
+       returning id`,
+      [
+        contest.title,
+        contest.brief,
+        contest.prizeAmount,
+        contest.categorySlug,
+        contest.requiredLevelCode,
+      ],
+    );
+    const contestId = contestResult.rows[0]?.id;
+
+    if (!contestId) {
+      continue;
+    }
+
+    for (const tag of contest.tags) {
+      await pool.query(
+        'insert into contest_tags (contest_id, tag) values ($1, $2) on conflict do nothing',
+        [contestId, tag],
       );
     }
   }

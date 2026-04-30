@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import AdminPage from '../pages/AdminPage.vue';
 import AnalyticsPage from '../pages/AnalyticsPage.vue';
+import ContestDetailPage from '../pages/ContestDetailPage.vue';
+import ContestsPage from '../pages/ContestsPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
@@ -82,6 +84,16 @@ export const router = createRouter({
       path: '/jobs/:id',
       name: 'jobs-detail',
       component: JobDetailPage,
+    },
+    {
+      path: '/contests',
+      name: 'contests',
+      component: ContestsPage,
+    },
+    {
+      path: '/contests/:id',
+      name: 'contests-detail',
+      component: ContestDetailPage,
     },
     {
       path: '/performers/:id',

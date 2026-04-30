@@ -8,6 +8,7 @@ import {
   BriefcaseBusiness,
   ClipboardList,
   Gauge,
+  Medal,
   MessageCircle,
   Plus,
   Sparkles,
@@ -206,6 +207,13 @@ const hubLinks = computed<HubLink[]>(() => {
         tone: 'dark',
       },
       {
+        to: '/contests',
+        title: 'Конкурсы',
+        text: 'LVL-допуск и работы.',
+        icon: Medal,
+        tone: 'ember',
+      },
+      {
         to: '/messages',
         title: 'Чат',
         label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : undefined,
@@ -253,6 +261,13 @@ const hubLinks = computed<HubLink[]>(() => {
       label: activeOrders.value.length ? `${activeOrders.value.length} акт.` : undefined,
       text: 'Статусы, сдача результата, приемка, отмена и спор.',
       icon: ClipboardList,
+      tone: 'ember',
+    },
+    {
+      to: '/contests',
+      title: 'Конкурсы',
+      text: 'Задания с LVL-допуском, призами и выбором победителя.',
+      icon: Medal,
       tone: 'ember',
     },
     {

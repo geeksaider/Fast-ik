@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Role-based analytics dashboard.
+Stage: Level-gated contests.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, public performer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with demo file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, level-gated contests, public performer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with demo file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
 
 Development can run in two modes:
 
@@ -116,10 +116,11 @@ Core idea:
 
 ## Current Next Block
 
-After role-based analytics is verified, the next implementation block should deepen marketplace mechanics:
+After level-gated contests are verified, the next implementation block should deepen demo reliability:
 
-- contests with level-based participation.
 - stronger smoke-test/demo scripts for the full customer-performer flow.
+- optional contest winner payout through the mock finance layer.
+- small browser visual pass for `/contests`, `/contests/:id` and `/analytics`.
 
 ## Demo Accounts
 

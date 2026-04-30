@@ -285,6 +285,8 @@ export type MarketplaceCategory = {
 export type JobStatus = 'published' | 'in_progress' | 'completed' | 'cancelled' | 'disputed';
 export type ApplicationStatus = 'pending' | 'accepted' | 'rejected' | 'withdrawn';
 export type JobInviteStatus = 'pending' | 'accepted' | 'declined';
+export type ContestStatus = 'open' | 'review' | 'completed' | 'cancelled';
+export type ContestSubmissionStatus = 'submitted' | 'winner' | 'rejected';
 
 export type JobListItem = {
   id: string;
@@ -362,6 +364,72 @@ export type JobInviteCreatePayload = {
   message: string;
 };
 
+export type ContestListItem = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  categoryId: string | null;
+  categoryName: string | null;
+  categorySlug: string | null;
+  requiredLevelId: number;
+  requiredLevelCode: PerformerLevelCode;
+  requiredLevelTitle: string;
+  requiredLevelSortOrder: number;
+  title: string;
+  brief: string;
+  prizeAmount: number;
+  deadlineAt: string | null;
+  status: ContestStatus;
+  submissionsCount: number;
+  winnerSubmissionId: string | null;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ContestSubmission = {
+  id: string;
+  contestId: string;
+  performerId: string;
+  performerName: string;
+  pitch: string;
+  previewUrl: string | null;
+  status: ContestSubmissionStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ContestLevelGate = {
+  allowed: boolean;
+  requiredLevelTitle: string;
+  requiredLevelSortOrder: number;
+  performerLevelTitle: string | null;
+  performerLevelSortOrder: number | null;
+};
+
+export type ContestDetail = ContestListItem & {
+  submissions: ContestSubmission[];
+  canSubmit: boolean;
+  canManage: boolean;
+  mySubmission: ContestSubmission | null;
+  levelGate: ContestLevelGate | null;
+};
+
+export type ContestCreatePayload = {
+  categoryId?: string | null;
+  requiredLevelCode?: PerformerLevelCode;
+  title: string;
+  brief: string;
+  prizeAmount: number;
+  deadlineAt?: string | null;
+  tags?: string[];
+};
+
+export type ContestSubmissionCreatePayload = {
+  pitch: string;
+  previewUrl?: string | null;
+};
+
 export const getMarketplaceCategories = async () =>
   apiFetch<{ categories: MarketplaceCategory[] }>('/marketplace/categories');
 
@@ -424,6 +492,62 @@ export const invitePerformerToMarketplaceJob = async (
 
 export const selectJobApplication = async (token: string, jobId: string, applicationId: string) =>
   apiFetch<JobDetail>(`/marketplace/jobs/${jobId}/applications/${applicationId}/select`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+
+export const getContests = async (
+  params: { category?: string; search?: string; mine?: boolean } = {},
+  token?: string | null,
+) => {
+  const query = new URLSearchParams();
+
+  if (params.category) {
+    query.set('category', params.category);
+  }
+
+  if (params.search) {
+    query.set('search', params.search);
+  }
+
+  if (params.mine) {
+    query.set('mine', 'true');
+  }
+
+  return apiFetch<{ contests: ContestListItem[] }>(`/contests${query.size ? `?${query}` : ''}`, {
+    headers: token ? authHeaders(token) : undefined,
+  });
+};
+
+export const createContest = async (token: string, payload: ContestCreatePayload) =>
+  apiFetch<ContestDetail>('/contests', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getContest = async (id: string, token?: string | null) =>
+  apiFetch<ContestDetail>(`/contests/${id}`, {
+    headers: token ? authHeaders(token) : undefined,
+  });
+
+export const submitContest = async (
+  token: string,
+  id: string,
+  payload: ContestSubmissionCreatePayload,
+) =>
+  apiFetch<ContestDetail>(`/contests/${id}/submissions`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const selectContestSubmission = async (
+  token: string,
+  contestId: string,
+  submissionId: string,
+) =>
+  apiFetch<ContestDetail>(`/contests/${contestId}/submissions/${submissionId}/select`, {
     method: 'POST',
     headers: authHeaders(token),
   });
@@ -814,6 +938,8 @@ export type NotificationType =
   | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
+  | 'contest_submission_received'
+  | 'contest_won'
   | 'interview_passed'
   | 'interview_failed'
   | 'message_received'

@@ -57,6 +57,10 @@ export const openApiSpec = {
       description: 'Role-aware customer, performer and admin product metrics',
     },
     {
+      name: 'Contests',
+      description: 'Level-gated contests for performers and customers',
+    },
+    {
       name: 'Profile',
       description: 'Onboarding, skills and portfolio',
     },
@@ -446,6 +450,78 @@ export const openApiSpec = {
           '200': { description: 'Job moved to in progress' },
           '403': { description: 'Only owner or manager can select' },
           '404': { description: 'Job or application not found' },
+        },
+      },
+    },
+    '/contests': {
+      get: {
+        tags: ['Contests'],
+        summary: 'Get public contests with optional filters',
+        responses: {
+          '200': { description: 'Contest list with required performer levels' },
+        },
+      },
+      post: {
+        tags: ['Contests'],
+        summary: 'Create a level-gated contest as customer',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '201': { description: 'Created contest detail' },
+          '403': { description: 'Only customers and managers can create contests' },
+        },
+      },
+    },
+    '/contests/{id}': {
+      get: {
+        tags: ['Contests'],
+        summary: 'Get contest detail and visible submissions',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': { description: 'Contest detail with level gate state' },
+          '404': { description: 'Contest not found' },
+        },
+      },
+    },
+    '/contests/{id}/submissions': {
+      post: {
+        tags: ['Contests'],
+        summary: 'Submit work to a contest as performer',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '201': { description: 'Updated contest detail' },
+          '403': { description: 'Performer role or level gate required' },
+          '409': { description: 'Contest is closed or performer already submitted' },
+        },
+      },
+    },
+    '/contests/{contestId}/submissions/{submissionId}/select': {
+      post: {
+        tags: ['Contests'],
+        summary: 'Select contest winner as contest owner or manager',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'contestId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+          {
+            name: 'submissionId',
+            in: 'path',
+            required: true,
+            schema: { type: 'string', format: 'uuid' },
+          },
+        ],
+        responses: {
+          '200': { description: 'Contest completed and winner notified' },
+          '403': { description: 'Only owner or manager can select winner' },
+          '409': { description: 'Contest already closed or submission already processed' },
         },
       },
     },

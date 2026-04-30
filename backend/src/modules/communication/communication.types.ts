@@ -9,6 +9,8 @@ export type NotificationType =
   | 'order_reviewed'
   | 'order_disputed'
   | 'order_cancelled'
+  | 'contest_submission_received'
+  | 'contest_won'
   | 'interview_passed'
   | 'interview_failed'
   | 'message_received'
