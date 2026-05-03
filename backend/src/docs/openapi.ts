@@ -49,6 +49,10 @@ export const openApiSpec = {
       description: 'Public performer trust profiles, portfolio and reviews',
     },
     {
+      name: 'Customers',
+      description: 'Public customer profiles, jobs and contests',
+    },
+    {
       name: 'Admin',
       description: 'Operational dashboard, moderation, disputes, Elite interviews and audit log',
     },
@@ -538,6 +542,30 @@ export const openApiSpec = {
               'Public performer profile with base profile, RPG level, stats, portfolio and reviews',
           },
           '404': { description: 'Performer not found' },
+        },
+      },
+    },
+    '/customers': {
+      get: {
+        tags: ['Customers'],
+        summary: 'Get public customer profiles',
+        responses: {
+          '200': { description: 'Customer list with company profiles and public stats' },
+        },
+      },
+    },
+    '/customers/{id}': {
+      get: {
+        tags: ['Customers'],
+        summary: 'Get public customer profile',
+        parameters: [
+          { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
+        ],
+        responses: {
+          '200': {
+            description: 'Public customer profile with company, jobs, contests and stats',
+          },
+          '404': { description: 'Customer not found' },
         },
       },
     },

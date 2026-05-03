@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Level-gated contests.
+Stage: Public customer profiles.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, level-gated contests, public performer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with demo file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, level-gated contests, public performer and customer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with demo file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
 
 Development can run in two modes:
 
@@ -96,6 +96,7 @@ Core idea:
 - Notifications with unread state
 - Reviews and ratings
 - Public performer profiles with level, rating, reviews, skills and portfolio
+- Public customer profiles with company info, public jobs, contests and trust signals
 - Search and filters
 - Mock escrow/guarantor system
 - Mock finances and transactions
@@ -116,7 +117,7 @@ Core idea:
 
 ## Current Next Block
 
-After level-gated contests are verified, the next implementation block should deepen demo reliability:
+After public customer profiles are verified, the next implementation block should deepen demo reliability:
 
 - stronger smoke-test/demo scripts for the full customer-performer flow.
 - optional contest winner payout through the mock finance layer.

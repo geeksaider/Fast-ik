@@ -6,6 +6,7 @@ import {
   BarChart3,
   Bell,
   BriefcaseBusiness,
+  Building2,
   ClipboardList,
   Gauge,
   Medal,
@@ -207,6 +208,13 @@ const hubLinks = computed<HubLink[]>(() => {
         tone: 'dark',
       },
       {
+        to: '/customers',
+        title: 'Заказчики',
+        text: 'Публичные профили.',
+        icon: Building2,
+        tone: 'light',
+      },
+      {
         to: '/contests',
         title: 'Конкурсы',
         text: 'LVL-допуск и работы.',
@@ -254,6 +262,13 @@ const hubLinks = computed<HubLink[]>(() => {
       text: 'Список заказов, фильтры, отклики и публикация задач.',
       icon: BriefcaseBusiness,
       tone: 'dark',
+    },
+    {
+      to: '/customers',
+      title: 'Заказчики',
+      text: 'Публичные профили компаний и частных заказчиков.',
+      icon: Building2,
+      tone: 'light',
     },
     {
       to: '/orders',

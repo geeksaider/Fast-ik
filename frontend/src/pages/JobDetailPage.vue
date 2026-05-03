@@ -321,9 +321,12 @@ onMounted(() => {
               {{ formatMoney(job.budgetMin, job.budgetMax) }}
             </p>
             <div class="mt-6 space-y-3 text-sm font-bold text-paper/70">
-              <p class="flex items-center gap-2">
+              <RouterLink
+                class="flex items-center gap-2 transition hover:text-paper"
+                :to="`/customers/${job.customerId}`"
+              >
                 <BriefcaseBusiness :size="18" /> Заказчик: {{ job.customerName }}
-              </p>
+              </RouterLink>
               <p class="flex items-center gap-2">
                 <Clock3 :size="18" /> Срок: {{ formatDate(job.deadlineAt) }}
               </p>

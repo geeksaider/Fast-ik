@@ -11,6 +11,7 @@ import { analyticsRouter } from '../modules/analytics/analytics.routes.js';
 import { authRouter } from '../modules/auth/auth.routes.js';
 import { communicationRouter } from '../modules/communication/communication.routes.js';
 import { contestsRouter } from '../modules/contests/contests.routes.js';
+import { customersRouter } from '../modules/customers/customers.routes.js';
 import { financeRouter } from '../modules/finance/finance.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
 import { levelsRouter } from '../modules/levels/levels.routes.js';
@@ -42,6 +43,7 @@ export const createApp = () => {
   app.use('/api/auth', authRouter);
   app.use('/api', communicationRouter);
   app.use('/api/contests', contestsRouter);
+  app.use('/api/customers', customersRouter);
   app.use('/api/finance', financeRouter);
   app.use('/api/health', healthRouter);
   app.use('/api/levels', levelsRouter);

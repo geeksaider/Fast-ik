@@ -4,6 +4,8 @@ import AdminPage from '../pages/AdminPage.vue';
 import AnalyticsPage from '../pages/AnalyticsPage.vue';
 import ContestDetailPage from '../pages/ContestDetailPage.vue';
 import ContestsPage from '../pages/ContestsPage.vue';
+import CustomerPublicPage from '../pages/CustomerPublicPage.vue';
+import CustomersPage from '../pages/CustomersPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
 import HomePage from '../pages/HomePage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
@@ -99,6 +101,16 @@ export const router = createRouter({
       path: '/performers/:id',
       name: 'performers-detail',
       component: PerformerPublicPage,
+    },
+    {
+      path: '/customers',
+      name: 'customers',
+      component: CustomersPage,
+    },
+    {
+      path: '/customers/:id',
+      name: 'customers-detail',
+      component: CustomerPublicPage,
     },
     {
       path: '/orders',

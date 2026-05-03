@@ -263,9 +263,59 @@ const run = async () => {
     `insert into user_profiles (user_id, bio, city, website_url, telegram, preferred_language)
      select
        users.id,
+       'Продуктовая команда, которая регулярно публикует задачи для интерфейсов, QA и разработки. Нужны понятные сроки, аккуратная коммуникация и прозрачная приемка.',
+       'Москва',
+       null,
+       '@anton_fastik',
+       'ru'
+     from users
+     where users.email = 'customer@fastik.local'
+     on conflict (user_id) do update set
+       bio = excluded.bio,
+       city = excluded.city,
+       website_url = excluded.website_url,
+       telegram = excluded.telegram,
+       preferred_language = excluded.preferred_language,
+       updated_at = now()`,
+  );
+
+  await pool.query(
+    `insert into customer_profiles (
+       user_id,
+       company_name,
+       company_site,
+       company_description,
+       project_budget_min,
+       project_budget_max,
+       moderation_status
+     )
+     select
+       users.id,
+       'Fastik Demo Studio',
+       null,
+       'Демо-заказчик для проверки заказов, конкурсов, мок-гаранта и рабочих чатов. Профиль показывает исполнителю, кто стоит за задачей.',
+       20000,
+       150000,
+       'approved'
+     from users
+     where users.email = 'customer@fastik.local'
+     on conflict (user_id) do update set
+       company_name = excluded.company_name,
+       company_site = excluded.company_site,
+       company_description = excluded.company_description,
+       project_budget_min = excluded.project_budget_min,
+       project_budget_max = excluded.project_budget_max,
+       moderation_status = excluded.moderation_status,
+       updated_at = now()`,
+  );
+
+  await pool.query(
+    `insert into user_profiles (user_id, bio, city, website_url, telegram, preferred_language)
+     select
+       users.id,
        'Frontend/Vue разработчик, который любит аккуратные кабинеты, быстрые интерфейсы и понятную коммуникацию по задачам.',
        'Санкт-Петербург',
-       'https://fastik.local/performers/maria',
+       null,
        '@maria_fastik',
        'ru'
      from users
@@ -331,12 +381,12 @@ const run = async () => {
     [
       'Кабинет для маркетплейса задач',
       'Собрала адаптивный dashboard: статусы, фильтры, карточки заказов и мягкую навигацию без перегруза.',
-      'https://fastik.local/cases/marketplace-dashboard',
+      null,
     ],
     [
       'Мобильный UX-аудит сервиса',
       'Проверила адаптив, читаемость, состояния форм и подготовила список быстрых улучшений для команды.',
-      'https://fastik.local/cases/mobile-audit',
+      null,
     ],
   ]) {
     await pool.query(

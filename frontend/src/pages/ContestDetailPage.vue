@@ -299,7 +299,13 @@ onMounted(() => {
               </div>
               <div class="rounded-2xl border border-line bg-paper p-4">
                 <p class="text-sm font-bold text-ink/55">Заказчик</p>
-                <p class="mt-1 text-xl font-black">{{ contest.customerName }}</p>
+                <RouterLink
+                  class="mt-1 inline-flex items-center gap-2 text-xl font-black transition hover:text-bolt"
+                  :to="`/customers/${contest.customerId}`"
+                >
+                  {{ contest.customerName }}
+                  <ArrowRight :size="18" />
+                </RouterLink>
               </div>
             </div>
           </section>
