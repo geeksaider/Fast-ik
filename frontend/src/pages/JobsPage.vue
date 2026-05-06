@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { ArrowRight, BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
+import { BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
+import { useProfileStore } from '../stores/profile';
 import { formatDate, formatDisplayText, formatMoney } from '../lib/format';
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
+const profile = useProfileStore();
 const page = ref(1);
 const pageSize = 6;
 
@@ -24,10 +26,17 @@ const canCreateJob = computed(
 );
 const visibleJobs = computed(() => marketplace.jobs.slice(0, page.value * pageSize));
 const hasMoreJobs = computed(() => visibleJobs.value.length < marketplace.jobs.length);
+const profilePercent = computed(() => profile.summary?.progress.percentage ?? 0);
+const shouldMotivateVerification = computed(
+  () => auth.user?.role === 'performer' && profilePercent.value < 80,
+);
 
 const load = async () => {
   page.value = 1;
-  await marketplace.loadCategories();
+  await Promise.allSettled([
+    marketplace.loadCategories(),
+    auth.accessToken ? profile.load(auth.accessToken) : Promise.resolve(),
+  ]);
   await marketplace.loadJobs({
     search: filters.search || undefined,
     category: filters.category || undefined,
@@ -47,10 +56,10 @@ onMounted(() => {
       <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
           <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">Биржа</p>
+            <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">Биржа задач</p>
             <RouterLink
               v-if="canCreateJob"
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-paper bg-ember px-4 text-sm font-black text-paper transition hover:bg-bolt"
               to="/jobs/new"
             >
               <Plus :size="16" />
@@ -60,11 +69,11 @@ onMounted(() => {
           <h1
             class="mt-3 max-w-2xl text-[2.6rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
           >
-            Живые задачи для быстрых исполнителей.
+            Живые задачи для проверенных исполнителей.
           </h1>
           <p class="mt-4 max-w-xl text-sm font-semibold leading-6 text-paper/68">
-            Сейчас здесь стартовый marketplace: категории, поиск, создание заказа и отклики. Дальше
-            поверх этого добавим гарант, чат и статусы работы.
+            Категории, поиск, создание заказа и отклики собраны в одном месте. Откройте задачу,
+            чтобы обсудить детали и выбрать исполнителя.
           </p>
         </aside>
 
@@ -107,7 +116,7 @@ onMounted(() => {
             </select>
           </label>
           <button
-            class="mt-4 w-full rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+            class="mt-4 h-10 w-full rounded-full border border-ink bg-ink px-4 text-sm font-black text-paper transition hover:bg-bolt"
             type="submit"
           >
             Применить фильтр
@@ -116,6 +125,28 @@ onMounted(() => {
       </section>
 
       <section class="mt-4 space-y-4">
+        <RouterLink
+          v-if="shouldMotivateVerification"
+          class="flex flex-col gap-3 rounded-[1.35rem] border border-ember bg-ember/10 p-5 transition hover:bg-ember/15 sm:flex-row sm:items-center sm:justify-between"
+          to="/onboarding"
+        >
+          <span>
+            <span class="block text-xs font-black uppercase tracking-[0.18em] text-ember">
+              Доступ к откликам
+            </span>
+            <span class="mt-2 block text-xl font-black">Усильте профиль перед откликами</span>
+            <span class="mt-1 block text-sm font-semibold leading-6 text-ink/65">
+              Заполненные навыки, портфолио и условия работы помогают заказчику доверять заявке.
+              Сейчас профиль заполнен на {{ profilePercent }}%.
+            </span>
+          </span>
+          <span
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-4 py-2 text-sm font-black text-paper"
+          >
+            Заполнить профиль
+          </span>
+        </RouterLink>
+
         <div
           v-if="marketplace.isLoading"
           class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-6"
@@ -143,7 +174,7 @@ onMounted(() => {
                 {{ formatDisplayText(job.title) }}
               </h2>
               <p class="mt-3 max-w-2xl text-sm font-medium leading-6 text-ink/70">
-                {{ job.description }}
+                {{ formatDisplayText(job.description) }}
               </p>
             </div>
             <div class="flex flex-wrap gap-2 sm:justify-end">
@@ -171,11 +202,10 @@ onMounted(() => {
               </span>
             </div>
             <RouterLink
-              class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+              class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-ink bg-ink px-4 text-sm font-black text-paper transition hover:bg-bolt"
               :to="`/jobs/${job.id}`"
             >
               Открыть
-              <ArrowRight :size="18" />
             </RouterLink>
           </div>
         </article>
@@ -193,7 +223,7 @@ onMounted(() => {
 
         <button
           v-if="hasMoreJobs"
-          class="w-full rounded-full border border-ink bg-paper px-5 py-3 font-black transition hover:bg-ink hover:text-paper"
+          class="h-10 w-full rounded-full border border-ink bg-paper px-4 text-sm font-black transition hover:bg-ink hover:text-paper"
           type="button"
           @click="page += 1"
         >

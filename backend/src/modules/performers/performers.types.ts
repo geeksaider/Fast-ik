@@ -43,3 +43,13 @@ export type PublicPerformerProfile = {
   stats: PublicPerformerStats;
   reviews: PublicPerformerReview[];
 };
+
+export type PublicPerformerListItem = {
+  user: PublicPerformerUser;
+  profile: BaseProfile | null;
+  performerProfile: PerformerProfile | null;
+  skills: UserSkill[];
+  progress: PerformerProgressRow | null;
+  currentLevel: PerformerLevel | null;
+  stats: PublicPerformerStats;
+};

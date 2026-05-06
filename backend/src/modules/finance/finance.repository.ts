@@ -65,7 +65,7 @@ export const topUpWallet = async (userId: string, amount: number) => {
 
     await client.query(
       `insert into transactions (user_id, type, direction, amount, balance_after, description)
-       values ($1, 'mock_top_up', 'in', $2, $3, 'Моковое пополнение баланса')`,
+       values ($1, 'mock_top_up', 'in', $2, $3, 'Пополнение баланса')`,
       [userId, amount, updatedWallet.availableBalance],
     );
 

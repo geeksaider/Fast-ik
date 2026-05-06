@@ -155,6 +155,16 @@ export type PublicPerformerProfile = {
   reviews: PublicPerformerReview[];
 };
 
+export type PublicPerformerListItem = {
+  user: PublicPerformerUser;
+  profile: BaseProfile | null;
+  performerProfile: PerformerProfile | null;
+  skills: UserSkill[];
+  progress: PerformerLevelProgress | null;
+  currentLevel: PerformerLevel | null;
+  stats: PublicPerformerStats;
+};
+
 export type PublicCustomerUser = {
   id: string;
   displayName: string;
@@ -284,6 +294,18 @@ export const getCurrentUser = async (token: string) =>
   apiFetch<{ user: AuthUser }>('/auth/me', {
     headers: authHeaders(token),
   });
+
+export const getPublicPerformers = async (params: { search?: string } = {}) => {
+  const query = new URLSearchParams();
+
+  if (params.search) {
+    query.set('search', params.search);
+  }
+
+  return apiFetch<{ performers: PublicPerformerListItem[] }>(
+    `/performers${query.size ? `?${query}` : ''}`,
+  );
+};
 
 export const getPublicPerformerProfile = async (id: string) =>
   apiFetch<PublicPerformerProfile>(`/performers/${id}`);
@@ -654,6 +676,7 @@ export type OrderListItem = {
   performerName: string;
   title: string;
   amount: number;
+  deadlineAt: string | null;
   conversationId: string | null;
   status: OrderStatus;
   workResult: string | null;

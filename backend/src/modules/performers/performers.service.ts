@@ -1,6 +1,10 @@
 import { HttpError } from '../../http/errors/http-error.js';
 import { recalculatePerformerProgress } from '../levels/levels.service.js';
-import { getPublicPerformerProfile } from './performers.repository.js';
+import { getPublicPerformerProfile, listPublicPerformers } from './performers.repository.js';
+
+export const getPerformersCatalog = async (input: { search?: string }) => ({
+  performers: await listPublicPerformers(input),
+});
 
 export const getPerformerProfileById = async (id: string) => {
   const firstRead = await getPublicPerformerProfile(id);

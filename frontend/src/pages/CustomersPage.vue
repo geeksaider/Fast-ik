@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { ArrowRight, BriefcaseBusiness, Building2, Loader2, Search } from 'lucide-vue-next';
+import { BriefcaseBusiness, Building2, Loader2, Search } from 'lucide-vue-next';
+import PersonAvatar from '../components/PersonAvatar.vue';
 import { useCustomersStore } from '../stores/customers';
 import { formatAmount, formatMoney } from '../lib/format';
 
@@ -87,20 +88,28 @@ onMounted(() => {
           class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 transition hover:-translate-y-0.5 hover:bg-white sm:p-6"
         >
           <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
-                {{ customer.customerProfile?.companyName || 'Частный заказчик' }}
-              </p>
-              <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
-                {{ customer.user.displayName }}
-              </h2>
-              <p class="mt-3 max-w-2xl text-sm font-medium leading-6 text-ink/70">
-                {{
-                  customer.customerProfile?.companyDescription ||
-                  customer.profile?.bio ||
-                  'Заказчик пока заполняет публичное описание, но его активность на платформе уже видна.'
-                }}
-              </p>
+            <div class="flex min-w-0 gap-4">
+              <PersonAvatar
+                :name="customer.user.displayName"
+                :src="customer.profile?.avatarUrl"
+                tone="paper"
+                size="lg"
+              />
+              <div class="min-w-0">
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/55">
+                  {{ customer.customerProfile?.companyName || 'Частный заказчик' }}
+                </p>
+                <h2 class="mt-3 text-3xl font-black tracking-[-0.06em]">
+                  {{ customer.user.displayName }}
+                </h2>
+                <p class="mt-3 max-w-2xl text-sm font-medium leading-6 text-ink/70">
+                  {{
+                    customer.customerProfile?.companyDescription ||
+                    customer.profile?.bio ||
+                    'Заказчик пока заполняет публичное описание, но его активность на платформе уже видна.'
+                  }}
+                </p>
+              </div>
             </div>
             <div class="flex flex-wrap gap-2 md:justify-end">
               <span class="rounded-full border border-line bg-paper px-3 py-1 text-sm font-black">
@@ -144,7 +153,6 @@ onMounted(() => {
               :to="`/customers/${customer.user.id}`"
             >
               Открыть
-              <ArrowRight :size="18" />
             </RouterLink>
           </div>
         </article>

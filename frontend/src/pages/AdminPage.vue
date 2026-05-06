@@ -418,7 +418,7 @@ onMounted(() => {
                   <span>
                     <span class="block font-black">Закрыть открытые споры</span>
                     <span class="mt-1 block text-sm font-semibold text-ink/62">
-                      Деньги в мок-гаранте не должны висеть без решения.
+                      Деньги в гаранте не должны висеть без решения.
                     </span>
                   </span>
                   <span class="text-2xl font-black">{{ admin.disputes.length }}</span>
@@ -729,7 +729,7 @@ onMounted(() => {
                     Финальная проверка доверия
                   </h2>
                   <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-paper/68">
-                    Здесь админ фиксирует итог онлайн-интервью. Решение сразу влияет на roadmap
+                    Здесь админ фиксирует итог онлайн-интервью. Решение сразу влияет на путь роста
                     исполнителя, уведомления и журнал действий.
                   </p>
                 </div>

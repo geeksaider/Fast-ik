@@ -78,7 +78,7 @@ const mapAdminError = (error: unknown) => {
   }
 
   if (error.message === 'ESCROW_STATE_INVALID') {
-    return new HttpError(409, 'Состояние мок-гаранта не позволяет закрыть спор');
+    return new HttpError(409, 'Состояние гаранта не позволяет закрыть спор');
   }
 
   return error;

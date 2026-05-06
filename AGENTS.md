@@ -10,9 +10,9 @@ Official diploma topic:
 
 ## Current Stage
 
-Stage: Public customer profiles.
+Stage: Third browser design annotation batch applied; final product-polish continues.
 
-The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, level-gated contests, public performer and customer profiles, direct performer invitations to customer jobs, order workflow with mock wallet/escrow, REST-based conversations with demo file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard, a global navigation shell, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
+The repository contains the fullstack skeleton, auth flow, onboarding/profile slice, marketplace foundation, level-gated contests, public performer and customer catalogs, direct performer invitations to customer jobs, order workflow with wallet/guarantor simulation, REST-based conversations with file attachments and notifications, customer reviews after completed orders, performer rating impact on RPG progress, a role-aware analytics dashboard with quick action cards, applications overview with candidate actions, comparison stats and resettable filters, order deadline signals with URL-saved filters, focus cards and chat quick actions, a clearer performer level roadmap with current-focus cards, contest explanation blocks, a shared person avatar component, a simplified role-aware global navigation shell, a footer, a basic admin/moderation panel, and an admin Elite HR interview screen that records final performer interview decisions.
 
 Development can run in two modes:
 
@@ -80,6 +80,7 @@ Core idea:
 - System codes such as statuses, event types and transaction directions should be rendered through readable Russian labels.
 - Money should use `руб.` instead of the ruble glyph if the current font stack renders `₽` inconsistently.
 - Avoid technical UI labels such as API status, ESCROW or XP SYSTEM unless they are translated into clear product language.
+- Public-facing UI should avoid words like demo, mock and diploma; keep simulation details in internal docs, seed data or code only.
 - Avoid global floating actions that can overlap forms or content; keep primary actions inside the relevant screen.
 - Dashboard should prioritize guided next steps and compact navigation over many equally loud cards.
 - Dark theme is optional, not MVP-critical.
@@ -91,20 +92,21 @@ Core idea:
 - Customer and performer dashboards
 - Job creation
 - Applications/responses
+- Applications overview for customers
 - Performer profiles and portfolio
 - Chat attached to order workflow
 - Notifications with unread state
 - Reviews and ratings
-- Public performer profiles with level, rating, reviews, skills and portfolio
+- Public performer catalog and profiles with level, rating, reviews, skills and portfolio
 - Public customer profiles with company info, public jobs, contests and trust signals
 - Search and filters
-- Mock escrow/guarantor system
-- Mock finances and transactions
+- Guarantor/escrow simulation
+- Finance and transactions simulation
 - Analytics
 - Admin/moderation panels
 - RPG level system and performer roadmap
 - Contests with level-based participation
-- Mock/demo data for diploma presentation
+- Seed data for presentation and browser testing
 - Russian language first, with optional i18n support
 
 ## Process Rules
@@ -117,11 +119,16 @@ Core idea:
 
 ## Current Next Block
 
-After public customer profiles are verified, the next implementation block should deepen demo reliability:
+Three browser annotation batches have been applied. Next work should focus on the user's personal review, applying any new annotation block page by page, and discussing remaining product decisions before VPS or documentation work:
 
-- stronger smoke-test/demo scripts for the full customer-performer flow.
-- optional contest winner payout through the mock finance layer.
-- small browser visual pass for `/contests`, `/contests/:id` and `/analytics`.
+- wait for the user's review of the latest annotation fixes;
+- apply the next browser annotation block page by page if the user sends one;
+- discuss final role-aware header content for customer, performer and manager roles;
+- decide whether to add more editorial illustrations or keep the interface mostly typographic with avatars;
+- discuss whether dark theme belongs to MVP or post-MVP;
+- run a control browser pass across customer, performer and manager accounts.
+
+Do not start VPS deployment preparation or diploma documentation preparation until the user explicitly asks for it.
 
 ## Demo Accounts
 

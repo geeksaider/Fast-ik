@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import {
   ArrowLeft,
-  ArrowRight,
   BriefcaseBusiness,
   Hammer,
   LockKeyhole,
@@ -20,13 +19,36 @@ const form = reactive({
   displayName: '',
   email: '',
   password: '',
+  passwordConfirm: '',
   role: 'performer' as 'customer' | 'performer',
 });
+const localError = ref<string | null>(null);
+const errorMessage = computed(() => localError.value ?? auth.error);
 
 const submit = async () => {
-  await auth.register(form);
-  await router.push('/dashboard');
+  localError.value = null;
+
+  if (form.password !== form.passwordConfirm) {
+    localError.value = 'Пароли не совпадают';
+    return;
+  }
+
+  try {
+    await auth.register({
+      displayName: form.displayName,
+      email: form.email,
+      password: form.password,
+      role: form.role,
+    });
+    await router.push('/dashboard');
+  } catch {
+    // Ошибка уже сохранена в auth store и показана в форме.
+  }
 };
+
+onMounted(() => {
+  auth.clearError();
+});
 </script>
 
 <template>
@@ -35,7 +57,7 @@ const submit = async () => {
       class="mx-auto grid w-full max-w-[1044px] gap-5 self-center rounded-[2rem] border border-ink bg-paper/95 p-4 md:min-h-[680px] md:grid-cols-[0.92fr_1.08fr] md:p-6"
     >
       <aside class="flex rounded-[1.5rem] border border-ink bg-[#fffaf0] p-6 md:p-8">
-        <div class="flex w-full flex-col justify-center">
+        <div class="flex w-full flex-col justify-start">
           <RouterLink
             to="/"
             class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-ink/60 transition hover:text-ink"
@@ -54,7 +76,7 @@ const submit = async () => {
           </h1>
           <p class="mt-5 max-w-sm text-base font-medium leading-7 text-ink/68">
             Регистрация сразу задает роль. Для исполнителя дальше появится профиль, портфолио,
-            навыки и RPG-roadmap уровня доверия.
+            навыки и путь роста уровня доверия.
           </p>
         </div>
       </aside>
@@ -117,6 +139,24 @@ const submit = async () => {
               </span>
             </label>
 
+            <label class="block">
+              <span class="mb-2 block text-sm font-black">Повторите пароль</span>
+              <span
+                class="flex items-center gap-3 rounded-2xl border border-paper/35 bg-paper px-4 py-3 text-ink"
+              >
+                <LockKeyhole :size="18" class="text-ink/55" />
+                <input
+                  v-model="form.passwordConfirm"
+                  class="w-full bg-transparent text-base font-semibold outline-none placeholder:text-ink/35"
+                  type="password"
+                  autocomplete="new-password"
+                  placeholder="Еще раз тот же пароль"
+                  minlength="8"
+                  required
+                />
+              </span>
+            </label>
+
             <div>
               <span class="mb-2 block text-sm font-black">Роль</span>
               <div class="grid gap-3 sm:grid-cols-2">
@@ -154,10 +194,10 @@ const submit = async () => {
             </div>
 
             <p
-              v-if="auth.error"
+              v-if="errorMessage"
               class="rounded-2xl border border-ember bg-ember/10 px-4 py-3 text-sm font-bold text-ember"
             >
-              {{ auth.error }}
+              {{ errorMessage }}
             </p>
 
             <button
@@ -166,7 +206,6 @@ const submit = async () => {
               :disabled="auth.isLoading"
             >
               {{ auth.isLoading ? 'Создаем аккаунт...' : 'Создать аккаунт' }}
-              <ArrowRight :size="18" />
             </button>
           </form>
 

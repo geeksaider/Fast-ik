@@ -103,7 +103,7 @@ onMounted(() => {
           <button
             v-for="notification in visibleNotifications"
             :key="notification.id"
-            class="block w-full rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 text-left transition hover:-translate-y-1 hover:bg-white"
+            class="block w-full rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 text-left transition hover:bg-white"
             :class="!notification.readAt ? 'shadow-cut' : ''"
             type="button"
             @click="openNotification(notification)"
@@ -125,7 +125,7 @@ onMounted(() => {
                 </p>
               </div>
               <span
-                class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black uppercase tracking-[0.14em]"
+                class="inline-grid h-8 shrink-0 place-items-center rounded-full border border-line bg-paper px-4 text-xs font-black uppercase leading-none tracking-[0.14em]"
               >
                 {{ notification.readAt ? 'прочитано' : 'новое' }}
               </span>

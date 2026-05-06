@@ -2,6 +2,7 @@
 import { computed, onMounted, watch, type Component } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
+  BarChart3,
   Bell,
   BriefcaseBusiness,
   ClipboardList,
@@ -14,7 +15,7 @@ import {
   ScrollText,
   ShieldCheck,
   Trophy,
-  UserRound,
+  UsersRound,
   WalletCards,
   Zap,
 } from 'lucide-vue-next';
@@ -50,30 +51,40 @@ const roleTitle = computed(() => {
   return auth.user ? (map[auth.user.role] ?? 'Пользователь') : 'Гость';
 });
 
-const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
-const canOpenAdmin = computed(() => Boolean(auth.user?.role && managerRoles.has(auth.user.role)));
-const canCreateJob = computed(
-  () =>
-    auth.user?.role === 'customer' || Boolean(auth.user?.role && managerRoles.has(auth.user.role)),
+const canCreateJob = computed(() => auth.user?.role === 'customer');
+const canOpenFinance = computed(
+  () => auth.user?.role === 'customer' || auth.user?.role === 'performer',
 );
 
 const primaryLinks = computed<NavigationItem[]>(() => {
-  const guestLinks: NavigationItem[] = [{ to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness }];
-
   if (!auth.isAuthenticated) {
-    return guestLinks;
+    return [];
+  }
+
+  if (auth.user?.role === 'customer') {
+    return [
+      { to: '/dashboard', label: 'Центр', icon: Gauge },
+      { to: '/orders', label: 'Заказы', icon: ClipboardList },
+      { to: '/performers', label: 'Исполнители', icon: UsersRound },
+      { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
+      { to: '/analytics', label: 'Аналитика', icon: BarChart3 },
+    ];
+  }
+
+  if (auth.user?.role === 'performer') {
+    return [
+      { to: '/dashboard', label: 'Центр', icon: Gauge },
+      { to: '/jobs', label: 'Заказы', icon: BriefcaseBusiness },
+      { to: '/orders', label: 'Работа', icon: ClipboardList },
+      { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
+      { to: '/level-roadmap', label: 'LVL', icon: Trophy },
+    ];
   }
 
   const links: NavigationItem[] = [
     { to: '/dashboard', label: 'Центр', icon: Gauge },
-    { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
-    { to: '/orders', label: 'Заказы', icon: ClipboardList },
     { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
-    canOpenAdmin.value
-      ? { to: '/admin', label: 'Админ', icon: ShieldCheck }
-      : auth.user?.role === 'performer'
-        ? { to: '/level-roadmap', label: 'LVL', icon: Trophy }
-        : { to: '/onboarding', label: 'Профиль', icon: UserRound },
+    { to: '/admin', label: 'Операции', icon: ShieldCheck },
   ];
 
   return links;
@@ -88,20 +99,30 @@ const mobileLinks = computed<NavigationItem[]>(() => {
     ];
   }
 
+  if (auth.user?.role === 'customer') {
+    return [
+      { to: '/dashboard', label: 'Центр', icon: Gauge },
+      { to: '/orders', label: 'Заказы', icon: ClipboardList },
+      { to: '/performers', label: 'Люди', icon: UsersRound },
+      { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
+      { to: '/analytics', label: 'Итоги', icon: BarChart3 },
+    ];
+  }
+
+  if (auth.user?.role === 'performer') {
+    return [
+      { to: '/dashboard', label: 'Центр', icon: Gauge },
+      { to: '/jobs', label: 'Заказы', icon: BriefcaseBusiness },
+      { to: '/orders', label: 'Работа', icon: ClipboardList },
+      { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
+      { to: '/level-roadmap', label: 'LVL', icon: Trophy },
+    ];
+  }
+
   return [
     { to: '/dashboard', label: 'Центр', icon: Gauge },
-    { to: '/jobs', label: 'Биржа', icon: BriefcaseBusiness },
-    { to: '/orders', label: 'Заказы', icon: ClipboardList },
     { to: '/messages', label: 'Чат', icon: MessageCircle, badge: communication.unreadMessages },
-    {
-      to: canOpenAdmin.value
-        ? '/admin'
-        : auth.user?.role === 'performer'
-          ? '/level-roadmap'
-          : '/onboarding',
-      label: canOpenAdmin.value ? 'Админ' : auth.user?.role === 'performer' ? 'LVL' : 'Профиль',
-      icon: canOpenAdmin.value ? ShieldCheck : auth.user?.role === 'performer' ? Trophy : UserRound,
-    },
+    { to: '/admin', label: 'Операции', icon: ShieldCheck },
   ];
 });
 
@@ -114,10 +135,21 @@ const routeMatches = (target: string) => {
     return route.name === 'jobs' || route.name === 'jobs-detail';
   }
 
+  if (target === '/performers') {
+    return route.name === 'performers' || route.name === 'performers-detail';
+  }
+
   return route.path === target || route.path.startsWith(`${target}/`);
 };
 
 const createJobActive = computed(() => route.name === 'jobs-new');
+const badgeLabel = (value?: number) => (value && value > 99 ? '99+' : value);
+const iconBadgeClass =
+  'absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full border border-paper bg-ember px-1 text-[10px] font-black leading-none text-paper tabular-nums';
+const navBadgeClass =
+  'ml-0.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full border border-ink bg-ember px-1 text-[10px] font-black leading-none text-paper tabular-nums';
+const mobileBadgeClass =
+  'absolute right-1 top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-paper bg-ember px-1 text-[10px] font-black leading-none text-paper tabular-nums';
 
 const syncCounters = async () => {
   if (!auth.accessToken) {
@@ -154,12 +186,12 @@ onMounted(() => {
     aria-label="Основная навигация"
   >
     <div
-      class="mx-auto flex max-w-[1044px] flex-col gap-3 rounded-[1.35rem] border border-ink bg-paper/95 p-2.5 backdrop-blur md:flex-row md:items-center md:justify-between md:rounded-[2rem] md:p-4"
+      class="mx-auto flex max-w-[1044px] flex-col gap-3 rounded-[1.35rem] border border-ink bg-paper/95 p-2.5 backdrop-blur lg:flex-row lg:items-center lg:justify-between lg:rounded-[2rem] lg:p-4"
     >
       <div class="flex items-center justify-between gap-3">
         <RouterLink class="flex items-center gap-3" :to="logoTarget">
           <span
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
+            class="grid h-[38px] w-[38px] place-items-center rounded-2xl border border-ink bg-ink text-paper"
           >
             <Zap :size="24" stroke-width="2.7" />
           </span>
@@ -173,24 +205,21 @@ onMounted(() => {
           </span>
         </RouterLink>
 
-        <div class="flex items-center gap-2 md:hidden">
+        <div class="flex items-center gap-2 lg:hidden">
           <RouterLink
             v-if="auth.isAuthenticated"
-            class="relative grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-[#fffaf0]"
+            class="relative grid h-[38px] w-[38px] place-items-center rounded-2xl border border-ink bg-[#fffaf0]"
             to="/notifications"
             aria-label="Уведомления"
           >
             <Bell :size="20" />
-            <span
-              v-if="communication.unreadNotifications"
-              class="absolute -right-1 -top-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
-            >
-              {{ communication.unreadNotifications }}
+            <span v-if="communication.unreadNotifications" :class="iconBadgeClass">
+              {{ badgeLabel(communication.unreadNotifications) }}
             </span>
           </RouterLink>
           <button
             v-if="auth.isAuthenticated"
-            class="grid h-11 w-11 place-items-center rounded-2xl border border-ink bg-ink text-paper"
+            class="grid h-[38px] w-[38px] place-items-center rounded-2xl border border-ink bg-ink text-paper"
             type="button"
             aria-label="Выйти"
             @click="logout"
@@ -200,11 +229,11 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex">
+      <div class="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex">
         <RouterLink
           v-for="item in primaryLinks"
           :key="item.to"
-          class="relative inline-flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-black transition duration-200 ease-out"
+          class="relative inline-flex h-[38px] items-center gap-2 rounded-full border px-3 text-sm font-black transition duration-200 ease-out"
           :class="
             routeMatches(item.to)
               ? 'border-ink bg-ink text-paper'
@@ -214,34 +243,28 @@ onMounted(() => {
         >
           <component :is="item.icon" :size="16" />
           {{ item.label }}
-          <span
-            v-if="item.badge"
-            class="ml-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
-          >
-            {{ item.badge }}
+          <span v-if="item.badge" :class="navBadgeClass">
+            {{ badgeLabel(item.badge) }}
           </span>
         </RouterLink>
       </div>
 
-      <div class="hidden items-center gap-2 md:flex">
+      <div class="hidden items-center gap-2 lg:flex">
         <RouterLink
           v-if="auth.isAuthenticated"
-          class="relative grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
+          class="relative grid h-[38px] w-[38px] place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
           :class="routeMatches('/notifications') ? 'bg-ink text-paper hover:bg-ink' : ''"
           to="/notifications"
           aria-label="Уведомления"
         >
           <Bell :size="17" />
-          <span
-            v-if="communication.unreadNotifications"
-            class="absolute -right-1 -top-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
-          >
-            {{ communication.unreadNotifications }}
+          <span v-if="communication.unreadNotifications" :class="iconBadgeClass">
+            {{ badgeLabel(communication.unreadNotifications) }}
           </span>
         </RouterLink>
         <RouterLink
-          v-if="auth.isAuthenticated"
-          class="grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
+          v-if="canOpenFinance"
+          class="grid h-[38px] w-[38px] place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-white"
           :class="routeMatches('/finance') ? 'bg-ink text-paper hover:bg-ink' : ''"
           to="/finance"
           aria-label="Финансы"
@@ -250,7 +273,7 @@ onMounted(() => {
         </RouterLink>
         <RouterLink
           v-if="canCreateJob"
-          class="grid h-10 w-10 place-items-center rounded-full border border-ink transition duration-200 ease-out hover:bg-bolt"
+          class="grid h-[38px] w-[38px] place-items-center rounded-full border border-ink transition duration-200 ease-out hover:bg-bolt"
           :class="createJobActive ? 'bg-ink text-paper' : 'bg-ember text-paper'"
           to="/jobs/new"
           aria-label="Создать заказ"
@@ -260,7 +283,7 @@ onMounted(() => {
         </RouterLink>
         <RouterLink
           v-if="!auth.isAuthenticated"
-          class="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
+          class="inline-flex h-[38px] items-center gap-2 rounded-full border border-ink bg-ink px-4 text-sm font-black text-paper transition hover:bg-bolt"
           to="/login"
         >
           <LogIn :size="16" />
@@ -268,7 +291,7 @@ onMounted(() => {
         </RouterLink>
         <RouterLink
           v-if="!auth.isAuthenticated"
-          class="inline-flex items-center gap-2 rounded-full border border-ink bg-[#fffaf0] px-4 py-2 text-sm font-black transition hover:bg-white"
+          class="inline-flex h-[38px] items-center gap-2 rounded-full border border-ink bg-[#fffaf0] px-4 text-sm font-black transition hover:bg-white"
           to="/register"
         >
           <ScrollText :size="16" />
@@ -276,7 +299,7 @@ onMounted(() => {
         </RouterLink>
         <button
           v-if="auth.isAuthenticated"
-          class="grid h-10 w-10 place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-ink hover:text-paper"
+          class="grid h-[38px] w-[38px] place-items-center rounded-full border border-ink bg-[#fffaf0] transition duration-200 ease-out hover:bg-ink hover:text-paper"
           type="button"
           aria-label="Выйти"
           @click="logout"
@@ -289,9 +312,16 @@ onMounted(() => {
 
   <div
     v-if="showNavigation"
-    class="fixed inset-x-0 bottom-0 z-40 border-t border-ink bg-paper/95 px-2 py-2 backdrop-blur md:hidden"
+    class="fixed inset-x-0 bottom-0 z-40 border-t border-ink bg-paper/95 px-2 py-2 backdrop-blur lg:hidden"
   >
-    <div class="mx-auto grid max-w-md grid-cols-5 gap-1">
+    <div
+      class="mx-auto grid max-w-md gap-1"
+      :class="{
+        'grid-cols-3': mobileLinks.length === 3,
+        'grid-cols-4': mobileLinks.length === 4,
+        'grid-cols-5': mobileLinks.length === 5,
+      }"
+    >
       <RouterLink
         v-for="item in mobileLinks"
         :key="item.to"
@@ -305,11 +335,8 @@ onMounted(() => {
       >
         <component :is="item.icon" :size="18" />
         <span>{{ item.label }}</span>
-        <span
-          v-if="item.badge"
-          class="absolute right-2 top-1 min-w-5 rounded-full border border-ink bg-ember px-1 text-center text-[10px] font-black text-paper"
-        >
-          {{ item.badge }}
+        <span v-if="item.badge" :class="mobileBadgeClass">
+          {{ badgeLabel(item.badge) }}
         </span>
       </RouterLink>
     </div>

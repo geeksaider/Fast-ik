@@ -3,7 +3,6 @@ import { computed, onMounted } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import {
   Activity,
-  ArrowRight,
   BarChart3,
   ClipboardList,
   Gauge,
@@ -63,6 +62,22 @@ const metricToneClass = (tone: AnalyticsMetric['tone']) => {
   return classes[tone];
 };
 
+const metricRoute = (metric: AnalyticsMetric) => {
+  const routes: Record<string, string> = {
+    Заказы: '/orders',
+    Отклики: '/applications',
+    Приглашения: '/applications',
+    'В гаранте': '/finance',
+    XP: '/level-roadmap',
+    Выбрано: '/orders',
+    Рейтинг: '/level-roadmap',
+    Пользователи: '/admin',
+    Споры: '/admin',
+  };
+
+  return routes[metric.label] ?? '/dashboard';
+};
+
 const barToneClass = (index: number) => {
   const classes = ['bg-ink', 'bg-ember', 'bg-moss', 'bg-bolt'];
 
@@ -119,7 +134,6 @@ onMounted(() => {
           to="/dashboard"
         >
           Вернуться в центр
-          <ArrowRight :size="18" />
         </RouterLink>
       </section>
 
@@ -165,11 +179,12 @@ onMounted(() => {
             </div>
 
             <div class="mt-4 grid gap-3">
-              <article
+              <RouterLink
                 v-for="metric in summary.metrics"
                 :key="metric.label"
                 class="rounded-2xl border p-4 transition duration-200 ease-out hover:-translate-y-0.5"
                 :class="metricToneClass(metric.tone)"
+                :to="metricRoute(metric)"
               >
                 <p class="text-xs font-black uppercase tracking-[0.16em] opacity-65">
                   {{ metric.label }}
@@ -178,7 +193,12 @@ onMounted(() => {
                   {{ metric.displayValue }}
                 </p>
                 <p class="mt-1 text-sm font-semibold opacity-70">{{ metric.detail }}</p>
-              </article>
+                <span
+                  class="mt-4 inline-flex h-8 items-center gap-2 rounded-full border border-current px-3 text-xs font-black uppercase tracking-[0.1em] opacity-80"
+                >
+                  Открыть
+                </span>
+              </RouterLink>
             </div>
           </section>
         </aside>
@@ -195,13 +215,41 @@ onMounted(() => {
                 to="/dashboard"
               >
                 В центр
-                <ArrowRight :size="16" />
               </RouterLink>
             </div>
             <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-ink/65">
               Здесь нет тяжелых графиков ради графиков: только показатели, которые помогают быстро
               понять состояние заказов, денег, откликов и активности в текущей роли.
             </p>
+            <div class="mt-5 grid gap-3 md:grid-cols-3">
+              <RouterLink
+                class="group rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
+                to="/orders"
+              >
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">Заказы</p>
+                <p class="mt-2 flex items-center justify-between gap-3 text-xl font-black">
+                  Управлять статусами
+                </p>
+              </RouterLink>
+              <RouterLink
+                class="group rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
+                to="/applications"
+              >
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">Отклики</p>
+                <p class="mt-2 flex items-center justify-between gap-3 text-xl font-black">
+                  Сравнить кандидатов
+                </p>
+              </RouterLink>
+              <RouterLink
+                class="group rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
+                to="/finance"
+              >
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">Финансы</p>
+                <p class="mt-2 flex items-center justify-between gap-3 text-xl font-black">
+                  Проверить гарант
+                </p>
+              </RouterLink>
+            </div>
           </article>
 
           <div class="grid gap-4 xl:grid-cols-2">
@@ -260,7 +308,7 @@ onMounted(() => {
                 <WalletCards :size="22" />
                 <div>
                   <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Деньги</p>
-                  <h3 class="text-2xl font-black tracking-[-0.05em]">Мок-гарант</h3>
+                  <h3 class="text-2xl font-black tracking-[-0.05em]">Гарант</h3>
                 </div>
               </div>
               <div class="mt-5 space-y-4">

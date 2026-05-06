@@ -41,8 +41,12 @@ export const useAuthStore = defineStore('auth', {
     persistSession(response: AuthResponse) {
       this.accessToken = response.accessToken;
       this.user = response.user;
+      this.error = null;
       localStorage.setItem(tokenKey, response.accessToken);
       localStorage.setItem(userKey, JSON.stringify(response.user));
+    },
+    clearError() {
+      this.error = null;
     },
     async register(payload: RegisterPayload) {
       this.isLoading = true;

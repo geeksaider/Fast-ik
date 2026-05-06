@@ -3,7 +3,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import {
   ArrowLeft,
-  ArrowRight,
   BadgeCheck,
   BriefcaseBusiness,
   ExternalLink,
@@ -59,7 +58,7 @@ const inviteTarget = computed(() => {
     return { to: '#invite-performer', label: 'Пригласить в заказ' };
   }
 
-  return { to: '/jobs', label: 'Открыть биржу' };
+  return { to: '/performers', label: 'К исполнителям' };
 });
 
 const skillLevelLabel = (level: UserSkill['level']) => {
@@ -166,8 +165,7 @@ watch(
           class="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
           to="/jobs"
         >
-          К бирже
-          <ArrowRight :size="18" />
+          К исполнителям
         </RouterLink>
       </section>
 
@@ -177,7 +175,7 @@ watch(
           to="/jobs"
         >
           <ArrowLeft :size="16" />
-          К бирже
+          К исполнителям
         </RouterLink>
 
         <section class="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
@@ -399,7 +397,6 @@ watch(
                 to="/jobs/new"
               >
                 Создать заказ
-                <ArrowRight :size="18" />
               </RouterLink>
             </div>
           </div>

@@ -18,6 +18,9 @@ const hasMoreTransactions = computed(
   () => visibleTransactions.value.length < finance.transactions.length,
 );
 
+const transactionDescription = (description: string) =>
+  description.replace('Моковое пополнение баланса', 'Пополнение баланса');
+
 const load = async () => {
   if (!auth.accessToken) {
     await router.push('/login');
@@ -63,14 +66,14 @@ onMounted(() => {
               <span
                 class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
               >
-                Mock
+                Wallet
               </span>
             </div>
             <p class="mt-5 text-xs font-black uppercase tracking-[0.24em] text-paper/55">Wallet</p>
             <h1
               class="mt-3 text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
             >
-              Финансы без реальных платежей.
+              Финансы под контролем.
             </h1>
           </section>
 
@@ -100,7 +103,7 @@ onMounted(() => {
                 type="submit"
               >
                 <Plus :size="18" />
-                Моково пополнить
+                Пополнить баланс
               </button>
             </form>
           </section>
@@ -126,12 +129,14 @@ onMounted(() => {
             >
               <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p class="font-black">{{ transaction.description }}</p>
-                  <p class="mt-1 text-xs font-bold uppercase tracking-[0.14em] text-ink/50">
-                    {{ formatSystemLabel(transaction.type) }} ·
-                    {{ formatSystemLabel(transaction.direction) }} ·
-                    {{ formatDateTime(transaction.createdAt) }}
-                  </p>
+                  <p class="font-black">{{ transactionDescription(transaction.description) }}</p>
+                  <div
+                    class="mt-2 grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-ink/50 sm:grid-cols-3"
+                  >
+                    <span>{{ formatSystemLabel(transaction.type) }}</span>
+                    <span>{{ formatSystemLabel(transaction.direction) }}</span>
+                    <span>{{ formatDateTime(transaction.createdAt) }}</span>
+                  </div>
                 </div>
                 <p
                   class="text-lg font-black"

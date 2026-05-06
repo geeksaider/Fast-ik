@@ -52,7 +52,7 @@ const buildCustomerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary>
   return {
     role: user.role,
     title: 'Аналитика заказчика',
-    subtitle: 'Публикации, отклики, выбор исполнителей и мок-гарант в одной спокойной сводке.',
+    subtitle: 'Публикации, отклики, выбор исполнителей и гарант в одной спокойной сводке.',
     generatedAt: new Date().toISOString(),
     metrics: [
       metric('Заказы', totalJobs, 'создано на платформе', 'dark'),
@@ -73,7 +73,7 @@ const buildCustomerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary>
       item('Споры', disputedOrders),
     ],
     money: [
-      moneyItem('Пополнено моково', toNumber(data.transactions?.topUps)),
+      moneyItem('Пополнено', toNumber(data.transactions?.topUps)),
       moneyItem('Зарезервировано', toNumber(data.transactions?.holds)),
       moneyItem('Оплачено исполнителям', completedAmount),
       moneyItem('Возвращено', toNumber(data.transactions?.refunds)),

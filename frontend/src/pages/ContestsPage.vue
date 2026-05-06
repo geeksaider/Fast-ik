@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import { ArrowRight, Filter, Loader2, Medal, Plus, Search } from 'lucide-vue-next';
+import { Filter, Loader2, Medal, Plus, Search } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useContestsStore } from '../stores/contests';
 import { useMarketplaceStore } from '../stores/marketplace';
@@ -46,6 +46,9 @@ const canCreateContest = computed(
 );
 const visibleContests = computed(() => contests.contests.slice(0, page.value * pageSize));
 const hasMoreContests = computed(() => visibleContests.value.length < contests.contests.length);
+const openContestsCount = computed(
+  () => contests.contests.filter((contest) => contest.status === 'open').length,
+);
 
 const tags = () =>
   form.tags
@@ -101,7 +104,7 @@ onMounted(() => {
           <div class="flex items-start justify-between gap-4">
             <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">Конкурсы</p>
             <span class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black">
-              LVL gate
+              Допуск по уровню
             </span>
           </div>
           <h1
@@ -124,6 +127,16 @@ onMounted(() => {
             <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
               {{ contests.contests.length }}
             </span>
+          </div>
+          <div class="mt-4 grid grid-cols-2 gap-2">
+            <div class="rounded-2xl border border-line bg-paper p-3">
+              <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">Открыто</p>
+              <p class="mt-1 text-2xl font-black">{{ openContestsCount }}</p>
+            </div>
+            <div class="rounded-2xl border border-line bg-paper p-3">
+              <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">Категорий</p>
+              <p class="mt-1 text-2xl font-black">{{ marketplace.categories.length }}</p>
+            </div>
           </div>
           <label class="mt-4 block">
             <span class="mb-2 flex items-center gap-2 text-sm font-black">
@@ -163,6 +176,32 @@ onMounted(() => {
       </section>
 
       <section
+        class="mt-4 grid gap-3 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 md:grid-cols-3"
+      >
+        <article class="rounded-2xl border border-line bg-paper p-4">
+          <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">1. Бриф</p>
+          <p class="mt-2 text-xl font-black">Заказчик задает задачу</p>
+          <p class="mt-1 text-sm font-semibold leading-5 text-ink/62">
+            Описывает цель, приз и уровень допуска.
+          </p>
+        </article>
+        <article class="rounded-2xl border border-line bg-paper p-4">
+          <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">2. Работы</p>
+          <p class="mt-2 text-xl font-black">Исполнители предлагают решения</p>
+          <p class="mt-1 text-sm font-semibold leading-5 text-ink/62">
+            Вход ограничен уровнем, чтобы снизить шум.
+          </p>
+        </article>
+        <article class="rounded-2xl border border-line bg-paper p-4">
+          <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">3. Выбор</p>
+          <p class="mt-2 text-xl font-black">Победитель получает приз</p>
+          <p class="mt-1 text-sm font-semibold leading-5 text-ink/62">
+            Конкурс превращается в понятный сигнал доверия.
+          </p>
+        </article>
+      </section>
+
+      <section
         v-if="canCreateContest"
         class="mt-4 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
       >
@@ -172,7 +211,7 @@ onMounted(() => {
             <h2 class="mt-1 text-3xl font-black tracking-[-0.06em]">Создать конкурс</h2>
           </div>
           <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
-            Мок-приз без реальных платежей
+            Приз закреплен условиями
           </span>
         </div>
 
@@ -300,7 +339,6 @@ onMounted(() => {
               :to="`/contests/${contest.id}`"
             >
               Открыть
-              <ArrowRight :size="18" />
             </RouterLink>
           </div>
         </article>

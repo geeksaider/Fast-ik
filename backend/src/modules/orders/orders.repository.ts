@@ -13,7 +13,7 @@ import type {
 
 export class EscrowBalanceError extends Error {
   constructor() {
-    super('Недостаточно средств на моковом балансе заказчика');
+    super('Недостаточно средств на балансе заказчика');
   }
 }
 
@@ -30,6 +30,7 @@ const orderSelect = `
     performer.display_name as "performerName",
     orders.title,
     orders.amount,
+    jobs.deadline_at as "deadlineAt",
     conversations.id as "conversationId",
     orders.status,
     orders.work_result as "workResult",
@@ -41,6 +42,7 @@ const orderSelect = `
     orders.cancelled_at as "cancelledAt",
     orders.disputed_at as "disputedAt"
   from orders
+  join jobs on jobs.id = orders.job_id
   join users customer on customer.id = orders.customer_id
   join users performer on performer.id = orders.performer_id
   left join conversations on conversations.order_id = orders.id

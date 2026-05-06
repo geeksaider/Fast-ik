@@ -3,7 +3,6 @@ import { computed, onMounted, watch } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import {
   ArrowLeft,
-  ArrowRight,
   BriefcaseBusiness,
   Building2,
   ExternalLink,
@@ -14,7 +13,13 @@ import {
   WalletCards,
 } from 'lucide-vue-next';
 import { useCustomersStore } from '../stores/customers';
-import { formatAmount, formatDate, formatMoney, formatSystemLabel } from '../lib/format';
+import {
+  formatAmount,
+  formatDate,
+  formatDisplayText,
+  formatMoney,
+  formatSystemLabel,
+} from '../lib/format';
 
 const route = useRoute();
 const customers = useCustomersStore();
@@ -65,7 +70,6 @@ watch(customerId, () => {
           to="/customers"
         >
           К заказчикам
-          <ArrowRight :size="18" />
         </RouterLink>
       </section>
 
@@ -102,14 +106,18 @@ watch(customerId, () => {
             </h1>
             <p class="mt-4 max-w-2xl text-lg font-black leading-7 text-paper/84">
               {{
-                profile.customerProfile?.companyDescription ||
-                'Заказчик публикует задачи и выбирает исполнителей через Fastik.'
+                formatDisplayText(
+                  profile.customerProfile?.companyDescription ||
+                    'Заказчик публикует задачи и выбирает исполнителей через Fastik.',
+                )
               }}
             </p>
             <p class="mt-4 max-w-2xl text-sm font-semibold leading-6 text-paper/66">
               {{
-                profile.profile?.bio ||
-                'Публичное описание пока короткое, но активность заказчика уже видна по заказам и конкурсам.'
+                formatDisplayText(
+                  profile.profile?.bio ||
+                    'Публичное описание пока короткое, но активность заказчика уже видна по заказам и конкурсам.',
+                )
               }}
             </p>
 
@@ -140,7 +148,6 @@ watch(customerId, () => {
                 to="/jobs"
               >
                 Открыть заказы
-                <ArrowRight :size="18" />
               </RouterLink>
               <a
                 v-if="profile.customerProfile?.companySite"
@@ -196,7 +203,8 @@ watch(customerId, () => {
                 </p>
                 <p class="flex items-start gap-2 text-sm font-bold leading-6 text-ink/70">
                   <ShieldCheck class="mt-1 shrink-0 text-moss" :size="18" />
-                  Деньги и статусы остаются моковыми, но поведение похоже на реальный marketplace.
+                  Деньги и статусы проходят через гарант, чтобы исполнителю было понятно, кто стоит
+                  за задачей.
                 </p>
               </div>
             </section>
@@ -219,7 +227,7 @@ watch(customerId, () => {
                 class="rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
                 :to="`/jobs/${job.id}`"
               >
-                <p class="font-black">{{ job.title }}</p>
+                <p class="font-black">{{ formatDisplayText(job.title) }}</p>
                 <p class="mt-2 text-xs font-black uppercase tracking-[0.14em] text-ink/45">
                   {{ job.categoryName || 'Без категории' }} · {{ formatSystemLabel(job.status) }} ·
                   {{ formatDate(job.deadlineAt) }}
@@ -253,7 +261,7 @@ watch(customerId, () => {
                 class="rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
                 :to="`/contests/${contest.id}`"
               >
-                <p class="font-black">{{ contest.title }}</p>
+                <p class="font-black">{{ formatDisplayText(contest.title) }}</p>
                 <p class="mt-2 text-xs font-black uppercase tracking-[0.14em] text-ink/45">
                   {{ contest.categoryName || 'Без категории' }} ·
                   {{ formatSystemLabel(contest.status) }} ·

@@ -133,17 +133,17 @@ onMounted(() => {
         <div class="flex flex-col gap-2 sm:flex-row">
           <RouterLink
             v-if="order?.conversationId"
-            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-5 py-3 font-black text-ink transition hover:bg-white"
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black text-ink transition hover:bg-white"
             :to="`/messages/${order.conversationId}`"
           >
-            <MessageCircle :size="18" />
+            <MessageCircle :size="16" />
             Рабочий чат
           </RouterLink>
           <RouterLink
-            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+            class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
             to="/finance"
           >
-            <WalletCards :size="18" />
+            <WalletCards :size="16" />
             Финансы
           </RouterLink>
         </div>
@@ -302,7 +302,8 @@ onMounted(() => {
                 Оставить отзыв
               </button>
               <p class="text-sm font-semibold leading-6 text-ink/58">
-                Оценки 4-5 дают исполнителю заметный XP-бонус, а средний рейтинг попадет в roadmap.
+                Оценки 4-5 дают исполнителю заметный XP-бонус, а средний рейтинг попадет в путь
+                роста.
               </p>
             </form>
 
@@ -369,7 +370,7 @@ onMounted(() => {
 
         <aside class="grid gap-4 lg:grid-rows-[auto_1fr]">
           <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Мок-гарант</p>
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Гарант</p>
             <p class="mt-3 text-4xl font-black tracking-[-0.06em]">
               {{ formatAmount(order.amount) }}
             </p>

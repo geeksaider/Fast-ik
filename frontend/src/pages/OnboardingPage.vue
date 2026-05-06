@@ -219,7 +219,7 @@ onMounted(() => {
       <div v-else class="grid gap-4 lg:grid-cols-[20rem_minmax(0,1fr)] lg:items-start">
         <aside class="space-y-5">
           <section class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Roadmap</p>
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Путь роста</p>
             <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
               {{ progress?.percentage ?? 0 }}% готовности
             </h1>

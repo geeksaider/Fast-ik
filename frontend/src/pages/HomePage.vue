@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  ArrowRight,
   BadgeCheck,
   BarChart3,
   Bell,
@@ -21,7 +20,7 @@ const roadmap = [
 const features = [
   {
     icon: ShieldCheck,
-    title: 'Мок-гарант',
+    title: 'Финансовый гарант',
     text: 'Средства заказчика резервируются в сервисе и переходят исполнителю после принятия работы.',
   },
   {
@@ -56,7 +55,7 @@ const features = [
               class="mb-6 inline-flex items-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black uppercase tracking-[0.14em]"
             >
               <Sparkles :size="16" />
-              Дипломный fullstack-проект
+              Платформа быстрых сделок
             </div>
 
             <h1
@@ -66,21 +65,20 @@ const features = [
             </h1>
 
             <p class="mt-6 max-w-2xl text-lg font-medium leading-8 text-ink/72">
-              Fastik соединяет заказчиков и исполнителей через заказы, отклики, моковый гарант и
-              RPG-систему роста, где уровень исполнителя становится понятным сигналом доверия.
+              Fastik соединяет заказчиков и исполнителей через заказы, отклики, гарант и RPG-систему
+              роста, где уровень исполнителя становится понятным сигналом доверия.
             </p>
           </div>
 
           <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <RouterLink
-              class="inline-flex min-w-0 items-center justify-center gap-2 rounded-full border border-ink bg-ember px-6 py-3 font-black text-paper transition hover:-translate-y-0.5"
+              class="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-ink bg-ember px-4 text-sm font-black text-paper transition hover:bg-bolt"
               to="/register"
             >
               Опубликовать заказ
-              <ArrowRight :size="18" />
             </RouterLink>
             <RouterLink
-              class="inline-flex min-w-0 items-center justify-center rounded-full border border-ink bg-paper px-6 py-3 font-black transition hover:-translate-y-0.5 hover:bg-ink hover:text-paper"
+              class="inline-flex h-10 min-w-0 items-center justify-center rounded-full border border-ink bg-paper px-4 text-sm font-black transition hover:bg-ink hover:text-paper"
               to="/register"
             >
               Стать исполнителем
@@ -88,19 +86,22 @@ const features = [
           </div>
         </section>
 
-        <aside id="levels" class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <div class="flex items-start justify-between gap-4">
+        <aside
+          id="levels"
+          class="rounded-[1.5rem] border border-ink bg-ink p-5 h-full text-paper sm:p-6"
+        >
+          <div class="flex items-start justify-between py-[18px] gap-4">
             <div>
-              <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Roadmap</p>
+              <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">ROADMAP</p>
               <h2 class="mt-2 text-3xl font-black tracking-[-0.05em]">Дорога к славе</h2>
             </div>
           </div>
 
-          <div class="mt-7 space-y-3">
+          <div class="mt-7 grid gap-3">
             <article
               v-for="item in roadmap"
               :key="item.level"
-              class="grid grid-cols-[3.25rem_1fr] gap-4 rounded-2xl border border-paper/18 bg-paper/[0.06] p-4"
+              class="grid h-[114px] grid-cols-[3.25rem_1fr] items-center gap-4 rounded-2xl border border-paper/18 bg-paper/[0.06] p-4"
             >
               <span
                 class="grid h-12 w-12 place-items-center rounded-xl bg-paper font-black text-ink"
@@ -120,7 +121,7 @@ const features = [
         <article
           v-for="feature in features"
           :key="feature.title"
-          class="rounded-[1.25rem] border border-ink bg-[#fffaf0] p-5 transition hover:-translate-y-1 hover:bg-white"
+          class="rounded-[1.25rem] border border-ink bg-[#fffaf0] p-5 transition hover:bg-white"
         >
           <component :is="feature.icon" class="mb-5 text-bolt" :size="28" stroke-width="2.3" />
           <h3 class="text-xl font-black tracking-[-0.04em]">{{ feature.title }}</h3>
@@ -133,24 +134,24 @@ const features = [
         class="mt-6 grid gap-4 rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 md:grid-cols-3 md:p-6"
       >
         <div class="md:col-span-1">
-          <div class="inline-flex rounded-full border border-ink p-2">
-            <BadgeCheck :size="26" class="text-moss" />
-          </div>
-          <h2 class="mt-4 text-3xl font-black tracking-[-0.05em]">Что строим первым</h2>
+          <h2 class="text-3xl font-black tracking-[-0.05em]">С чего начинается работа</h2>
+          <p class="mt-3 text-sm font-semibold leading-6 text-ink/62">
+            Показываем ключевые сценарии без лишнего декоративного шума.
+          </p>
         </div>
         <div class="grid gap-3 md:col-span-2 sm:grid-cols-2">
           <div class="rounded-2xl border border-line bg-paper p-4">
             <BriefcaseBusiness class="mb-3 text-ember" :size="24" />
             <p class="font-black">Заказы и отклики</p>
             <p class="mt-2 text-sm leading-6 text-ink/68">
-              Основной marketplace-сценарий для дипломной демонстрации.
+              Основной сценарий: публикация задачи, отклики и выбор исполнителя.
             </p>
           </div>
           <div class="rounded-2xl border border-line bg-paper p-4">
             <Bell class="mb-3 text-bolt" :size="24" />
             <p class="font-black">Профили и уровни</p>
             <p class="mt-2 text-sm leading-6 text-ink/68">
-              Рост исполнителя будет встроен в onboarding и реальные действия.
+              Рост исполнителя встроен в профиль, отклики и реальные действия.
             </p>
           </div>
         </div>

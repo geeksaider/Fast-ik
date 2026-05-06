@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
 import {
-  ArrowRight,
   BadgeCheck,
   Check,
   CircleDashed,
@@ -23,8 +22,28 @@ const levels = useLevelsStore();
 const router = useRouter();
 
 const summary = computed(() => levels.summary);
+const showCompleted = ref(false);
 const currentLevel = computed(() => summary.value?.currentLevel);
 const nextLevel = computed(() => summary.value?.nextLevel);
+const roadmapCounts = computed(() => {
+  const roadmap = summary.value?.roadmap ?? [];
+
+  return {
+    completed: roadmap.filter((level) => level.status === 'completed').length,
+    current: roadmap.find((level) => level.status === 'current')?.title ?? 'Не рассчитан',
+    locked: roadmap.filter((level) => level.status === 'locked').length,
+  };
+});
+const nextRequirements = computed(() => {
+  const current = summary.value?.roadmap.find((level) => level.status === 'current');
+
+  return current?.requirements.filter((requirement) => !requirement.completed).slice(0, 3) ?? [];
+});
+const visibleRoadmap = computed(() => {
+  const roadmap = summary.value?.roadmap ?? [];
+
+  return showCompleted.value ? roadmap : roadmap.filter((level) => level.status !== 'completed');
+});
 
 const valueLabel = (value: LevelRequirement['currentValue']) => {
   if (typeof value === 'boolean') {
@@ -75,7 +94,9 @@ onMounted(() => {
         v-else-if="levels.error"
         class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-6"
       >
-        <p class="text-xs font-black uppercase tracking-[0.2em] text-ember">Roadmap недоступен</p>
+        <p class="text-xs font-black uppercase tracking-[0.2em] text-ember">
+          Путь роста недоступен
+        </p>
         <h1 class="mt-3 text-4xl font-black tracking-[-0.06em]">
           Не получилось открыть дорогу к славе.
         </h1>
@@ -87,54 +108,77 @@ onMounted(() => {
           to="/dashboard"
         >
           Вернуться в центр
-          <ArrowRight :size="18" />
         </RouterLink>
       </section>
 
       <section v-else-if="summary && currentLevel">
-        <div class="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
+        <div class="grid gap-4">
           <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <div class="flex items-start justify-between gap-4">
-              <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
-                <Trophy :size="28" />
+            <div class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-end">
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span
+                    class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
+                  >
+                    LVL {{ currentLevel.sortOrder }}
+                  </span>
+                  <span
+                    class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-paper/65"
+                  >
+                    Текущий уровень
+                  </span>
+                </div>
+                <h1 class="mt-3 text-4xl font-black leading-[0.95] tracking-[-0.07em] sm:text-5xl">
+                  {{ currentLevel.title }} исполнитель
+                </h1>
+                <p class="mt-4 max-w-2xl text-sm font-semibold leading-6 text-paper/68">
+                  {{ currentLevel.description }}
+                </p>
+                <div class="mt-5 flex flex-wrap gap-2">
+                  <RouterLink
+                    class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-paper bg-paper px-4 text-sm font-black text-ink transition hover:bg-ember hover:text-paper"
+                    to="/jobs"
+                  >
+                    Найти заказ для XP
+                  </RouterLink>
+                  <a
+                    class="inline-flex h-10 items-center justify-center rounded-full border border-paper/30 px-4 text-sm font-black text-paper/80 transition hover:bg-paper hover:text-ink"
+                    href="#metrics"
+                  >
+                    Метрики
+                  </a>
+                  <a
+                    class="inline-flex h-10 items-center justify-center rounded-full border border-paper/30 px-4 text-sm font-black text-paper/80 transition hover:bg-paper hover:text-ink"
+                    href="#events"
+                  >
+                    Журнал XP
+                  </a>
+                </div>
               </div>
-              <span
-                class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
-              >
-                LVL {{ currentLevel.sortOrder }}
-              </span>
-            </div>
 
-            <p class="mt-5 text-xs font-black uppercase tracking-[0.24em] text-paper/55">
-              Текущий уровень
-            </p>
-            <h1
-              class="mt-3 text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-            >
-              {{ currentLevel.title }}
-            </h1>
-            <p class="mt-4 text-sm font-semibold leading-6 text-paper/68">
-              {{ currentLevel.description }}
-            </p>
+              <div class="grid gap-3">
+                <div class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
+                  <p class="text-sm font-bold text-paper/55">Всего опыта</p>
+                  <p class="mt-1 text-3xl font-black">{{ summary.progress.xp }} XP</p>
+                </div>
 
-            <div class="mt-5 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-              <p class="text-sm font-bold text-paper/55">Всего опыта</p>
-              <p class="mt-1 text-3xl font-black">{{ summary.progress.xp }} XP</p>
-            </div>
-
-            <div
-              v-if="nextLevel"
-              class="mt-4 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4"
-            >
-              <div class="flex items-center justify-between gap-4">
-                <p class="font-black">До {{ nextLevel.title }}</p>
-                <p class="text-sm font-black text-ember">{{ summary.xpToNext }} XP</p>
-              </div>
-              <div class="mt-3 h-3 overflow-hidden rounded-full border border-paper/20 bg-paper/15">
                 <div
-                  class="h-full rounded-full bg-ember"
-                  :style="{ width: `${summary.nextLevelProgress}%` }"
-                />
+                  v-if="nextLevel"
+                  class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <p class="font-black">До {{ nextLevel.title }}</p>
+                    <p class="text-sm font-black text-ember">{{ summary.xpToNext }} XP</p>
+                  </div>
+                  <div
+                    class="mt-3 h-3 overflow-hidden rounded-full border border-paper/20 bg-paper/15"
+                  >
+                    <div
+                      class="h-full rounded-full bg-ember"
+                      :style="{ width: `${summary.nextLevelProgress}%` }"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -144,30 +188,82 @@ onMounted(() => {
             >
               XP уже достаточно для Elite-зоны. Последний замок: онлайн-интервью с HR Fastik.
             </p>
-            <RouterLink
-              class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-ember hover:text-paper"
-              to="/jobs"
-            >
-              Найти заказ для XP
-              <ArrowRight :size="18" />
-            </RouterLink>
           </aside>
 
           <section class="space-y-5">
+            <article
+              v-if="nextRequirements.length"
+              class="rounded-[1.35rem] border border-ink bg-ember p-5 text-paper sm:p-6"
+            >
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-paper/70">
+                Ближайший фокус
+              </p>
+              <h2 class="mt-2 text-3xl font-black tracking-[-0.06em]">Что нужно сделать сейчас</h2>
+              <div class="mt-4 grid gap-2 md:grid-cols-3">
+                <RouterLink
+                  v-for="item in nextRequirements"
+                  :key="item.code"
+                  class="rounded-2xl border border-paper/25 bg-paper/10 p-4 transition hover:bg-paper/20"
+                  to="/onboarding"
+                >
+                  <p class="font-black">{{ item.title }}</p>
+                  <p class="mt-2 text-sm font-semibold leading-5 text-paper/72">
+                    {{ item.description }}
+                  </p>
+                </RouterLink>
+              </div>
+            </article>
+
             <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-              <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Roadmap</p>
+              <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Рост</p>
               <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">Дорога к славе</h2>
               <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-ink/68">
                 Уровень растет не от пустой галочки, а от действий: профиль, отклики, выбранные
                 заявки, сдача результата и завершенные заказы.
               </p>
+              <div class="mt-5 grid gap-3 sm:grid-cols-3">
+                <div class="rounded-2xl border border-line bg-paper p-4">
+                  <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">Пройдено</p>
+                  <p class="mt-1 text-2xl font-black">{{ roadmapCounts.completed }}</p>
+                </div>
+                <div class="rounded-2xl border border-line bg-paper p-4">
+                  <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">Сейчас</p>
+                  <p class="mt-1 truncate text-2xl font-black">{{ roadmapCounts.current }}</p>
+                </div>
+                <div class="rounded-2xl border border-line bg-paper p-4">
+                  <p class="text-xs font-black uppercase tracking-[0.14em] text-ink/45">Впереди</p>
+                  <p class="mt-1 text-2xl font-black">{{ roadmapCounts.locked }}</p>
+                </div>
+              </div>
+              <div class="mt-4 flex flex-wrap gap-2">
+                <button
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-ink bg-paper px-4 text-sm font-black transition hover:bg-ink hover:text-paper"
+                  type="button"
+                  @click="showCompleted = !showCompleted"
+                >
+                  {{ showCompleted ? 'Скрыть пройденное' : 'Показать пройденное' }}
+                </button>
+                <a
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-ink bg-ink px-4 text-sm font-black text-paper transition hover:bg-bolt"
+                  href="#current-level"
+                >
+                  Текущий уровень
+                </a>
+                <a
+                  class="inline-flex h-10 items-center justify-center rounded-full border border-line bg-paper px-4 text-sm font-black text-ink/65 transition hover:border-ink hover:text-ink"
+                  href="#metrics"
+                >
+                  Метрики
+                </a>
+              </div>
             </article>
 
             <div class="grid gap-3">
               <article
-                v-for="level in summary.roadmap"
+                v-for="level in visibleRoadmap"
                 :key="level.code"
-                class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5"
+                :id="level.status === 'current' ? 'current-level' : undefined"
+                class="scroll-mt-32 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5"
                 :class="level.status === 'current' ? 'shadow-cut' : ''"
               >
                 <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -222,7 +318,10 @@ onMounted(() => {
         </div>
 
         <section class="mt-4 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
-          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+          <article
+            id="metrics"
+            class="scroll-mt-32 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
             <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Метрики</p>
             <div class="mt-4 grid gap-3 sm:grid-cols-2">
               <div
@@ -241,7 +340,10 @@ onMounted(() => {
             </div>
           </article>
 
-          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+          <article
+            id="events"
+            class="scroll-mt-32 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
             <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/55">Журнал XP</p>
             <div class="mt-4 space-y-3">
               <div

@@ -33,6 +33,12 @@ const parseDate = (value: string | null) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+export type DeadlineSignal = {
+  label: string;
+  tone: 'neutral' | 'warning' | 'danger' | 'success';
+  daysLeft: number | null;
+};
+
 const rawTimestampPattern = /\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-\d{3}Z/g;
 
 export const formatDate = (value: string | null) => {
@@ -65,12 +71,53 @@ export const formatDateTime = (value: string | null) => {
   }).format(date);
 };
 
+export const getDeadlineSignal = (value: string | null): DeadlineSignal => {
+  const date = parseDate(value);
+
+  if (!date) {
+    return { label: 'Без срока', tone: 'neutral', daysLeft: null };
+  }
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const startOfDeadline = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const daysLeft = Math.ceil((startOfDeadline - startOfToday) / 86_400_000);
+
+  if (daysLeft < 0) {
+    return { label: 'Просрочен', tone: 'danger', daysLeft };
+  }
+
+  if (daysLeft === 0) {
+    return { label: 'Сегодня', tone: 'danger', daysLeft };
+  }
+
+  if (daysLeft <= 2) {
+    return { label: `${daysLeft} дн.`, tone: 'warning', daysLeft };
+  }
+
+  if (daysLeft <= 7) {
+    return { label: `${daysLeft} дн.`, tone: 'neutral', daysLeft };
+  }
+
+  return { label: formatDate(value), tone: 'success', daysLeft };
+};
+
 export const formatDisplayText = (value: string | null | undefined) => {
   if (!value) {
     return '';
   }
 
-  return value.replace(rawTimestampPattern, (timestamp) => formatDateTime(timestamp));
+  return value
+    .replace(rawTimestampPattern, (timestamp) => formatDateTime(timestamp))
+    .replaceAll('мок-гарант', 'гарант')
+    .replaceAll('Мок-гарант', 'Гарант')
+    .replaceAll('моковым гарантом', 'гарантом')
+    .replaceAll('demo-', '')
+    .replaceAll('Demo-', '')
+    .replaceAll('демо-', '')
+    .replaceAll('Демо-', '')
+    .replaceAll('Escrow', 'Гарант')
+    .replaceAll('escrow', 'гарант');
 };
 
 const systemLabels: Record<string, string> = {
@@ -112,7 +159,7 @@ const systemLabels: Record<string, string> = {
   escrow_refund: 'Возврат из гаранта',
   performer_payout: 'Выплата исполнителю',
   wallet_top_up: 'Пополнение',
-  mock_top_up: 'Мок-пополнение',
+  mock_top_up: 'Пополнение',
   refund_customer: 'Возврат заказчику',
   pay_performer: 'Выплата исполнителю',
   user_status_updated: 'Статус пользователя изменен',

@@ -11,6 +11,7 @@ export type OrderListItem = {
   performerName: string;
   title: string;
   amount: number;
+  deadlineAt: string | null;
   conversationId: string | null;
   status: OrderStatus;
   workResult: string | null;

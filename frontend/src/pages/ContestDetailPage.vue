@@ -3,7 +3,6 @@ import { computed, onMounted, reactive } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
   ArrowLeft,
-  ArrowRight,
   BadgeCheck,
   Crown,
   ExternalLink,
@@ -160,7 +159,7 @@ onMounted(() => {
               <input
                 v-model="form.previewUrl"
                 class="rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
-                placeholder="Ссылка на макет, прототип или демо (необязательно)"
+                placeholder="Ссылка на макет, прототип или готовое решение"
                 type="url"
               />
               <button
@@ -186,8 +185,7 @@ onMounted(() => {
               class="mt-5 inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
               to="/level-roadmap"
             >
-              Открыть Roadmap
-              <ArrowRight :size="18" />
+              Открыть дорогу к славе
             </RouterLink>
           </section>
 
@@ -199,7 +197,7 @@ onMounted(() => {
               <BadgeCheck class="text-moss" :size="24" /> Ваша работа
             </h2>
             <p class="mt-3 text-sm font-semibold leading-6 text-ink/70">
-              {{ contest.mySubmission.pitch }}
+              {{ formatDisplayText(contest.mySubmission.pitch) }}
             </p>
             <p class="mt-3 text-sm font-black text-bolt">
               {{ formatSystemLabel(contest.mySubmission.status) }} ·
@@ -228,7 +226,9 @@ onMounted(() => {
                     >
                       {{ submission.performerName }}
                     </RouterLink>
-                    <p class="mt-2 text-sm leading-6 text-ink/68">{{ submission.pitch }}</p>
+                    <p class="mt-2 text-sm leading-6 text-ink/68">
+                      {{ formatDisplayText(submission.pitch) }}
+                    </p>
                     <a
                       v-if="submission.previewUrl"
                       class="mt-3 inline-flex items-center gap-2 text-sm font-black text-bolt underline decoration-2 underline-offset-4"
@@ -274,7 +274,8 @@ onMounted(() => {
               {{ formatAmount(contest.prizeAmount) }}
             </p>
             <p class="mt-4 text-sm font-semibold leading-6 text-paper/68">
-              Деньги моковые: для диплома это демонстрация логики конкурса без реальных платежей.
+              Приз фиксируется в условиях конкурса. Заказчик выбирает победителя после просмотра
+              работ участников.
             </p>
           </section>
 
@@ -284,6 +285,12 @@ onMounted(() => {
               LVL {{ contest.requiredLevelSortOrder }} · {{ contest.requiredLevelTitle }}
             </h2>
             <p class="mt-3 text-sm font-semibold leading-6 text-ink/65">{{ gateText }}</p>
+            <p
+              class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold leading-5 text-ink/62"
+            >
+              Уровень здесь работает как фильтр доверия: меньше случайных работ, больше шансов
+              получить сильные решения.
+            </p>
           </section>
 
           <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
@@ -304,7 +311,6 @@ onMounted(() => {
                   :to="`/customers/${contest.customerId}`"
                 >
                   {{ contest.customerName }}
-                  <ArrowRight :size="18" />
                 </RouterLink>
               </div>
             </div>

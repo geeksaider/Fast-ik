@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import AdminPage from '../pages/AdminPage.vue';
 import AnalyticsPage from '../pages/AnalyticsPage.vue';
+import ApplicationsPage from '../pages/ApplicationsPage.vue';
 import ContestDetailPage from '../pages/ContestDetailPage.vue';
 import ContestsPage from '../pages/ContestsPage.vue';
 import CustomerPublicPage from '../pages/CustomerPublicPage.vue';
@@ -21,10 +22,18 @@ import OnboardingPage from '../pages/OnboardingPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
 import OrdersPage from '../pages/OrdersPage.vue';
 import PerformerPublicPage from '../pages/PerformerPublicPage.vue';
+import PerformersPage from '../pages/PerformersPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
+  scrollBehavior(to, from, savedPosition) {
+    if (to.path === from.path) {
+      return false;
+    }
+
+    return savedPosition ?? { left: 0, top: 0 };
+  },
   routes: [
     {
       path: '/',
@@ -96,6 +105,17 @@ export const router = createRouter({
       path: '/contests/:id',
       name: 'contests-detail',
       component: ContestDetailPage,
+    },
+    {
+      path: '/applications',
+      name: 'applications',
+      component: ApplicationsPage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/performers',
+      name: 'performers',
+      component: PerformersPage,
     },
     {
       path: '/performers/:id',

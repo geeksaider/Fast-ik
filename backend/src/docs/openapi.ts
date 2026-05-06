@@ -3,7 +3,7 @@ export const openApiSpec = {
   info: {
     title: 'Fastik API',
     version: '0.4.0',
-    description: 'REST API for the Fastik freelance marketplace diploma project.',
+    description: 'REST API for the Fastik freelance marketplace.',
   },
   servers: [
     {
@@ -22,7 +22,7 @@ export const openApiSpec = {
     },
     {
       name: 'Finance',
-      description: 'Mock wallet, escrow and transactions',
+      description: 'Wallet, guarantor and transactions',
     },
     {
       name: 'Marketplace',
@@ -268,7 +268,7 @@ export const openApiSpec = {
     '/admin/disputes/{id}/resolve': {
       post: {
         tags: ['Admin'],
-        summary: 'Resolve dispute through mock escrow',
+        summary: 'Resolve dispute through guarantor hold',
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
@@ -357,7 +357,7 @@ export const openApiSpec = {
     '/finance/top-up': {
       post: {
         tags: ['Finance'],
-        summary: 'Mock top up current user wallet',
+        summary: 'Top up current user wallet',
         security: [{ bearerAuth: [] }],
         responses: {
           '200': { description: 'Updated wallet and transactions' },
@@ -707,7 +707,7 @@ export const openApiSpec = {
     '/conversations/{id}/messages': {
       post: {
         tags: ['Communication'],
-        summary: 'Send text message and optional demo attachments to a conversation',
+        summary: 'Send text message and optional attachments to a conversation',
         security: [{ bearerAuth: [] }],
         parameters: [
           { name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } },
@@ -728,7 +728,7 @@ export const openApiSpec = {
                       required: ['fileName', 'fileUrl', 'sizeBytes'],
                       properties: {
                         fileName: { type: 'string', maxLength: 180 },
-                        fileUrl: { type: 'string', description: 'Data URL or demo file URL' },
+                        fileUrl: { type: 'string', description: 'Data URL or file URL' },
                         mimeType: { type: 'string', nullable: true },
                         sizeBytes: { type: 'integer', maximum: 524288 },
                       },

@@ -32,6 +32,11 @@ const conversation = computed(() => communication.currentConversation);
 const maxAttachmentSize = 524_288;
 const maxAttachments = 3;
 
+const scrollToBottom = async (behavior: ScrollBehavior = 'smooth') => {
+  await nextTick();
+  messagesEnd.value?.scrollIntoView({ block: 'end', behavior });
+};
+
 const load = async () => {
   if (!auth.accessToken) {
     await router.push('/login');
@@ -39,8 +44,7 @@ const load = async () => {
   }
 
   await communication.loadConversation(auth.accessToken, conversationId.value);
-  await nextTick();
-  messagesEnd.value?.scrollIntoView({ block: 'end' });
+  await scrollToBottom('auto');
 };
 
 const formatFileSize = (bytes: number) => {
@@ -77,7 +81,7 @@ const addFiles = async (event: Event) => {
 
   for (const file of files) {
     if (file.size > maxAttachmentSize) {
-      localError.value = `Файл «${file.name}» больше 512 КБ. Для demo-чата держим файлы маленькими.`;
+      localError.value = `Файл «${file.name}» больше 512 КБ. В рабочем чате пока принимаем только небольшие вложения.`;
       input.value = '';
       return;
     }
@@ -112,8 +116,7 @@ const send = async () => {
   );
   form.body = '';
   attachments.value = [];
-  await nextTick();
-  messagesEnd.value?.scrollIntoView({ block: 'end' });
+  await scrollToBottom('smooth');
 };
 
 onMounted(() => {
@@ -138,10 +141,10 @@ onMounted(() => {
         </RouterLink>
         <RouterLink
           v-if="conversation?.orderId"
-          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+          class="inline-flex items-center justify-center gap-2 rounded-full border border-ink bg-ink px-4 py-2 text-sm font-black text-paper transition hover:bg-bolt"
           :to="`/orders/${conversation.orderId}`"
         >
-          <BriefcaseBusiness :size="18" />
+          <BriefcaseBusiness :size="16" />
           Открыть заказ
         </RouterLink>
       </header>
@@ -179,7 +182,7 @@ onMounted(() => {
             <article
               v-for="message in conversation.messages"
               :key="message.id"
-              class="flex"
+              class="flex transition duration-300 ease-out"
               :class="message.senderId === auth.user?.id ? 'justify-end' : 'justify-start'"
             >
               <div
@@ -276,7 +279,7 @@ onMounted(() => {
                 :disabled="communication.isSaving || (!form.body.trim() && !attachments.length)"
               >
                 <Send :size="18" />
-                Отправить
+                {{ communication.isSaving ? 'Отправляем...' : 'Отправить' }}
               </button>
             </div>
           </form>
@@ -286,9 +289,8 @@ onMounted(() => {
           class="mt-4 flex items-start gap-2 rounded-2xl border border-line bg-[#fffaf0] p-4 text-sm font-bold leading-6 text-ink/68"
         >
           <ShieldCheck class="mt-1 shrink-0 text-moss" :size="18" />
-          Файлы хранятся как demo-вложения в сообщениях: до 3 файлов и до 512 КБ каждый. Для диплома
-          этого достаточно, а в production слой можно заменить на S3/VPS-хранилище без изменения
-          сценария чата.
+          Файлы прикрепляются к сообщению: до 3 файлов и до 512 КБ каждый. Этого достаточно для
+          брифов, ссылок и небольших рабочих материалов.
         </p>
       </section>
     </section>

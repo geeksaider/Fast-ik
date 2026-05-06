@@ -2,25 +2,26 @@
 import { computed, onMounted, type Component } from 'vue';
 import { RouterLink } from 'vue-router';
 import {
-  ArrowRight,
   BarChart3,
   Bell,
   BriefcaseBusiness,
   Building2,
   ClipboardList,
-  Gauge,
   Medal,
   MessageCircle,
   Plus,
+  Send,
   Sparkles,
   ShieldCheck,
   Trophy,
   UserRound,
+  UsersRound,
   WalletCards,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import { useLevelsStore } from '../stores/levels';
+import { useMarketplaceStore } from '../stores/marketplace';
 import { useOrdersStore } from '../stores/orders';
 import { useProfileStore } from '../stores/profile';
 import { formatAmount } from '../lib/format';
@@ -28,6 +29,7 @@ import { formatAmount } from '../lib/format';
 const auth = useAuthStore();
 const communication = useCommunicationStore();
 const levels = useLevelsStore();
+const marketplace = useMarketplaceStore();
 const orders = useOrdersStore();
 const profile = useProfileStore();
 
@@ -55,6 +57,8 @@ const roleTitle = computed(() => {
 
   return auth.user ? (map[auth.user.role] ?? 'Пользователь') : 'Пользователь';
 });
+const displayName = computed(() => auth.user?.displayName || auth.user?.email || 'Fastik');
+const firstName = computed(() => displayName.value.split(' ')[0] || 'Fastik');
 
 const heroTitle = computed(() => {
   if (auth.user?.role && managerRoles.has(auth.user.role)) {
@@ -63,6 +67,11 @@ const heroTitle = computed(() => {
 
   return 'Центр Fastik';
 });
+
+const heroGreetingLines = computed(() => ({
+  time: `${greeting.value},`,
+  name: firstName.value,
+}));
 
 const profilePercent = computed(() => profile.summary?.progress.percentage ?? 0);
 const activeOrders = computed(() =>
@@ -77,18 +86,55 @@ const escrowAmount = computed(() =>
 const disputedOrders = computed(() =>
   activeOrders.value.filter((order) => order.status === 'disputed'),
 );
+const jobsReadyForPerformerChoice = computed(() =>
+  marketplace.jobs.filter((job) => job.status === 'published' && job.applicationsCount > 0),
+);
+const greeting = computed(() => {
+  const hour = new Date().getHours();
+
+  if (hour < 6) {
+    return 'Доброй ночи';
+  }
+
+  if (hour < 12) {
+    return 'Доброе утро';
+  }
+
+  if (hour < 18) {
+    return 'Добрый день';
+  }
+
+  return 'Добрый вечер';
+});
+const summaryStats = computed(() => {
+  const unread = communication.unreadMessages + communication.unreadNotifications;
+
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
+    return [
+      { label: 'Активные', value: activeOrders.value.length, text: 'заказы в движении' },
+      { label: 'Споры', value: disputedOrders.value.length, text: 'нужны решения' },
+      { label: 'События', value: unread, text: 'новое за день' },
+    ];
+  }
+
+  return [
+    { label: 'Активные', value: activeOrders.value.length, text: 'заказы в работе' },
+    { label: 'В гаранте', value: formatAmount(escrowAmount.value), text: 'защищено сейчас' },
+    { label: 'События', value: unread, text: 'требуют внимания' },
+  ];
+});
 
 const heroText = computed(() => {
   if (auth.user?.role === 'customer') {
-    return 'Начните с профиля и заказа: дальше Fastik проведет через отклики, выбор исполнителя, гарант, чат и приемку работы.';
+    return 'Профиль, заказы, отклики, гарант и приемка собраны здесь.';
   }
 
   if (auth.user?.role === 'performer') {
-    return 'Главная петля исполнителя: профиль, LVL-roadmap, отклики, заказ в работе, сдача результата и рост XP.';
+    return 'Профиль, путь роста, отклики, рабочие заказы и сдача результата собраны здесь.';
   }
 
   if (auth.user?.role && managerRoles.has(auth.user.role)) {
-    return 'Операционный вход: споры, модерация, пользователи и audit-log теперь собраны в отдельной админке.';
+    return 'Споры, модерация, пользователи и журнал действий собраны здесь.';
   }
 
   return 'Это рабочий центр Fastik: все разделы собраны в одном месте, чтобы не искать их по URL.';
@@ -112,7 +158,7 @@ const primaryAction = computed(() => {
 
 const nextSteps = computed(() => {
   if (auth.user?.role === 'customer') {
-    return [
+    const steps = [
       {
         title: 'Заполнить профиль заказчика',
         text: 'Так будущие заказы выглядят доверительнее.',
@@ -125,13 +171,18 @@ const nextSteps = computed(() => {
         to: '/jobs/new',
         done: orders.orders.length > 0,
       },
-      {
-        title: 'Выбрать исполнителя',
-        text: 'После выбора включится мок-гарант и рабочий чат.',
-        to: '/jobs',
-        done: activeOrders.value.length > 0,
-      },
     ];
+
+    if (jobsReadyForPerformerChoice.value.length > 0) {
+      steps.push({
+        title: 'Выбрать исполнителя',
+        text: 'После выбора включится гарант и рабочий чат.',
+        to: '/applications',
+        done: activeOrders.value.length > 0,
+      });
+    }
+
+    return steps;
   }
 
   if (auth.user?.role === 'performer') {
@@ -144,7 +195,7 @@ const nextSteps = computed(() => {
       },
       {
         title: 'Проверить дорогу к славе',
-        text: 'Roadmap показывает, что именно мешает следующему уровню.',
+        text: 'Путь роста показывает, что именно мешает следующему уровню.',
         to: '/level-roadmap',
         done: Boolean(
           levels.summary?.currentLevel.code && levels.summary.currentLevel.code !== 'newcomer',
@@ -201,6 +252,13 @@ const hubLinks = computed<HubLink[]>(() => {
         tone: 'ember',
       },
       {
+        to: '/applications',
+        title: 'Отклики',
+        text: 'Кандидаты по заказам.',
+        icon: Send,
+        tone: 'bolt',
+      },
+      {
         to: '/jobs',
         title: 'Биржа',
         text: 'Задачи и отклики.',
@@ -236,15 +294,75 @@ const hubLinks = computed<HubLink[]>(() => {
         icon: BarChart3,
         tone: 'light',
       },
-      {
-        to: '/finance',
-        title: 'Финансы',
-        label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
-        text: 'Мок-гарант.',
-        icon: WalletCards,
-        tone: 'moss',
-      },
     ];
+  }
+
+  const customerLinks: HubLink[] = [
+    {
+      to: '/onboarding',
+      title: 'Профиль',
+      label: `${profilePercent.value}%`,
+      text: 'Анкета заказчика и базовая информация.',
+      icon: UserRound,
+      tone: 'light',
+    },
+    {
+      to: '/jobs/new',
+      title: 'Новый заказ',
+      label: 'создать',
+      text: 'Опишите задачу, бюджет и сроки.',
+      icon: Plus,
+      tone: 'ember',
+    },
+    {
+      to: '/orders',
+      title: 'Заказы',
+      label: activeOrders.value.length ? `${activeOrders.value.length} акт.` : undefined,
+      text: 'Работа, приемка и спорные ситуации.',
+      icon: ClipboardList,
+      tone: 'light',
+    },
+    {
+      to: '/applications',
+      title: 'Отклики',
+      text: 'Кандидаты по опубликованным задачам.',
+      icon: Send,
+      tone: 'dark',
+    },
+    {
+      to: '/performers',
+      title: 'Исполнители',
+      text: 'Каталог специалистов и приглашения.',
+      icon: UsersRound,
+      tone: 'bolt',
+    },
+    {
+      to: '/messages',
+      title: 'Чат',
+      label: communication.unreadMessages ? `${communication.unreadMessages} нов.` : undefined,
+      text: 'Диалоги после выбора исполнителя.',
+      icon: MessageCircle,
+      tone: 'light',
+    },
+    {
+      to: '/finance',
+      title: 'Финансы',
+      label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
+      text: 'Баланс, гарант и транзакции.',
+      icon: WalletCards,
+      tone: escrowAmount.value ? 'moss' : 'light',
+    },
+    {
+      to: '/analytics',
+      title: 'Аналитика',
+      text: 'Сводка по заказам, откликам и деньгам.',
+      icon: BarChart3,
+      tone: 'light',
+    },
+  ];
+
+  if (auth.user?.role === 'customer') {
+    return customerLinks;
   }
 
   const links: HubLink[] = [
@@ -252,14 +370,14 @@ const hubLinks = computed<HubLink[]>(() => {
       to: '/onboarding',
       title: 'Профиль',
       label: `${profilePercent.value}%`,
-      text: 'Анкета, навыки, портфолио и базовый onboarding.',
+      text: 'Анкета, навыки, портфолио и базовый профиль.',
       icon: UserRound,
       tone: 'light',
     },
     {
       to: '/jobs',
-      title: 'Биржа',
-      text: 'Список заказов, фильтры, отклики и публикация задач.',
+      title: 'Заказы',
+      text: 'Список задач, фильтры, отклики и публикация задач.',
       icon: BriefcaseBusiness,
       tone: 'dark',
     },
@@ -272,7 +390,7 @@ const hubLinks = computed<HubLink[]>(() => {
     },
     {
       to: '/orders',
-      title: 'Заказы',
+      title: 'Работа',
       label: activeOrders.value.length ? `${activeOrders.value.length} акт.` : undefined,
       text: 'Статусы, сдача результата, приемка, отмена и спор.',
       icon: ClipboardList,
@@ -297,7 +415,7 @@ const hubLinks = computed<HubLink[]>(() => {
       to: '/finance',
       title: 'Финансы',
       label: escrowAmount.value ? formatAmount(escrowAmount.value) : undefined,
-      text: 'Мок-кошелек, пополнение, удержания гаранта и транзакции.',
+      text: 'Баланс, удержания гаранта и транзакции.',
       icon: WalletCards,
       tone: 'moss',
     },
@@ -323,7 +441,7 @@ const hubLinks = computed<HubLink[]>(() => {
   if (auth.user?.role === 'performer') {
     links.splice(2, 0, {
       to: '/level-roadmap',
-      title: 'LVL-roadmap',
+      title: 'Путь роста',
       label: levels.summary?.currentLevel.title ?? 'уровни',
       text: 'XP, требования уровней, история действий и Elite-интервью.',
       icon: Trophy,
@@ -331,7 +449,7 @@ const hubLinks = computed<HubLink[]>(() => {
     });
   }
 
-  if (auth.user?.role === 'customer' || (auth.user?.role && managerRoles.has(auth.user.role))) {
+  if (auth.user?.role && managerRoles.has(auth.user.role)) {
     links.splice(2, 0, {
       to: '/jobs/new',
       title: 'Новый заказ',
@@ -345,19 +463,36 @@ const hubLinks = computed<HubLink[]>(() => {
   return links;
 });
 
-const sideStats = computed(() => {
-  if (auth.user?.role && managerRoles.has(auth.user.role)) {
-    return [
-      { label: 'Споры', value: disputedOrders.value.length },
-      { label: 'Активные', value: activeOrders.value.length },
-    ];
+const unfinishedNextSteps = computed(() => nextSteps.value.filter((step) => !step.done));
+const showNextSteps = computed(() => {
+  if (!unfinishedNextSteps.value.length) {
+    return false;
   }
 
-  return [
-    { label: 'Профиль', value: `${profilePercent.value}%` },
-    { label: 'Заказы', value: activeOrders.value.length },
-  ];
+  return auth.user?.role !== 'performer' || (levels.summary?.currentLevel.sortOrder ?? 1) < 2;
 });
+
+const hubToneClass = (tone: HubLink['tone']) => {
+  const classes: Record<HubLink['tone'], string> = {
+    dark: 'border-ink bg-ink text-paper hover:bg-ink/90',
+    ember: 'border-ink bg-ember text-paper hover:bg-bolt',
+    moss: 'border-ink bg-moss text-paper hover:bg-moss/90',
+    bolt: 'border-bolt/45 bg-bolt/10 text-ink hover:border-bolt hover:bg-bolt/15',
+    light: 'border-line bg-paper text-ink hover:border-ink hover:bg-white',
+  };
+
+  return classes[tone];
+};
+
+const hubIconClass = (tone: HubLink['tone']) =>
+  tone === 'dark' || tone === 'ember' || tone === 'moss'
+    ? 'border-paper/25 bg-paper/15 text-paper'
+    : 'border-line bg-[#fffaf0] text-ink';
+
+const hubMetaClass = (tone: HubLink['tone']) =>
+  tone === 'dark' || tone === 'ember' || tone === 'moss'
+    ? 'border-paper/25 bg-paper/15 text-paper/82'
+    : 'border-line bg-[#fffaf0] text-ink/62';
 
 const loadDashboard = async () => {
   if (!auth.accessToken) {
@@ -369,6 +504,9 @@ const loadDashboard = async () => {
     communication.loadNotifications(auth.accessToken),
     profile.load(auth.accessToken),
     orders.load(auth.accessToken),
+    auth.user?.role === 'customer'
+      ? marketplace.loadJobs({ mine: true }, auth.accessToken)
+      : Promise.resolve(),
     auth.user?.role === 'performer' ? levels.load(auth.accessToken) : Promise.resolve(),
   ]);
 };
@@ -383,76 +521,88 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <section class="grid min-w-0 gap-5 lg:grid-cols-[0.7fr_1.3fr] lg:items-start">
+      <section class="grid min-w-0 gap-5">
         <aside class="min-w-0 rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div class="grid h-14 w-14 place-items-center rounded-2xl bg-paper text-ink">
-              <Gauge :size="28" />
-            </div>
-            <span
-              class="rounded-full border border-paper/30 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
-            >
-              {{ roleTitle }}
-            </span>
-          </div>
-
-          <p class="mt-7 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
-            Центр управления
-          </p>
-          <h1
-            class="mt-3 break-words text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
+          <div
+            class="grid gap-5 lg:grid-cols-[minmax(0,21rem)_minmax(0,21rem)] lg:items-start lg:justify-between"
           >
-            {{ heroTitle }}
-          </h1>
-          <p class="mt-2 text-sm font-black text-paper/48">{{ auth.user?.displayName }}</p>
-          <p class="mt-5 text-sm font-semibold leading-6 text-paper/68">{{ heroText }}</p>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2">
+                <span
+                  class="rounded-full border border-paper/30 px-3 py-1 text-xs font-black uppercase tracking-[0.16em] text-paper/65"
+                >
+                  {{ roleTitle }}
+                </span>
+              </div>
 
-          <RouterLink
-            class="mt-7 inline-flex w-full min-w-0 items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-            :to="primaryAction.to"
-          >
-            <component :is="primaryAction.icon" :size="18" />
-            <span class="truncate">{{ primaryAction.label }}</span>
-          </RouterLink>
-
-          <div class="mt-5 grid grid-cols-2 gap-3">
-            <div
-              v-for="stat in sideStats"
-              :key="stat.label"
-              class="rounded-2xl border border-paper/20 bg-paper/[0.06] p-4"
-            >
-              <p class="text-xs font-black uppercase tracking-[0.16em] text-paper/45">
-                {{ stat.label }}
+              <p class="mt-7 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
+                {{ heroTitle }}
               </p>
-              <p class="mt-1 text-2xl font-black">{{ stat.value }}</p>
+              <h1
+                class="mt-3 text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
+              >
+                <span class="block break-words">{{ heroGreetingLines.time }}</span>
+                <span class="block break-words">{{ heroGreetingLines.name }}</span>
+              </h1>
+              <p class="mt-5 max-w-2xl text-sm font-semibold leading-6 text-paper/68">
+                {{ heroText }}
+              </p>
+            </div>
+
+            <div class="grid gap-3">
+              <div class="grid gap-2">
+                <div
+                  v-for="stat in summaryStats"
+                  :key="stat.label"
+                  class="grid grid-cols-[1fr_auto] items-end gap-3 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4"
+                >
+                  <div>
+                    <p class="text-xs font-black uppercase tracking-[0.16em] text-paper/45">
+                      {{ stat.label }}
+                    </p>
+                    <p class="mt-1 text-xs font-bold text-paper/50">{{ stat.text }}</p>
+                  </div>
+                  <p class="text-2xl font-black">{{ stat.value }}</p>
+                </div>
+              </div>
+              <RouterLink
+                class="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-paper bg-ember px-4 text-sm font-black text-paper transition hover:bg-bolt"
+                :to="primaryAction.to"
+              >
+                <component :is="primaryAction.icon" :size="18" />
+                <span class="truncate">{{ primaryAction.label }}</span>
+              </RouterLink>
             </div>
           </div>
         </aside>
 
         <section class="grid min-w-0 gap-4">
-          <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
+          <article
+            v-if="showNextSteps"
+            class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
+          >
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p class="text-sm font-black uppercase tracking-[0.2em] text-ink/55">
                   Что делать дальше
                 </p>
                 <h2 class="mt-2 text-3xl font-black tracking-[-0.06em] sm:text-4xl">
-                  Сценарий без поиска
+                  Ближайший сценарий
                 </h2>
               </div>
               <span
-                class="inline-flex items-center gap-2 rounded-full border border-ink bg-paper px-4 py-2 text-sm font-black"
+                class="inline-flex h-10 items-center gap-2 rounded-full border border-ink bg-paper px-4 text-sm font-black"
               >
-                <Sparkles class="shrink-0" :size="20" />
+                <Sparkles class="shrink-0" :size="18" />
                 {{ auth.user?.email }}
               </span>
             </div>
 
             <div class="mt-4 grid gap-2">
               <RouterLink
-                v-for="step in nextSteps"
+                v-for="step in unfinishedNextSteps"
                 :key="step.title"
-                class="flex items-center justify-between gap-4 rounded-2xl border border-line bg-paper p-4 transition hover:-translate-y-0.5 hover:border-ink hover:bg-white"
+                class="flex items-center justify-between gap-4 rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
                 :to="step.to"
               >
                 <span class="min-w-0">
@@ -461,10 +611,7 @@ onMounted(() => {
                     {{ step.text }}
                   </span>
                 </span>
-                <span
-                  class="h-3 w-3 shrink-0 rounded-full border"
-                  :class="step.done ? 'border-moss bg-moss' : 'border-ink/25 bg-transparent'"
-                />
+                <span class="h-3 w-3 shrink-0 rounded-full bg-ember" />
               </RouterLink>
             </div>
           </article>
@@ -477,32 +624,32 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="mt-4 grid gap-2 sm:grid-cols-2">
+            <div class="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               <RouterLink
                 v-for="link in hubLinks"
                 :key="link.to"
-                class="group flex items-center gap-3 rounded-2xl border border-line bg-paper p-3 transition hover:-translate-y-0.5 hover:border-ink hover:bg-white"
+                class="group flex items-center gap-3 rounded-2xl border p-3 transition"
+                :class="hubToneClass(link.tone)"
                 :to="link.to"
               >
                 <span
-                  class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border border-line bg-[#fffaf0]"
+                  class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl border"
+                  :class="hubIconClass(link.tone)"
                 >
                   <component :is="link.icon" :size="20" />
                 </span>
                 <span class="min-w-0 flex-1">
                   <span class="block font-black tracking-[-0.03em]">{{ link.title }}</span>
-                  <span class="mt-1 block truncate text-sm font-semibold text-ink/60">
+                  <span class="mt-1 block truncate text-sm font-semibold opacity-65">
                     {{ link.text }}
                   </span>
                 </span>
-                <span class="flex shrink-0 items-center gap-2">
-                  <span
-                    v-if="link.label"
-                    class="max-w-24 truncate rounded-full border border-line bg-[#fffaf0] px-3 py-1 text-xs font-black uppercase tracking-[0.08em] text-ink/62"
-                  >
-                    {{ link.label }}
-                  </span>
-                  <ArrowRight :size="16" class="transition group-hover:translate-x-1" />
+                <span
+                  v-if="link.label"
+                  class="max-w-24 shrink-0 truncate rounded-full border px-3 py-1 text-xs font-black uppercase tracking-[0.08em]"
+                  :class="hubMetaClass(link.tone)"
+                >
+                  {{ link.label }}
                 </span>
               </RouterLink>
             </div>

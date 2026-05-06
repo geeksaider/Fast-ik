@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { onMounted, reactive } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, ArrowRight, LockKeyhole, Mail, Zap } from 'lucide-vue-next';
+import { ArrowLeft, LockKeyhole, Mail, Zap } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 
 const auth = useAuthStore();
@@ -14,9 +14,17 @@ const form = reactive({
 });
 
 const submit = async () => {
-  await auth.login(form);
-  await router.push(String(route.query.redirect ?? '/dashboard'));
+  try {
+    await auth.login(form);
+    await router.push(String(route.query.redirect ?? '/dashboard'));
+  } catch {
+    // Ошибка уже сохранена в auth store и показана в форме.
+  }
 };
+
+onMounted(() => {
+  auth.clearError();
+});
 </script>
 
 <template>
@@ -25,7 +33,7 @@ const submit = async () => {
       class="mx-auto grid w-full max-w-[1044px] gap-5 self-center rounded-[2rem] border border-ink bg-paper/95 p-4 md:min-h-[640px] md:grid-cols-[0.95fr_1.05fr] md:p-6"
     >
       <aside class="flex rounded-[1.5rem] border border-ink bg-ink p-6 text-paper md:p-8">
-        <div class="flex w-full flex-col justify-center">
+        <div class="flex w-full flex-col justify-start">
           <RouterLink
             to="/"
             class="inline-flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em] text-paper/70 transition hover:text-paper"
@@ -43,8 +51,7 @@ const submit = async () => {
             Вход в рабочую зону Fastik.
           </h1>
           <p class="mt-5 max-w-sm text-base font-medium leading-7 text-paper/68">
-            Используй demo-аккаунт или войди после регистрации. Следующий шаг после входа -
-            onboarding профиля и RPG-прогресс.
+            Войдите в аккаунт и продолжайте работу с заказами, откликами, профилем и RPG-прогрессом.
           </p>
         </div>
       </aside>
@@ -102,14 +109,13 @@ const submit = async () => {
               :disabled="auth.isLoading"
             >
               {{ auth.isLoading ? 'Входим...' : 'Войти в Fastik' }}
-              <ArrowRight :size="18" />
             </button>
           </form>
 
           <div
             class="mt-6 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink/70"
           >
-            <p class="font-black text-ink">Demo-аккаунты после `npm run db:seed`:</p>
+            <p class="font-black text-ink">Аккаунты для проверки ролей:</p>
             <p>Заказчик: `customer@fastik.local`</p>
             <p>Исполнитель: `performer@fastik.local`</p>
             <p>Support: `support@fastik.local`</p>

@@ -13,8 +13,10 @@ import {
   ShieldCheck,
   UserRound,
 } from 'lucide-vue-next';
+import PersonAvatar from '../components/PersonAvatar.vue';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
+import { useProfileStore } from '../stores/profile';
 import {
   formatAmount,
   formatDate,
@@ -26,6 +28,7 @@ import {
 
 const auth = useAuthStore();
 const marketplace = useMarketplaceStore();
+const profile = useProfileStore();
 const route = useRoute();
 const router = useRouter();
 
@@ -37,7 +40,13 @@ const applyForm = reactive({
 
 const jobId = computed(() => String(route.params.id));
 const job = computed(() => marketplace.currentJob);
-const canApply = computed(() => Boolean(auth.isAuthenticated && job.value?.canApply));
+const profilePercent = computed(() => profile.summary?.progress.percentage ?? 0);
+const performerCanRespond = computed(
+  () => auth.user?.role !== 'performer' || profilePercent.value >= 80,
+);
+const canApply = computed(() =>
+  Boolean(auth.isAuthenticated && job.value?.canApply && performerCanRespond.value),
+);
 const canManage = computed(() => Boolean(auth.isAuthenticated && job.value?.canManage));
 
 const statusTitle = computed(() => {
@@ -60,7 +69,10 @@ const numberOrNull = (value: number | null) =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
 
 const load = async () => {
-  await marketplace.loadJob(jobId.value, auth.accessToken);
+  await Promise.allSettled([
+    marketplace.loadJob(jobId.value, auth.accessToken),
+    auth.accessToken ? profile.load(auth.accessToken) : Promise.resolve(),
+  ]);
 };
 
 const submitApplication = async () => {
@@ -117,9 +129,9 @@ onMounted(() => {
         </span>
       </div>
 
-      <div v-else-if="job" class="grid gap-5 py-7 lg:grid-cols-[1.28fr_0.72fr]">
-        <section class="space-y-5">
-          <article class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-7">
+      <div v-else-if="job" class="grid gap-5 py-7">
+        <aside class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-7">
             <div
               class="flex flex-wrap items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-ink/55"
             >
@@ -146,8 +158,31 @@ onMounted(() => {
                 #{{ tag }}
               </span>
             </div>
-          </article>
+          </section>
 
+          <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Бюджет</p>
+            <p class="mt-3 text-3xl font-black tracking-[-0.05em]">
+              {{ formatMoney(job.budgetMin, job.budgetMax) }}
+            </p>
+            <div class="mt-6 space-y-3 text-sm font-bold text-paper/70">
+              <RouterLink
+                class="flex items-center gap-2 transition hover:text-paper"
+                :to="`/customers/${job.customerId}`"
+              >
+                <BriefcaseBusiness :size="18" /> Заказчик: {{ job.customerName }}
+              </RouterLink>
+              <p class="flex items-center gap-2">
+                <Clock3 :size="18" /> Срок: {{ formatDate(job.deadlineAt) }}
+              </p>
+              <p class="flex items-center gap-2">
+                <ShieldCheck :size="18" /> Гарант подключится после выбора исполнителя
+              </p>
+            </div>
+          </section>
+        </aside>
+
+        <section class="space-y-5">
           <section
             v-if="job.myInvite && !job.myApplication"
             class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6"
@@ -162,6 +197,23 @@ onMounted(() => {
               {{ job.myInvite.customerName }} · {{ formatDateTime(job.myInvite.createdAt) }}
             </p>
           </section>
+
+          <RouterLink
+            v-if="auth.user?.role === 'performer' && job.canApply && !performerCanRespond"
+            class="block rounded-[1.5rem] border border-ember bg-ember/10 p-5 transition hover:bg-ember/15 sm:p-6"
+            to="/onboarding"
+          >
+            <span class="block text-sm font-black uppercase tracking-[0.2em] text-ember">
+              Отклик пока закрыт
+            </span>
+            <span class="mt-2 block text-3xl font-black tracking-[-0.06em]">
+              Сначала усилите профиль
+            </span>
+            <span class="mt-3 block text-sm font-semibold leading-6 text-ink/68">
+              Заказчики видят исполнителей с заполненными навыками, портфолио и условиями работы.
+              Сейчас профиль заполнен на {{ profilePercent }}%.
+            </span>
+          </RouterLink>
 
           <section
             v-if="canApply"
@@ -235,25 +287,32 @@ onMounted(() => {
                 class="rounded-2xl border border-line bg-paper p-4"
               >
                 <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <RouterLink
-                      class="inline-flex items-center gap-2 font-black underline decoration-2 underline-offset-4 transition hover:text-bolt"
-                      :to="`/performers/${application.performerId}`"
-                    >
-                      {{ application.performerName }}
-                    </RouterLink>
-                    <p class="mt-2 text-sm leading-6 text-ink/68">{{ application.coverLetter }}</p>
-                    <p class="mt-3 text-sm font-black text-bolt">
-                      {{ application.price ? formatAmount(application.price) : 'Цена обсуждается' }}
-                      ·
-                      {{
-                        application.deliveryDays
-                          ? `${application.deliveryDays} дней`
-                          : 'Срок обсуждается'
-                      }}
-                      ·
-                      {{ formatSystemLabel(application.status) }}
-                    </p>
+                  <div class="flex min-w-0 gap-3">
+                    <PersonAvatar :name="application.performerName" tone="paper" size="sm" />
+                    <div class="min-w-0">
+                      <RouterLink
+                        class="inline-flex items-center gap-2 font-black underline decoration-2 underline-offset-4 transition hover:text-bolt"
+                        :to="`/performers/${application.performerId}`"
+                      >
+                        {{ application.performerName }}
+                      </RouterLink>
+                      <p class="mt-2 text-sm leading-6 text-ink/68">
+                        {{ application.coverLetter }}
+                      </p>
+                      <p class="mt-3 text-sm font-black text-bolt">
+                        {{
+                          application.price ? formatAmount(application.price) : 'Цена обсуждается'
+                        }}
+                        ·
+                        {{
+                          application.deliveryDays
+                            ? `${application.deliveryDays} дней`
+                            : 'Срок обсуждается'
+                        }}
+                        ·
+                        {{ formatSystemLabel(application.status) }}
+                      </p>
+                    </div>
                   </div>
                   <button
                     v-if="job.status === 'published'"
@@ -315,27 +374,6 @@ onMounted(() => {
         </section>
 
         <aside class="space-y-4">
-          <section class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Бюджет</p>
-            <p class="mt-3 text-3xl font-black tracking-[-0.05em]">
-              {{ formatMoney(job.budgetMin, job.budgetMax) }}
-            </p>
-            <div class="mt-6 space-y-3 text-sm font-bold text-paper/70">
-              <RouterLink
-                class="flex items-center gap-2 transition hover:text-paper"
-                :to="`/customers/${job.customerId}`"
-              >
-                <BriefcaseBusiness :size="18" /> Заказчик: {{ job.customerName }}
-              </RouterLink>
-              <p class="flex items-center gap-2">
-                <Clock3 :size="18" /> Срок: {{ formatDate(job.deadlineAt) }}
-              </p>
-              <p class="flex items-center gap-2">
-                <ShieldCheck :size="18" /> Гарант будет подключен следующим блоком
-              </p>
-            </div>
-          </section>
-
           <RouterLink
             v-if="!auth.isAuthenticated"
             class="block rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 font-black transition hover:bg-white"

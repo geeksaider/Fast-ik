@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import { ArrowLeft, BriefcaseBusiness, Plus, Save } from 'lucide-vue-next';
+import { ArrowLeft, Plus, Save } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
 
@@ -62,18 +62,11 @@ onMounted(() => {
           <ArrowLeft :size="16" />
           К заказам
         </RouterLink>
-        <div class="mt-6 flex items-start gap-4">
-          <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-paper text-ink">
-            <BriefcaseBusiness :size="28" />
-          </span>
-          <div>
-            <p class="text-xs font-black uppercase tracking-[0.22em] text-paper/55">Новый заказ</p>
-            <h1
-              class="mt-2 max-w-3xl text-[2.35rem] font-black leading-[0.94] tracking-[-0.07em] sm:text-5xl"
-            >
-              Опишите задачу так, чтобы сильный исполнитель понял темп.
-            </h1>
-          </div>
+        <div class="mt-6 max-w-4xl">
+          <p class="text-xs font-black uppercase tracking-[0.22em] text-paper/55">Новый заказ</p>
+          <h1 class="mt-2 text-[2.35rem] font-black leading-[0.94] tracking-[-0.07em] sm:text-5xl">
+            Опишите задачу так, чтобы сильный исполнитель понял темп.
+          </h1>
         </div>
       </header>
 
@@ -162,7 +155,7 @@ onMounted(() => {
         </p>
 
         <button
-          class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-ink bg-ember px-6 py-3 font-black text-paper transition hover:bg-bolt disabled:opacity-60"
+          class="inline-flex h-10 w-full items-center justify-center gap-2 rounded-full border border-ink bg-ember px-4 text-sm font-black text-paper transition hover:bg-bolt disabled:opacity-60"
           type="submit"
           :disabled="marketplace.isSaving"
         >
