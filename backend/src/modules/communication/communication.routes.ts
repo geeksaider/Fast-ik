@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request } from 'express';
 import { HttpError } from '../../http/errors/http-error.js';
 import { requireAuth } from '../../http/middlewares/auth.js';
+import { createRateLimit } from '../../http/middlewares/rate-limit.js';
 import { idParamSchema, sendMessageSchema } from './communication.schemas.js';
 import {
   getConversation,
@@ -13,6 +14,12 @@ import {
 } from './communication.service.js';
 
 export const communicationRouter = Router();
+
+const messageWriteRateLimit = createRateLimit({
+  windowMs: 60_000,
+  maxRequests: 20,
+  message: 'Слишком много сообщений. Попробуйте позже.',
+});
 
 const getUser = (request: Request) => {
   if (!request.user) {
@@ -42,7 +49,7 @@ communicationRouter.get('/conversations/:id', async (request, response, next) =>
   }
 });
 
-communicationRouter.post('/conversations/:id/messages', async (request, response, next) => {
+communicationRouter.post('/conversations/:id/messages', messageWriteRateLimit, async (request, response, next) => {
   try {
     const params = idParamSchema.parse(request.params);
     const input = sendMessageSchema.parse(request.body);

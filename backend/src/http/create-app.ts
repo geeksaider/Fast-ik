@@ -27,7 +27,7 @@ export const createApp = () => {
   app.set('trust proxy', 1);
   app.use(helmet());
   app.use(cors({ origin: env.corsOrigin, credentials: true }));
-  app.use(express.json({ limit: '5mb' }));
+  app.use(express.json({ limit: '512kb' }));
   app.use(morgan('dev'));
 
   app.get('/', (_request, response) => {

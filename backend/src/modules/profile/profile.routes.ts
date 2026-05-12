@@ -3,6 +3,7 @@ import type { Request } from 'express';
 import { z } from 'zod';
 import { requireAuth } from '../../http/middlewares/auth.js';
 import { HttpError } from '../../http/errors/http-error.js';
+import { createRateLimit } from '../../http/middlewares/rate-limit.js';
 import {
   addPortfolioItem,
   editPortfolioItem,
@@ -20,6 +21,12 @@ import {
 } from './profile.schemas.js';
 
 export const profileRouter = Router();
+
+const profileWriteRateLimit = createRateLimit({
+  windowMs: 60_000,
+  maxRequests: 12,
+  message: 'Слишком много изменений профиля. Попробуйте позже.',
+});
 
 const idParamSchema = z.object({ id: z.string().uuid() });
 
@@ -41,7 +48,7 @@ profileRouter.get('/me', async (request, response, next) => {
   }
 });
 
-profileRouter.put('/me', async (request, response, next) => {
+profileRouter.put('/me', profileWriteRateLimit, async (request, response, next) => {
   try {
     const input = profileUpdateSchema.parse(request.body);
 
@@ -59,7 +66,7 @@ profileRouter.get('/options/skills', async (_request, response, next) => {
   }
 });
 
-profileRouter.put('/me/skills', async (request, response, next) => {
+profileRouter.put('/me/skills', profileWriteRateLimit, async (request, response, next) => {
   try {
     const input = replaceSkillsSchema.parse(request.body);
 
@@ -69,7 +76,7 @@ profileRouter.put('/me/skills', async (request, response, next) => {
   }
 });
 
-profileRouter.post('/me/portfolio', async (request, response, next) => {
+profileRouter.post('/me/portfolio', profileWriteRateLimit, async (request, response, next) => {
   try {
     const input = portfolioCreateSchema.parse(request.body);
 
@@ -79,7 +86,7 @@ profileRouter.post('/me/portfolio', async (request, response, next) => {
   }
 });
 
-profileRouter.put('/me/portfolio/:id', async (request, response, next) => {
+profileRouter.put('/me/portfolio/:id', profileWriteRateLimit, async (request, response, next) => {
   try {
     const params = idParamSchema.parse(request.params);
     const input = portfolioUpdateSchema.parse(request.body);

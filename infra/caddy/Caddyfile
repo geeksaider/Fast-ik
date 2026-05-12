@@ -10,6 +10,15 @@
     respond "Регистрация временно ограничена. Попробуйте позже." 429
   }
 
+  @blockedImageWrites {
+    method PUT POST
+    path /api/profile/me /api/profile/me/portfolio* /api/conversations/*/messages
+  }
+
+  handle @blockedImageWrites {
+    respond "Загрузка изображений и вложений временно ограничена." 429
+  }
+
   handle /api/* {
     reverse_proxy api:4200
   }
