@@ -1,0 +1,19 @@
+{$FASTIK_DOMAIN} {
+  encode zstd gzip
+
+  handle /api/* {
+    reverse_proxy api:4200
+  }
+
+  handle /docs* {
+    reverse_proxy api:4200
+  }
+
+  handle /openapi.json {
+    reverse_proxy api:4200
+  }
+
+  handle {
+    reverse_proxy web:80
+  }
+}

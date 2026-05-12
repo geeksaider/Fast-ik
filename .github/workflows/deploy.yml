@@ -1,0 +1,101 @@
+name: Deploy Fastik
+
+on:
+  push:
+    branches:
+      - codex/fastik-navigation-shell
+  workflow_dispatch:
+
+env:
+  API_IMAGE: fastik-api
+  WEB_IMAGE: fastik-web
+  DEPLOY_PATH: /opt/fastik
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build API image
+        run: |
+          docker build \
+            -f backend/Dockerfile \
+            -t ${{ env.API_IMAGE }}:${{ github.sha }} \
+            -t ${{ env.API_IMAGE }}:latest \
+            .
+
+      - name: Build web image
+        run: |
+          docker build \
+            -f frontend/Dockerfile \
+            --build-arg VITE_API_URL=/api \
+            -t ${{ env.WEB_IMAGE }}:${{ github.sha }} \
+            -t ${{ env.WEB_IMAGE }}:latest \
+            .
+
+      - name: Prepare deploy files
+        run: |
+          mkdir -p deploy/infra/caddy deploy/images
+          cp docker-compose.prod.yml deploy/docker-compose.prod.yml
+          cp infra/caddy/Caddyfile deploy/infra/caddy/Caddyfile
+          docker save \
+            ${{ env.API_IMAGE }}:${{ github.sha }} \
+            ${{ env.API_IMAGE }}:latest \
+            | gzip > deploy/images/api-image.tar.gz
+          docker save \
+            ${{ env.WEB_IMAGE }}:${{ github.sha }} \
+            ${{ env.WEB_IMAGE }}:latest \
+            | gzip > deploy/images/web-image.tar.gz
+
+      - name: Upload deploy files
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: deploy/docker-compose.prod.yml,deploy/infra/caddy/Caddyfile,deploy/images/api-image.tar.gz,deploy/images/web-image.tar.gz
+          target: ${{ env.DEPLOY_PATH }}
+          strip_components: 1
+          overwrite: true
+
+      - name: Deploy on server
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          API_IMAGE: ${{ env.API_IMAGE }}:${{ github.sha }}
+          WEB_IMAGE: ${{ env.WEB_IMAGE }}:${{ github.sha }}
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          envs: API_IMAGE,WEB_IMAGE
+          script: |
+            set -e
+            cd /opt/fastik
+            test -f .env
+            docker load -i images/api-image.tar.gz
+            docker load -i images/web-image.tar.gz
+            set_env() {
+              key="$1"
+              value="$2"
+              if grep -q "^${key}=" .env; then
+                sed -i "s|^${key}=.*|${key}=${value}|" .env
+              else
+                printf '%s=%s\n' "$key" "$value" >> .env
+              fi
+            }
+            set_env FASTIK_API_IMAGE "$API_IMAGE"
+            set_env FASTIK_WEB_IMAGE "$WEB_IMAGE"
+            grep -q '^FASTIK_DOMAIN=' .env
+            grep -q '^CORS_ORIGIN=' .env
+            grep -q '^POSTGRES_DB=' .env
+            grep -q '^POSTGRES_USER=' .env
+            grep -q '^POSTGRES_PASSWORD=' .env
+            grep -q '^JWT_ACCESS_SECRET=' .env
+            docker compose -f docker-compose.prod.yml run --rm api node backend/dist/db/migrate.js
+            docker compose -f docker-compose.prod.yml up -d
+            docker image prune -f

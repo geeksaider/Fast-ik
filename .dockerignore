@@ -1,6 +1,10 @@
 .git
+.github
 node_modules
 .npm-cache
+*/node_modules
+dist
+*/dist
 frontend/dist
 backend/dist
 shared/dist
@@ -8,6 +12,10 @@ coverage
 .env
 .env.*
 !.env.example
-.DS_Store
+!.env.production.example
+docs/diploma-assets
+docs/diploma-assets.zip
+npm-debug.log*
 *.log
 *.tsbuildinfo
+.DS_Store
