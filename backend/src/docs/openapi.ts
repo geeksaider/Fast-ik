@@ -86,7 +86,7 @@ export const openApiSpec = {
           displayName: { type: 'string' },
           role: {
             type: 'string',
-            enum: ['customer', 'performer', 'support', 'moderator', 'admin', 'super_admin'],
+            enum: ['customer', 'performer', 'admin'],
           },
           status: { type: 'string', enum: ['active', 'blocked'] },
           emailVerified: { type: 'boolean' },
@@ -224,7 +224,7 @@ export const openApiSpec = {
         security: [{ bearerAuth: [] }],
         responses: {
           '200': { description: 'Admin stats, permissions and recent actions' },
-          '403': { description: 'Manager role required' },
+          '403': { description: 'Admin role required' },
         },
       },
     },
@@ -261,7 +261,7 @@ export const openApiSpec = {
         security: [{ bearerAuth: [] }],
         responses: {
           '200': { description: 'Disputed orders' },
-          '403': { description: 'Support/admin role required' },
+          '403': { description: 'Admin role required' },
         },
       },
     },
@@ -275,7 +275,7 @@ export const openApiSpec = {
         ],
         responses: {
           '200': { description: 'Updated dispute queue and resolution result' },
-          '403': { description: 'Support/admin role required' },
+          '403': { description: 'Admin role required' },
           '409': { description: 'Dispute already resolved or invalid escrow state' },
         },
       },
@@ -287,7 +287,7 @@ export const openApiSpec = {
         security: [{ bearerAuth: [] }],
         responses: {
           '200': { description: 'Jobs ordered by moderation priority' },
-          '403': { description: 'Moderator/admin role required' },
+          '403': { description: 'Admin role required' },
         },
       },
     },
@@ -301,7 +301,7 @@ export const openApiSpec = {
         ],
         responses: {
           '200': { description: 'Moderated job' },
-          '403': { description: 'Moderator/admin role required' },
+          '403': { description: 'Admin role required' },
           '404': { description: 'Job not found' },
         },
       },

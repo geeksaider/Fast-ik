@@ -302,8 +302,7 @@ onMounted(() => {
                 Оставить отзыв
               </button>
               <p class="text-sm font-semibold leading-6 text-ink/58">
-                Оценки 4-5 дают исполнителю заметный XP-бонус, а средний рейтинг попадет в путь
-                роста.
+                Высокая оценка помогает исполнителю расти в рейтинге.
               </p>
             </form>
 
@@ -311,13 +310,13 @@ onMounted(() => {
               v-else-if="isCustomer && customerReview"
               class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
             >
-              Отзыв уже оставлен. Он учитывается в рейтинге и RPG-прогрессе исполнителя.
+              Отзыв уже оставлен. Он учитывается в рейтинге исполнителя.
             </p>
             <p
               v-else-if="isPerformer && !order.reviews.length"
               class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
             >
-              Заказ завершен. Когда заказчик оставит отзыв, он появится здесь и попадет в XP-журнал.
+              Заказ завершен. Отзыв заказчика появится в этом блоке.
             </p>
             <p
               v-else-if="!order.reviews.length"

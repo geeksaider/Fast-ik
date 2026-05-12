@@ -1,9 +1,35 @@
 import { Router } from 'express';
+import type { Request } from 'express';
 import { requireAuth } from '../../http/middlewares/auth.js';
-import { login, register } from './auth.service.js';
-import { loginSchema, registerSchema, selfRegisterRoles } from './auth.schemas.js';
+import { HttpError } from '../../http/errors/http-error.js';
+import {
+  changeEmail,
+  changePassword,
+  deleteAccount,
+  getMyNotificationSettings,
+  login,
+  register,
+  saveNotificationSettings,
+} from './auth.service.js';
+import {
+  changeEmailSchema,
+  changePasswordSchema,
+  deleteAccountSchema,
+  loginSchema,
+  notificationSettingsSchema,
+  registerSchema,
+  selfRegisterRoles,
+} from './auth.schemas.js';
 
 export const authRouter = Router();
+
+const getUserId = (request: Request) => {
+  if (!request.user) {
+    throw new HttpError(401, 'Требуется авторизация');
+  }
+
+  return request.user.id;
+};
 
 authRouter.get('/roles', (_request, response) => {
   response.json({
@@ -41,4 +67,52 @@ authRouter.post('/login', async (request, response, next) => {
 
 authRouter.get('/me', requireAuth, (request, response) => {
   response.json({ user: request.user });
+});
+
+authRouter.post('/password', requireAuth, async (request, response, next) => {
+  try {
+    const input = changePasswordSchema.parse(request.body);
+
+    response.json(await changePassword(getUserId(request), input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.post('/email', requireAuth, async (request, response, next) => {
+  try {
+    const input = changeEmailSchema.parse(request.body);
+
+    response.json(await changeEmail(getUserId(request), input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.post('/account/delete', requireAuth, async (request, response, next) => {
+  try {
+    const input = deleteAccountSchema.parse(request.body);
+
+    response.json(await deleteAccount(getUserId(request), input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.get('/notification-settings', requireAuth, async (request, response, next) => {
+  try {
+    response.json(await getMyNotificationSettings(getUserId(request)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.put('/notification-settings', requireAuth, async (request, response, next) => {
+  try {
+    const input = notificationSettingsSchema.parse(request.body);
+
+    response.json(await saveNotificationSettings(getUserId(request), input));
+  } catch (error) {
+    next(error);
+  }
 });

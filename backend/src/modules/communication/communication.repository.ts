@@ -10,7 +10,7 @@ import type {
   NotificationType,
 } from './communication.types.js';
 
-const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
+const managerRoles = new Set(['admin']);
 
 type QueryClient = Pick<PoolClient, 'query'>;
 
@@ -404,6 +404,7 @@ export const listNotifications = async (userId: string) => {
      from notifications
      left join users actor on actor.id = notifications.actor_id
      where notifications.user_id = $1
+       and notifications.type <> 'message_received'
      order by notifications.created_at desc
      limit 120`,
     [userId],
@@ -416,7 +417,7 @@ export const countUnreadNotifications = async (userId: string) => {
   const result = await pool.query<{ count: number }>(
     `select count(*)::int as count
      from notifications
-     where user_id = $1 and read_at is null`,
+     where user_id = $1 and read_at is null and type <> 'message_received'`,
     [userId],
   );
 

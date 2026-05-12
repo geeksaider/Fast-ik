@@ -101,6 +101,40 @@ export const markLoginSuccess = async (userId: string, meta: AuthEventMeta) => {
   }
 };
 
+export const updateUserPassword = async (userId: string, passwordHash: string) => {
+  await pool.query(
+    `update users set password_hash = $2, updated_at = now() where id = $1`,
+    [userId, passwordHash],
+  );
+};
+
+export const updateUserEmail = async (userId: string, email: string) => {
+  await pool.query(
+    `update users set email = $2, email_verified = false, updated_at = now() where id = $1`,
+    [userId, email],
+  );
+};
+
+export const deleteUserById = async (userId: string) => {
+  await pool.query(`delete from users where id = $1`, [userId]);
+};
+
+export const getNotificationSettings = async (userId: string) => {
+  const result = await pool.query<{ notificationSettings: Record<string, unknown> }>(
+    `select notification_settings as "notificationSettings" from users where id = $1`,
+    [userId],
+  );
+
+  return result.rows[0]?.notificationSettings ?? null;
+};
+
+export const setNotificationSettings = async (userId: string, settings: unknown) => {
+  await pool.query(
+    `update users set notification_settings = $2::jsonb, updated_at = now() where id = $1`,
+    [userId, JSON.stringify(settings)],
+  );
+};
+
 export const writeAuthEvent = async (client: PoolClient, input: AuthEventInput) => {
   await client.query(
     `insert into auth_events (user_id, event_type, ip_address, user_agent)

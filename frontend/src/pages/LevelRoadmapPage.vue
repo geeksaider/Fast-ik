@@ -186,7 +186,7 @@ onMounted(() => {
               v-if="summary.progress.interviewRequired"
               class="mt-4 rounded-2xl border border-ember bg-ember/15 p-4 text-sm font-bold leading-6"
             >
-              XP уже достаточно для Elite-зоны. Последний замок: онлайн-интервью с HR Fastik.
+              Баллов уже достаточно для Elite-зоны. Последний шаг: онлайн-интервью с HR Fastik.
             </p>
           </aside>
 

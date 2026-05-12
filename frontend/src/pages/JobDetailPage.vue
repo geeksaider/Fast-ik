@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
   ArrowLeft,
@@ -17,6 +17,7 @@ import PersonAvatar from '../components/PersonAvatar.vue';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
 import { useProfileStore } from '../stores/profile';
+import { ApiError } from '../lib/api';
 import {
   formatAmount,
   formatDate,
@@ -37,6 +38,8 @@ const applyForm = reactive({
   price: null as number | null,
   deliveryDays: null as number | null,
 });
+const applyErrors = reactive<Record<string, string>>({});
+const applyError = ref<string | null>(null);
 
 const jobId = computed(() => String(route.params.id));
 const job = computed(() => marketplace.currentJob);
@@ -68,6 +71,61 @@ const statusTitle = computed(() => {
 const numberOrNull = (value: number | null) =>
   typeof value === 'number' && Number.isFinite(value) ? value : null;
 
+const clearApplyErrors = () => {
+  Object.keys(applyErrors).forEach((key) => {
+    delete applyErrors[key];
+  });
+};
+
+const applyField = (path: string) => {
+  const [field] = path.split('.');
+  return ['coverLetter', 'price', 'deliveryDays'].includes(field) ? field : 'form';
+};
+
+const friendlyApplyError = (field: string, message: string) => {
+  if (field === 'coverLetter') {
+    return 'Напишите отклик от 20 до 2000 символов.';
+  }
+
+  if (field === 'price') {
+    return 'Укажите цену от 0 до 50 000 000 руб.';
+  }
+
+  if (field === 'deliveryDays') {
+    return 'Укажите срок от 0 до 365 дней.';
+  }
+
+  return message;
+};
+
+const applyFieldClass = (field: string) => [
+  'rounded-2xl border bg-paper px-4 py-3 font-semibold text-ink outline-none transition',
+  applyErrors[field] ? 'border-ember ring-2 ring-ember/30' : 'border-paper/30 focus:ring-2 focus:ring-bolt/30',
+];
+
+const setApplyErrors = (error: unknown) => {
+  clearApplyErrors();
+
+  if (error instanceof ApiError && error.issues.length) {
+    error.issues.forEach((issue) => {
+      const field = applyField(issue.path);
+      const message = friendlyApplyError(field, issue.message);
+
+      if (field === 'form') {
+        applyError.value = message;
+        return;
+      }
+
+      applyErrors[field] = message;
+    });
+
+    applyError.value = 'Проверьте выделенные поля.';
+    return;
+  }
+
+  applyError.value = error instanceof Error ? error.message : 'Не удалось отправить отклик';
+};
+
 const load = async () => {
   await Promise.allSettled([
     marketplace.loadJob(jobId.value, auth.accessToken),
@@ -76,20 +134,27 @@ const load = async () => {
 };
 
 const submitApplication = async () => {
+  clearApplyErrors();
+  applyError.value = null;
+
   if (!auth.accessToken) {
     await router.push('/login');
     return;
   }
 
-  await marketplace.apply(auth.accessToken, jobId.value, {
-    coverLetter: applyForm.coverLetter,
-    price: numberOrNull(applyForm.price),
-    deliveryDays: numberOrNull(applyForm.deliveryDays),
-  });
+  try {
+    await marketplace.apply(auth.accessToken, jobId.value, {
+      coverLetter: applyForm.coverLetter,
+      price: numberOrNull(applyForm.price),
+      deliveryDays: numberOrNull(applyForm.deliveryDays),
+    });
 
-  applyForm.coverLetter = '';
-  applyForm.price = null;
-  applyForm.deliveryDays = null;
+    applyForm.coverLetter = '';
+    applyForm.price = null;
+    applyForm.deliveryDays = null;
+  } catch (error) {
+    setApplyErrors(error);
+  }
 };
 
 const selectApplication = async (applicationId: string) => {
@@ -230,30 +295,49 @@ onMounted(() => {
             <form class="mt-6 grid gap-3 md:grid-cols-2" @submit.prevent="submitApplication">
               <textarea
                 v-model="applyForm.coverLetter"
-                class="min-h-36 rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none md:col-span-2"
+                :class="[applyFieldClass('coverLetter'), 'min-h-36 md:col-span-2']"
                 placeholder="Расскажите, почему вы подходите, как начнете и что будет результатом"
                 required
               />
+              <p
+                v-if="applyErrors.coverLetter"
+                class="text-sm font-bold text-ember md:col-span-2"
+              >
+                {{ applyErrors.coverLetter }}
+              </p>
               <input
                 v-model.number="applyForm.price"
-                class="rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
+                :class="applyFieldClass('price')"
                 type="number"
                 min="0"
                 placeholder="Цена"
               />
               <input
                 v-model.number="applyForm.deliveryDays"
-                class="rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
+                :class="applyFieldClass('deliveryDays')"
                 type="number"
                 min="1"
                 placeholder="Срок в днях"
               />
+              <p v-if="applyErrors.price" class="text-sm font-bold text-ember">
+                {{ applyErrors.price }}
+              </p>
+              <p v-if="applyErrors.deliveryDays" class="text-sm font-bold text-ember">
+                {{ applyErrors.deliveryDays }}
+              </p>
+              <p
+                v-if="applyError"
+                class="rounded-2xl border border-ember bg-ember/10 px-4 py-3 text-sm font-bold text-ember md:col-span-2"
+              >
+                {{ applyError }}
+              </p>
               <button
                 class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt md:col-span-2"
                 type="submit"
+                :disabled="marketplace.isSaving"
               >
                 <Send :size="18" />
-                Отправить отклик
+                {{ marketplace.isSaving ? 'Отправляем...' : 'Отправить отклик' }}
               </button>
             </form>
           </section>
@@ -329,7 +413,7 @@ onMounted(() => {
                 v-if="!job.applications.length"
                 class="rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
               >
-                Откликов пока нет. Когда исполнитель откликнется, заказчик увидит его здесь.
+                Откликов пока нет. Новые заявки появятся в этом списке.
               </p>
             </div>
           </section>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import {
   ArrowLeft,
@@ -27,11 +27,6 @@ const contests = useContestsStore();
 const route = useRoute();
 const router = useRouter();
 
-const form = reactive({
-  pitch: '',
-  previewUrl: '',
-});
-
 const contestId = computed(() => String(route.params.id));
 const contest = computed(() => contests.currentContest);
 const gateText = computed(() => {
@@ -52,21 +47,6 @@ const canSelectWinner = computed(() =>
 
 const load = async () => {
   await contests.loadContest(contestId.value, auth.accessToken);
-};
-
-const submit = async () => {
-  if (!auth.accessToken) {
-    await router.push('/login');
-    return;
-  }
-
-  await contests.submit(auth.accessToken, contestId.value, {
-    pitch: form.pitch,
-    previewUrl: form.previewUrl || null,
-  });
-
-  form.pitch = '';
-  form.previewUrl = '';
 };
 
 const selectWinner = async (submissionId: string) => {
@@ -143,34 +123,24 @@ onMounted(() => {
           >
             <div class="flex items-start gap-3">
               <Trophy class="text-ember" :size="28" />
-              <div>
+              <div class="min-w-0">
                 <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">Участие</p>
-                <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">Отправить работу</h2>
+                <h2 class="mt-2 text-3xl font-black tracking-[-0.06em] sm:text-4xl">
+                  Отправить работу
+                </h2>
+                <p class="mt-3 text-sm font-semibold leading-6 text-paper/70">
+                  Откройте отдельную страницу подачи — там удобнее заполнять описание и приложить
+                  ссылку на работу.
+                </p>
               </div>
             </div>
-
-            <form class="mt-6 grid gap-3" @submit.prevent="submit">
-              <textarea
-                v-model="form.pitch"
-                class="min-h-40 rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
-                placeholder="Опишите решение, подход, результат и почему именно оно должно победить"
-                required
-              />
-              <input
-                v-model="form.previewUrl"
-                class="rounded-2xl border border-paper/30 bg-paper px-4 py-3 font-semibold text-ink outline-none"
-                placeholder="Ссылка на макет, прототип или готовое решение"
-                type="url"
-              />
-              <button
-                class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
-                type="submit"
-                :disabled="contests.isSaving"
-              >
-                <Send :size="18" />
-                Отправить на конкурс
-              </button>
-            </form>
+            <RouterLink
+              class="mt-5 inline-flex items-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"
+              :to="`/contests/${contestId}/submit`"
+            >
+              <Send :size="18" />
+              Перейти к подаче
+            </RouterLink>
           </section>
 
           <section
@@ -260,8 +230,7 @@ onMounted(() => {
                 v-if="!contest.submissions.length"
                 class="rounded-2xl border border-line bg-paper p-4 text-sm font-bold text-ink/65"
               >
-                Работ пока нет. Когда исполнители пройдут LVL-допуск и отправят решения, они
-                появятся здесь.
+                Работ пока нет. Новые решения появятся в этом списке.
               </p>
             </div>
           </section>
@@ -288,13 +257,12 @@ onMounted(() => {
             <p
               class="mt-4 rounded-2xl border border-line bg-paper p-4 text-sm font-bold leading-5 text-ink/62"
             >
-              Уровень здесь работает как фильтр доверия: меньше случайных работ, больше шансов
-              получить сильные решения.
+              Уровень помогает отсеять случайные заявки и собрать более сильные решения.
             </p>
           </section>
 
           <section class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-5 sm:p-6">
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Сводка</p>
+            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Детали</p>
             <div class="mt-4 grid gap-3">
               <div class="rounded-2xl border border-line bg-paper p-4">
                 <p class="text-sm font-bold text-ink/55">Работ</p>

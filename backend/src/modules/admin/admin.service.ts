@@ -22,28 +22,12 @@ import {
   updateAdminUserStatus,
 } from './admin.repository.js';
 
-const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
-
 const getPermissions = (user: AuthUser): AdminPermission[] => {
-  if (!managerRoles.has(user.role)) {
+  if (user.role !== 'admin') {
     return [];
   }
 
-  const permissions: AdminPermission[] = ['overview'];
-
-  if (['support', 'admin', 'super_admin'].includes(user.role)) {
-    permissions.push('disputes');
-  }
-
-  if (['moderator', 'admin', 'super_admin'].includes(user.role)) {
-    permissions.push('moderation');
-  }
-
-  if (['admin', 'super_admin'].includes(user.role)) {
-    permissions.push('users', 'interviews', 'auditLog');
-  }
-
-  return permissions;
+  return ['overview', 'disputes', 'moderation', 'users', 'interviews', 'auditLog'];
 };
 
 const ensurePermission = (user: AuthUser, permission: AdminPermission) => {

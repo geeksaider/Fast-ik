@@ -151,7 +151,7 @@ const systemLabels: Record<string, string> = {
   cancelled: 'Отменен',
   disputed: 'Спор',
   published: 'Опубликован',
-  held: 'В гаранте',
+  held: 'На удержании',
   released: 'Выплачено',
   refunded: 'Возврат',
   escrow_hold: 'Резерв гаранта',
@@ -179,12 +179,9 @@ const systemLabels: Record<string, string> = {
   locked: 'Закрыт',
   job: 'Заказ',
   order: 'Рабочий заказ',
-  support: 'Поддержка',
   customer: 'Заказчик',
   performer: 'Исполнитель',
-  moderator: 'Модератор',
   admin: 'Администратор',
-  super_admin: 'Суперадмин',
 };
 
 export const formatSystemLabel = (value: string | null | undefined) => {

@@ -118,10 +118,7 @@ onMounted(() => {
             <p class="font-black text-ink">Аккаунты для проверки ролей:</p>
             <p>Заказчик: `customer@fastik.local`</p>
             <p>Исполнитель: `performer@fastik.local`</p>
-            <p>Support: `support@fastik.local`</p>
-            <p>Moderator: `moderator@fastik.local`</p>
             <p>Админ: `admin@fastik.local`</p>
-            <p>Super admin: `superadmin@fastik.local`</p>
             <p>Пароль для всех: `Fastik123!`</p>
           </div>
 

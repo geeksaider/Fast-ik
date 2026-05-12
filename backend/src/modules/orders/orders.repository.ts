@@ -17,7 +17,7 @@ export class EscrowBalanceError extends Error {
   }
 }
 
-const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
+const managerRoles = new Set(['admin']);
 
 const orderSelect = `
   select

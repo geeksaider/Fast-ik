@@ -2,40 +2,49 @@
 import { computed } from 'vue';
 import { RouterLink, useRoute } from 'vue-router';
 import { Zap } from 'lucide-vue-next';
+import { useAuthStore } from '../stores/auth';
 
 const route = useRoute();
+const auth = useAuthStore();
 const hiddenRoutes = new Set(['login', 'register']);
 const showFooter = computed(() => !hiddenRoutes.has(String(route.name ?? '')));
 
-const columns = [
+const columns = computed(() => [
   {
     title: 'Платформа',
     links: [
-      { to: '/jobs', label: 'Заказы' },
+      { to: '/jobs', label: 'Биржа' },
       { to: '/performers', label: 'Исполнители' },
       { to: '/customers', label: 'Заказчики' },
       { to: '/contests', label: 'Конкурсы' },
     ],
   },
   {
-    title: 'Работа',
+    title: 'О Fastik',
     links: [
-      { to: '/register', label: 'Создать аккаунт' },
-      { to: '/login', label: 'Войти' },
-      { to: '/level-roadmap', label: 'Путь роста' },
-      { to: '/finance', label: 'Финансы' },
+      { to: '/how-it-works', label: 'Как это работает' },
+      { to: '/faq', label: 'Частые вопросы' },
+      { to: '/support', label: 'Поддержка' },
+      { to: '/legal/contacts', label: 'Контакты' },
     ],
   },
   {
-    title: 'Fastik',
+    title: 'Документы',
     links: [
-      { to: '/', label: 'Главная' },
-      { to: '/analytics', label: 'Аналитика' },
-      { to: '/messages', label: 'Диалоги' },
-      { to: '/admin', label: 'Операции' },
+      { to: '/legal/terms', label: 'Условия использования' },
+      { to: '/legal/privacy', label: 'Политика конфиденциальности' },
+      ...(auth.isAuthenticated
+        ? [
+            { to: '/dashboard', label: 'Обзор' },
+            { to: '/settings', label: 'Настройки' },
+          ]
+        : [
+            { to: '/register', label: 'Создать аккаунт' },
+            { to: '/login', label: 'Войти' },
+          ]),
     ],
   },
-];
+]);
 </script>
 
 <template>

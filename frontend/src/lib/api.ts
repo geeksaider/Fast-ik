@@ -1,4 +1,12 @@
 const apiUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4200/api';
+const tokenKey = 'fastik.accessToken';
+const userKey = 'fastik.user';
+
+const clearExpiredSession = () => {
+  localStorage.removeItem(tokenKey);
+  localStorage.removeItem(userKey);
+  window.dispatchEvent(new CustomEvent('fastik:session-expired'));
+};
 
 export type HealthStatus = {
   status: 'ok';
@@ -7,7 +15,7 @@ export type HealthStatus = {
   uptime: number;
 };
 
-export type AuthRole = 'customer' | 'performer' | 'support' | 'moderator' | 'admin' | 'super_admin';
+export type AuthRole = 'customer' | 'performer' | 'admin';
 
 export type AuthUser = {
   id: string;
@@ -248,10 +256,16 @@ export type PortfolioPayload = {
   coverUrl?: string;
 };
 
+export type ApiValidationIssue = {
+  path: string;
+  message: string;
+};
+
 export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly issues: ApiValidationIssue[] = [],
   ) {
     super(message);
   }
@@ -268,7 +282,15 @@ const apiFetch = async <T>(path: string, options: RequestInit = {}) => {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new ApiError(data?.error?.message ?? 'Fastik API error', response.status);
+    if (response.status === 401) {
+      clearExpiredSession();
+    }
+
+    throw new ApiError(
+      data?.error?.message ?? 'Fastik API error',
+      response.status,
+      Array.isArray(data?.error?.issues) ? data.error.issues : [],
+    );
   }
 
   return data as T;
@@ -293,6 +315,57 @@ export const loginUser = async (payload: LoginPayload) =>
 export const getCurrentUser = async (token: string) =>
   apiFetch<{ user: AuthUser }>('/auth/me', {
     headers: authHeaders(token),
+  });
+
+export type NotificationChannelSettings = {
+  messages: boolean;
+  applications: boolean;
+  orders: boolean;
+  marketing?: boolean;
+};
+
+export type NotificationSettings = {
+  email: NotificationChannelSettings;
+  inApp: Omit<NotificationChannelSettings, 'marketing'>;
+};
+
+export const changePassword = async (
+  token: string,
+  payload: { currentPassword: string; newPassword: string },
+) =>
+  apiFetch<{ ok: true }>('/auth/password', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const changeEmail = async (
+  token: string,
+  payload: { newEmail: string; currentPassword: string },
+) =>
+  apiFetch<{ ok: true; email: string }>('/auth/email', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAccount = async (token: string, payload: { currentPassword: string }) =>
+  apiFetch<{ ok: true }>('/auth/account/delete', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+export const getNotificationSettings = async (token: string) =>
+  apiFetch<NotificationSettings>('/auth/notification-settings', {
+    headers: authHeaders(token),
+  });
+
+export const updateNotificationSettings = async (token: string, settings: NotificationSettings) =>
+  apiFetch<NotificationSettings>('/auth/notification-settings', {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(settings),
   });
 
 export const getPublicPerformers = async (params: { search?: string } = {}) => {
@@ -582,6 +655,91 @@ export const invitePerformerToMarketplaceJob = async (
 
 export const selectJobApplication = async (token: string, jobId: string, applicationId: string) =>
   apiFetch<JobDetail>(`/marketplace/jobs/${jobId}/applications/${applicationId}/select`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+
+export type PerformerInvite = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  deadlineAt: string | null;
+  customerId: string;
+  customerName: string;
+  message: string;
+  createdAt: string;
+};
+
+export type MyApplication = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  jobStatus: JobStatus;
+  customerId: string;
+  customerName: string;
+  deadlineAt: string | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  coverLetter: string;
+  price: number | null;
+  deliveryDays: number | null;
+  status: ApplicationStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export const getMyApplications = async (token: string) =>
+  apiFetch<MyApplication[]>('/marketplace/applications/mine', {
+    headers: authHeaders(token),
+  });
+
+export const getMyInvites = async (token: string) =>
+  apiFetch<PerformerInvite[]>('/marketplace/invites/mine', {
+    headers: authHeaders(token),
+  });
+
+export type SentInvite = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  jobStatus: JobStatus;
+  performerId: string;
+  performerName: string;
+  message: string;
+  status: 'pending' | 'accepted' | 'declined';
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type GlobalSearchResult = {
+  query: string;
+  jobs: Array<{ id: string; title: string; budgetMin: number | null; budgetMax: number | null }>;
+  performers: Array<{ id: string; displayName: string; headline: string | null }>;
+  customers: Array<{ id: string; displayName: string; companyName: string | null }>;
+  contests: Array<{ id: string; title: string; prizeAmount: number }>;
+};
+
+export const globalSearch = async (query: string) => {
+  const params = new URLSearchParams({ q: query });
+
+  return apiFetch<GlobalSearchResult>(`/search?${params.toString()}`);
+};
+
+export const getSentInvites = async (token: string) =>
+  apiFetch<SentInvite[]>('/marketplace/invites/sent', {
+    headers: authHeaders(token),
+  });
+
+export const acceptPerformerInvite = async (token: string, id: string) =>
+  apiFetch<JobDetail>(`/marketplace/invites/${id}/accept`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  });
+
+export const declinePerformerInvite = async (token: string, id: string) =>
+  apiFetch<{ ok: true }>(`/marketplace/invites/${id}/decline`, {
     method: 'POST',
     headers: authHeaders(token),
   });

@@ -1,9 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { BriefcaseBusiness, Loader2, MessageCircle, RotateCcw, ShieldCheck } from 'lucide-vue-next';
+import {
+  AlertTriangle,
+  BriefcaseBusiness,
+  CalendarOff,
+  ClipboardCheck,
+  Loader2,
+  MessageCircle,
+  Plus,
+  Sparkles,
+} from 'lucide-vue-next';
+import FilterPanel from '../components/FilterPanel.vue';
+import InlineFilterSelect from '../components/InlineFilterSelect.vue';
+import PageHero from '../components/PageHero.vue';
 import PersonAvatar from '../components/PersonAvatar.vue';
 import { useAuthStore } from '../stores/auth';
+import { useInvitesStore } from '../stores/invites';
 import { useOrdersStore } from '../stores/orders';
 import {
   formatAmount,
@@ -17,6 +30,7 @@ import type { OrderListItem } from '../lib/api';
 
 const auth = useAuthStore();
 const orders = useOrdersStore();
+const invites = useInvitesStore();
 const route = useRoute();
 const router = useRouter();
 const page = ref(1);
@@ -28,9 +42,6 @@ const statusOptions = ['all', 'in_progress', 'submitted', 'completed', 'cancelle
 const deadlineOptions = ['all', 'urgent', 'danger', 'warning', 'without'];
 const sortOptions = ['newest', 'deadline', 'oldest', 'amount'];
 
-const activeOrders = computed(() =>
-  orders.orders.filter((order) => ['in_progress', 'submitted', 'disputed'].includes(order.status)),
-);
 const urgentOrders = computed(() =>
   orders.orders.filter((order) => {
     const tone = getDeadlineSignal(order.deadlineAt).tone;
@@ -49,6 +60,7 @@ const focusCards = computed(() => [
     deadline: 'urgent',
     sort: 'deadline',
     tone: 'text-ember',
+    icon: AlertTriangle,
   },
   {
     title: 'Приемка',
@@ -58,6 +70,7 @@ const focusCards = computed(() => [
     deadline: 'all',
     sort: 'newest',
     tone: 'text-bolt',
+    icon: ClipboardCheck,
   },
   {
     title: 'Без срока',
@@ -67,6 +80,7 @@ const focusCards = computed(() => [
     deadline: 'without',
     sort: 'newest',
     tone: 'text-ink',
+    icon: CalendarOff,
   },
 ]);
 const filteredOrders = computed(() => {
@@ -101,30 +115,30 @@ const hasMoreOrders = computed(() => visibleOrders.value.length < filteredOrders
 const pageCopy = computed(() => {
   if (auth.user?.role === 'performer') {
     return {
-      eyebrow: 'Моя работа',
-      title: 'Заказы, где вы исполнитель.',
-      text: 'Здесь только рабочие заказы исполнителя: сдача результата, чат, дедлайны и сумма в гаранте.',
+      eyebrow: 'Заказы',
+      title: 'Ваши заказы в работе.',
+      text: 'Тут находятся заказы, где вы исполнитель.',
       empty: 'Рабочих заказов пока нет',
-      emptyText: 'Откликнитесь на задачу и дождитесь выбора заказчика, чтобы заказ появился здесь.',
+      emptyText: 'Откликнитесь на задачу и дождитесь выбора заказчика.',
     };
   }
 
   if (auth.user?.role === 'customer') {
     return {
       eyebrow: 'Мои заказы',
-      title: 'Работы, которые вы заказали.',
-      text: 'Здесь только ваши рабочие заказы: приемка результата, чат с исполнителем, дедлайны и гарант.',
+      title: 'Ваши заказы в работе.',
+      text: 'Тут находятся заказы, где вы выбрали исполнителя.',
       empty: 'Заказов в работе пока нет',
-      emptyText: 'Выберите исполнителя на странице заказа, и рабочий заказ появится здесь.',
+      emptyText: 'Выберите исполнителя на странице заказа.',
     };
   }
 
   return {
-    eyebrow: 'Заказы в работе',
-    title: 'Рабочие заказы платформы.',
-    text: 'Операционная лента заказов: статусы, дедлайны, чат и состояние гаранта.',
+    eyebrow: 'Заказы',
+    title: 'Заказы в работе.',
+    text: 'Тут находятся активные заказы.',
     empty: 'Заказов в работе пока нет',
-    emptyText: 'Когда стороны начнут работу, заказы появятся здесь.',
+    emptyText: 'Заказы появятся после старта работы.',
   };
 });
 
@@ -134,7 +148,13 @@ const load = async () => {
     return;
   }
 
-  await orders.load(auth.accessToken);
+  const tasks: Promise<unknown>[] = [orders.load(auth.accessToken)];
+
+  if (auth.user?.role === 'performer') {
+    tasks.push(invites.load(auth.accessToken));
+  }
+
+  await Promise.allSettled(tasks);
   page.value = 1;
 };
 
@@ -248,6 +268,11 @@ const applyFocusCard = (card: (typeof focusCards.value)[number]) => {
   page.value = 1;
 };
 
+const isFocusCardActive = (card: (typeof focusCards.value)[number]) =>
+  statusFilter.value === card.status &&
+  deadlineFilter.value === card.deadline &&
+  sortMode.value === card.sort;
+
 const resetFilters = () => {
   statusFilter.value = 'all';
   deadlineFilter.value = 'all';
@@ -322,131 +347,102 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
-      <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">
-            {{ pageCopy.eyebrow }}
-          </p>
-          <h1
-            class="mt-3 max-w-xl text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-          >
-            {{ pageCopy.title }}
-          </h1>
-          <p class="mt-4 max-w-xl text-sm font-semibold leading-6 text-paper/68">
-            {{ pageCopy.text }}
-          </p>
-        </aside>
+      <PageHero :eyebrow="pageCopy.eyebrow" :title="pageCopy.title" :text="pageCopy.text">
+        <template #actions>
+          <section class="grid w-full gap-2 lg:max-w-[21rem] lg:justify-self-end">
+            <RouterLink
+              v-if="auth.user?.role === 'customer'"
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border border-ember bg-ember px-4 text-left text-paper transition duration-200 ease-out hover:bg-bolt"
+              to="/jobs/new"
+            >
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <Plus :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                  Создать заказ
+                </span>
+              </span>
+            </RouterLink>
+            <button
+              v-for="card in focusCards"
+              :key="card.title"
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+              :class="
+                isFocusCardActive(card)
+                  ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                  : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+              "
+              type="button"
+              @click="applyFocusCard(card)"
+            >
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <component :is="card.icon" :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                  {{ card.title }}
+                </span>
+              </span>
+              <span
+                class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                :class="isFocusCardActive(card) ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'"
+              >
+                {{ card.value }}
+              </span>
+            </button>
+          </section>
+        </template>
+      </PageHero>
 
-        <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Сводка</p>
-          <div class="mt-4 divide-y divide-line rounded-2xl border border-line bg-paper">
-            <div class="flex items-center justify-between gap-4 p-4">
-              <p class="text-sm font-bold text-ink/55">Активные</p>
-              <p class="text-2xl font-black">{{ activeOrders.length }}</p>
-            </div>
-            <div class="flex items-center justify-between gap-4 p-4">
-              <p class="text-sm font-bold text-ink/55">На проверке</p>
-              <p class="text-2xl font-black">{{ reviewOrders.length }}</p>
-            </div>
-            <div class="flex items-center justify-between gap-4 p-4">
-              <p class="text-sm font-bold text-ink/55">Горящие</p>
-              <p class="text-2xl font-black text-ember">{{ urgentOrders.length }}</p>
-            </div>
-          </div>
-          <div class="mt-4 rounded-2xl border border-line bg-paper p-4">
-            <p class="flex items-center gap-2 font-black">
-              <ShieldCheck :size="20" class="text-moss" /> Гарант включен
-            </p>
-            <p class="mt-2 text-sm font-semibold leading-5 text-ink/62">
-              Деньги блокируются только после выбора исполнителя.
-            </p>
-          </div>
-        </article>
-      </section>
+      <RouterLink
+        v-if="auth.user?.role === 'performer' && invites.invites.length"
+        class="mt-4 flex items-center gap-3 rounded-[1.35rem] border border-dashed border-ink/40 bg-paper/60 p-4 transition hover:border-ink hover:bg-paper sm:p-5"
+        to="/applications?tab=invites"
+      >
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-ember text-paper">
+          <Sparkles :size="20" />
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-xs font-black uppercase tracking-[0.2em] text-ink/50"
+            >Приглашения</span
+          >
+          <span class="mt-1 block text-base font-black tracking-[-0.03em]">
+            Заказчики позвали вас · {{ invites.invites.length }}
+          </span>
+          <span class="mt-1 block text-sm font-semibold text-ink/55">
+            Откройте, чтобы принять или отклонить
+          </span>
+        </span>
+      </RouterLink>
 
       <section class="mt-4 space-y-4">
-        <section
-          class="grid gap-3 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:grid-cols-3"
+        <FilterPanel
+          columns="lg:grid-cols-3"
+          @reset="resetFilters"
         >
-          <button
-            v-for="card in focusCards"
-            :key="card.title"
-            class="rounded-2xl border border-line bg-paper p-4 text-left transition hover:border-ink hover:bg-white"
-            type="button"
-            @click="applyFocusCard(card)"
-          >
-            <span class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">
-              {{ card.title }}
-            </span>
-            <span class="mt-2 block text-3xl font-black" :class="card.tone">
-              {{ card.value }}
-            </span>
-            <span class="mt-2 block text-sm font-semibold leading-5 text-ink/62">
-              {{ card.text }}
-            </span>
-          </button>
-        </section>
-
-        <div class="grid gap-3 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 lg:grid-cols-3">
-          <div class="flex items-center justify-between gap-3 lg:col-span-3">
-            <div>
-              <p class="text-xs font-black uppercase tracking-[0.18em] text-ink/45">Фильтры</p>
-              <p class="mt-1 text-xs font-bold text-ink/45">
-                Выбранный вид сохраняется в ссылке страницы.
-              </p>
-            </div>
-            <button
-              class="inline-flex h-10 items-center gap-2 rounded-full border border-line bg-paper px-4 text-sm font-black text-ink/62 transition hover:border-ink hover:text-ink"
-              type="button"
-              @click="resetFilters"
-            >
-              <RotateCcw :size="14" />
-              Сбросить
-            </button>
-          </div>
-          <label class="block">
-            <span class="mb-2 block text-sm font-black">Статус</span>
-            <select
-              v-model="statusFilter"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none focus:border-ink"
-              @change="page = 1"
-            >
-              <option value="all">Все заказы</option>
-              <option value="in_progress">В работе</option>
-              <option value="submitted">На проверке</option>
-              <option value="completed">Завершенные</option>
-              <option value="cancelled">Отмененные</option>
-              <option value="disputed">Споры</option>
-            </select>
-          </label>
-          <label class="block">
-            <span class="mb-2 block text-sm font-black">Дедлайн</span>
-            <select
-              v-model="deadlineFilter"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none focus:border-ink"
-              @change="page = 1"
-            >
-              <option value="all">Любой срок</option>
-              <option value="urgent">Горящие</option>
-              <option value="danger">Просроченные</option>
-              <option value="warning">До 2 дней</option>
-              <option value="without">Без срока</option>
-            </select>
-          </label>
-          <label class="block">
-            <span class="mb-2 block text-sm font-black">Сортировка</span>
-            <select
-              v-model="sortMode"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold outline-none focus:border-ink"
-              @change="page = 1"
-            >
-              <option value="newest">Сначала новые</option>
-              <option value="deadline">По дедлайну</option>
-              <option value="oldest">Сначала старые</option>
-              <option value="amount">По сумме</option>
-            </select>
-          </label>
-        </div>
+          <InlineFilterSelect v-model="statusFilter" @change="page = 1">
+            <option value="all">Все заказы</option>
+            <option value="in_progress">В работе</option>
+            <option value="submitted">На проверке</option>
+            <option value="completed">Завершенные</option>
+            <option value="cancelled">Отмененные</option>
+            <option value="disputed">Споры</option>
+          </InlineFilterSelect>
+          <InlineFilterSelect v-model="deadlineFilter" @change="page = 1">
+            <option value="all">Любой срок</option>
+            <option value="urgent">Горящие</option>
+            <option value="danger">Просроченные</option>
+            <option value="warning">До 2 дней</option>
+            <option value="without">Без срока</option>
+          </InlineFilterSelect>
+          <InlineFilterSelect v-model="sortMode" @change="page = 1">
+            <option value="newest">Сначала новые</option>
+            <option value="deadline">По дедлайну</option>
+            <option value="oldest">Сначала старые</option>
+            <option value="amount">По сумме</option>
+          </InlineFilterSelect>
+        </FilterPanel>
 
         <div v-if="orders.isLoading" class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-6">
           <span class="inline-flex items-center gap-3 font-black"
@@ -486,11 +482,13 @@ onMounted(() => {
               class="flex h-fit flex-row items-center justify-between gap-4 rounded-2xl border border-line bg-paper p-4 lg:flex-col lg:items-start lg:text-left"
             >
               <div>
-                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">В гаранте</p>
+                <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">
+                  На удержании
+                </p>
                 <p class="mt-1 text-xl font-black text-bolt">{{ formatAmount(order.amount) }}</p>
               </div>
               <p class="text-xs font-bold leading-5 text-ink/55">
-                Сумма защищает работу до решения заказчика.
+                Сумма удерживается до завершения заказа.
               </p>
             </div>
           </div>

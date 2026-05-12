@@ -180,6 +180,151 @@ export const listInvitesByJob = async (jobId: string) => {
   return result.rows;
 };
 
+export const listInvitesSentByCustomer = async (customerId: string) => {
+  const result = await pool.query<{
+    id: string;
+    jobId: string;
+    jobTitle: string;
+    jobStatus: string;
+    performerId: string;
+    performerName: string;
+    message: string;
+    status: 'pending' | 'accepted' | 'declined';
+    createdAt: string;
+    updatedAt: string;
+  }>(
+    `select
+       ji.id,
+       ji.job_id as "jobId",
+       j.title as "jobTitle",
+       j.status as "jobStatus",
+       ji.performer_id as "performerId",
+       u.display_name as "performerName",
+       ji.message,
+       ji.status,
+       ji.created_at as "createdAt",
+       ji.updated_at as "updatedAt"
+     from job_invites ji
+     join jobs j on j.id = ji.job_id
+     join users u on u.id = ji.performer_id
+     where ji.customer_id = $1
+     order by ji.created_at desc`,
+    [customerId],
+  );
+
+  return result.rows;
+};
+
+export const listApplicationsByPerformer = async (performerId: string) => {
+  const result = await pool.query<{
+    id: string;
+    jobId: string;
+    jobTitle: string;
+    jobStatus: string;
+    customerId: string;
+    customerName: string;
+    deadlineAt: string | null;
+    budgetMin: number | null;
+    budgetMax: number | null;
+    coverLetter: string;
+    price: number | null;
+    deliveryDays: number | null;
+    status: 'pending' | 'accepted' | 'rejected' | 'withdrawn';
+    createdAt: string;
+    updatedAt: string;
+  }>(
+    `select
+       ja.id,
+       ja.job_id as "jobId",
+       j.title as "jobTitle",
+       j.status as "jobStatus",
+       j.customer_id as "customerId",
+       u.display_name as "customerName",
+       j.deadline_at as "deadlineAt",
+       j.budget_min as "budgetMin",
+       j.budget_max as "budgetMax",
+       ja.cover_letter as "coverLetter",
+       ja.price,
+       ja.delivery_days as "deliveryDays",
+       ja.status,
+       ja.created_at as "createdAt",
+       ja.updated_at as "updatedAt"
+     from job_applications ja
+     join jobs j on j.id = ja.job_id
+     join users u on u.id = j.customer_id
+     where ja.performer_id = $1
+     order by ja.created_at desc`,
+    [performerId],
+  );
+
+  return result.rows;
+};
+
+export const listInvitesForPerformer = async (performerId: string) => {
+  const result = await pool.query<{
+    id: string;
+    jobId: string;
+    jobTitle: string;
+    budgetMin: number | null;
+    budgetMax: number | null;
+    deadlineAt: string | null;
+    customerId: string;
+    customerName: string;
+    message: string;
+    createdAt: string;
+  }>(
+    `select
+       job_invites.id,
+       job_invites.job_id as "jobId",
+       jobs.title as "jobTitle",
+       jobs.budget_min as "budgetMin",
+       jobs.budget_max as "budgetMax",
+       jobs.deadline_at as "deadlineAt",
+       job_invites.customer_id as "customerId",
+       customer.display_name as "customerName",
+       job_invites.message,
+       job_invites.created_at as "createdAt"
+     from job_invites
+     join jobs on jobs.id = job_invites.job_id
+     join users customer on customer.id = job_invites.customer_id
+     where job_invites.performer_id = $1
+       and job_invites.status = 'pending'
+       and jobs.status = 'published'
+     order by job_invites.created_at desc`,
+    [performerId],
+  );
+
+  return result.rows;
+};
+
+export const getInviteById = async (inviteId: string) => {
+  const result = await pool.query<{
+    id: string;
+    jobId: string;
+    customerId: string;
+    performerId: string;
+    message: string;
+    status: 'pending' | 'accepted' | 'declined';
+  }>(
+    `select id, job_id as "jobId", customer_id as "customerId",
+            performer_id as "performerId", message, status
+     from job_invites
+     where id = $1`,
+    [inviteId],
+  );
+
+  return result.rows[0] ?? null;
+};
+
+export const markInviteDeclined = async (inviteId: string) => {
+  await pool.query(
+    `update job_invites
+     set status = 'declined', updated_at = now()
+     where id = $1 and status = 'pending'`,
+    [inviteId],
+  );
+};
+
 export const getPerformerInviteTarget = async (performerId: string) => {
   const result = await pool.query<{ id: string; displayName: string; status: string }>(
     `select users.id, users.display_name as "displayName", users.status

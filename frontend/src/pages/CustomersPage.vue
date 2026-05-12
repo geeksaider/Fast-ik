@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { BriefcaseBusiness, Building2, Loader2, Search } from 'lucide-vue-next';
+import { BriefcaseBusiness, Building2, Loader2, Search, ShieldCheck, Trophy } from 'lucide-vue-next';
+import FilterPanel from '../components/FilterPanel.vue';
+import PageHero from '../components/PageHero.vue';
 import PersonAvatar from '../components/PersonAvatar.vue';
 import { useCustomersStore } from '../stores/customers';
 import { formatAmount, formatMoney } from '../lib/format';
@@ -9,14 +11,69 @@ import { formatAmount, formatMoney } from '../lib/format';
 const customers = useCustomersStore();
 const page = ref(1);
 const pageSize = 8;
+const quickFilter = ref<'all' | 'jobs' | 'contests' | 'held'>('all');
 const filters = reactive({ search: '' });
 
-const visibleCustomers = computed(() => customers.customers.slice(0, page.value * pageSize));
-const hasMoreCustomers = computed(() => visibleCustomers.value.length < customers.customers.length);
+const filteredCustomers = computed(() => {
+  if (quickFilter.value === 'jobs') {
+    return customers.customers.filter((customer) => customer.stats.publishedJobsCount > 0);
+  }
+
+  if (quickFilter.value === 'contests') {
+    return customers.customers.filter((customer) => customer.stats.contestsCount > 0);
+  }
+
+  if (quickFilter.value === 'held') {
+    return customers.customers.filter((customer) => customer.stats.totalEscrowHeld > 0);
+  }
+
+  return customers.customers;
+});
+const visibleCustomers = computed(() => filteredCustomers.value.slice(0, page.value * pageSize));
+const hasMoreCustomers = computed(() => visibleCustomers.value.length < filteredCustomers.value.length);
+const withJobs = computed(() =>
+  customers.customers.filter((customer) => customer.stats.publishedJobsCount > 0),
+);
+const withContests = computed(() =>
+  customers.customers.filter((customer) => customer.stats.contestsCount > 0),
+);
+const withHeldFunds = computed(() =>
+  customers.customers.filter((customer) => customer.stats.totalEscrowHeld > 0),
+);
+const heroCards = computed(() => [
+  {
+    key: 'jobs' as const,
+    title: 'С заказами',
+    value: withJobs.value.length,
+    icon: BriefcaseBusiness,
+  },
+  {
+    key: 'contests' as const,
+    title: 'С конкурсами',
+    value: withContests.value.length,
+    icon: Trophy,
+  },
+  {
+    key: 'held' as const,
+    title: 'С гарантом',
+    value: withHeldFunds.value.length,
+    icon: ShieldCheck,
+  },
+]);
+const applyQuickFilter = (key: typeof quickFilter.value) => {
+  quickFilter.value = quickFilter.value === key ? 'all' : key;
+  page.value = 1;
+};
 
 const load = async () => {
   page.value = 1;
   await customers.loadCustomers({ search: filters.search || undefined });
+};
+
+const resetFilters = () => {
+  filters.search = '';
+  quickFilter.value = 'all';
+  void load();
 };
 
 onMounted(() => {
@@ -29,48 +86,58 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
-      <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">Заказчики</p>
-          <h1
-            class="mt-3 max-w-2xl text-[2.6rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-          >
-            Компании и люди, которые дают работу.
-          </h1>
-          <p class="mt-4 max-w-xl text-sm font-semibold leading-6 text-paper/68">
-            Публичная сторона заказчика: профиль компании, активные задачи, конкурсы и история
-            работы через Fastik. Исполнитель видит не только задачу, но и кто за ней стоит.
-          </p>
-        </aside>
+      <PageHero eyebrow="Заказчики" title="Компании и люди, которые дают работу.">
+        <template #actions>
+          <section class="grid w-full gap-2 lg:max-w-[21rem] lg:justify-self-end">
+            <button
+              v-for="card in heroCards"
+              :key="card.key"
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+              :class="
+                quickFilter === card.key
+                  ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                  : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+              "
+              type="button"
+              @click="applyQuickFilter(card.key)"
+            >
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <component :is="card.icon" :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                  {{ card.title }}
+                </span>
+              </span>
+              <span
+                class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                :class="quickFilter === card.key ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'"
+              >
+                {{ card.value }}
+              </span>
+            </button>
+          </section>
+        </template>
+      </PageHero>
 
-        <form
-          class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:p-5"
-          @submit.prevent="load"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Поиск</p>
-            <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
-              {{ customers.customers.length }}
-            </span>
-          </div>
-          <label class="mt-4 block">
-            <span class="mb-2 flex items-center gap-2 text-sm font-black">
-              <Search :size="16" /> Имя или компания
-            </span>
+      <form class="mt-4" @submit.prevent="load">
+        <FilterPanel title="Поиск" columns="lg:grid-cols-[minmax(0,1fr)_auto]" @reset="resetFilters">
+          <label class="block">
             <input
               v-model="filters.search"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold text-ink outline-none focus:border-ink"
+              class="h-12 w-full rounded-2xl border border-line bg-paper px-4 font-semibold text-ink outline-none placeholder:text-ink/35 focus:border-ink"
               placeholder="Антон, студия, SaaS"
             />
           </label>
           <button
-            class="mt-4 w-full rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
+            class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-ink bg-ink px-5 text-sm font-black text-paper transition hover:bg-bolt lg:w-auto lg:self-center"
             type="submit"
           >
-            Найти заказчика
+            <Search :size="16" />
+            Искать
           </button>
-        </form>
-      </section>
+        </FilterPanel>
+      </form>
 
       <section class="mt-4 space-y-4">
         <div
@@ -123,7 +190,7 @@ onMounted(() => {
               <span
                 class="rounded-full border border-line bg-paper px-3 py-1 text-sm font-black text-moss"
               >
-                {{ formatAmount(customer.stats.totalEscrowHeld) }} в гаранте
+                {{ formatAmount(customer.stats.totalEscrowHeld) }} на удержании
               </span>
             </div>
           </div>
@@ -158,12 +225,14 @@ onMounted(() => {
         </article>
 
         <div
-          v-if="!customers.isLoading && !customers.customers.length"
+          v-if="!customers.isLoading && !visibleCustomers.length"
           class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-8 text-center"
         >
           <Building2 class="mx-auto mb-4 text-ember" :size="36" />
-          <p class="text-xl font-black">Заказчиков пока нет</p>
-          <p class="mt-2 text-sm font-semibold text-ink/65">Попробуйте другой поиск.</p>
+          <p class="text-xl font-black">Заказчиков не найдено</p>
+          <p class="mt-2 text-sm font-semibold text-ink/65">
+            Попробуйте другой поиск или снимите быстрый фильтр.
+          </p>
         </div>
 
         <button

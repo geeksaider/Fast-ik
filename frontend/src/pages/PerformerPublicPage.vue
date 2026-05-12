@@ -11,11 +11,9 @@ import {
   Medal,
   MessageCircle,
   Send,
-  ShieldCheck,
   Sparkles,
   Star,
   Trophy,
-  UserRound,
 } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
@@ -179,38 +177,28 @@ watch(
         </RouterLink>
 
         <section class="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-          <article class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-7">
-            <div class="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div class="grid h-16 w-16 place-items-center rounded-2xl bg-paper text-ink">
-                <UserRound :size="32" />
-              </div>
-              <span
-                class="inline-flex items-center gap-2 rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.14em] text-paper/70"
-              >
-                <ShieldCheck :size="15" />
-                Публичный профиль
-              </span>
-            </div>
-
-            <p class="mt-7 text-xs font-black uppercase tracking-[0.24em] text-paper/50">
-              Исполнитель Fastik
+          <article class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
+            <p class="text-sm font-black uppercase tracking-[0.2em] text-paper/55">
+              Публичный профиль
             </p>
             <h1
-              class="mt-3 text-[2.65rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-6xl"
+              class="mt-3 max-w-2xl text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
             >
               {{ profile.user.displayName }}
             </h1>
-            <p class="mt-4 max-w-2xl text-lg font-black leading-7 text-paper/84">
+            <p class="mt-4 max-w-2xl text-sm font-semibold leading-6 text-paper/78">
               {{ profile.performerProfile?.headline || 'Исполнитель готов к проектной работе' }}
             </p>
-            <p class="mt-4 max-w-2xl text-sm font-semibold leading-6 text-paper/66">
+            <p
+              class="mt-5 max-w-2xl whitespace-pre-line text-sm font-semibold leading-6 text-paper/68"
+            >
               {{
                 profile.profile?.bio ||
                 'Профиль еще заполняется, но базовая статистика и действия на платформе уже видны заказчику.'
               }}
             </p>
 
-            <div class="mt-6 flex flex-wrap gap-2 text-sm font-bold text-paper/72">
+            <div class="mt-5 flex flex-wrap gap-2">
               <span
                 v-if="profile.profile?.city"
                 class="inline-flex items-center gap-2 rounded-full border border-paper/20 px-3 py-1"
@@ -233,7 +221,7 @@ watch(
               </span>
             </div>
 
-            <div class="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div class="mt-5 flex flex-wrap gap-2">
               <a
                 v-if="isCustomer"
                 class="inline-flex items-center justify-center gap-2 rounded-full border border-paper bg-ember px-5 py-3 font-black text-paper transition hover:bg-bolt"

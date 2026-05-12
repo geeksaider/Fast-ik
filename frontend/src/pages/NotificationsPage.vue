@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Bell, CheckCheck, Loader2, Radio } from 'lucide-vue-next';
+import { Bell, CheckCheck, Inbox, Loader2, Radio } from 'lucide-vue-next';
+import PageHero from '../components/PageHero.vue';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import { formatDateTime, formatDisplayText, formatSystemLabel } from '../lib/format';
@@ -12,14 +13,25 @@ const communication = useCommunicationStore();
 const router = useRouter();
 const page = ref(1);
 const pageSize = 10;
+const filterMode = ref<'unread' | 'read'>('unread');
 
 const unread = computed(() => communication.notifications.filter((item) => !item.readAt));
+const readCount = computed(() => communication.notifications.length - unread.value.length);
+const filteredNotifications = computed(() =>
+  filterMode.value === 'unread'
+    ? communication.notifications.filter((item) => !item.readAt)
+    : communication.notifications.filter((item) => item.readAt),
+);
 const visibleNotifications = computed(() =>
-  communication.notifications.slice(0, page.value * pageSize),
+  filteredNotifications.value.slice(0, page.value * pageSize),
 );
 const hasMoreNotifications = computed(
-  () => visibleNotifications.value.length < communication.notifications.length,
+  () => visibleNotifications.value.length < filteredNotifications.value.length,
 );
+const setFilterMode = (mode: typeof filterMode.value) => {
+  filterMode.value = mode;
+  page.value = 1;
+};
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -67,27 +79,81 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[2rem] border border-ink bg-paper/95 p-4 sm:p-6 lg:p-8"
     >
-      <section class="grid gap-5 lg:grid-cols-[0.74fr_1.26fr]">
-        <aside class="rounded-[1.5rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <Bell class="text-moss" :size="34" />
-          <p class="mt-6 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
-            Уведомления
-          </p>
-          <h1 class="mt-3 text-5xl font-black leading-[0.92] tracking-[-0.07em]">
-            Платформа сама подсказывает, что делать дальше.
-          </h1>
-          <div class="mt-7 rounded-2xl border border-paper/20 bg-paper/[0.06] p-4">
-            <p class="font-black">Новых событий: {{ unread.length }}</p>
-          </div>
-          <button
-            class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full border border-paper bg-paper px-5 py-3 font-black text-ink transition hover:bg-moss hover:text-paper"
-            type="button"
-            @click="readAll"
-          >
-            <CheckCheck :size="18" />
-            Прочитать все
-          </button>
-        </aside>
+      <section class="grid gap-5">
+        <PageHero eyebrow="Уведомления" title="Платформа сама подсказывает, что делать дальше.">
+          <template #actions>
+            <section class="grid w-full gap-2 lg:max-w-[21rem] lg:justify-self-end">
+              <button
+                class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+                :class="
+                  filterMode === 'unread'
+                    ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                    : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+                "
+                type="button"
+                @click="setFilterMode('unread')"
+              >
+                <span
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink"
+                >
+                  <Bell :size="20" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-black tracking-[-0.02em]"> Новые </span>
+                </span>
+                <span
+                  class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                  :class="filterMode === 'unread' ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'"
+                >
+                  {{ unread.length }}
+                </span>
+              </button>
+              <button
+                class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+                :class="
+                  filterMode === 'read'
+                    ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                    : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+                "
+                type="button"
+                @click="setFilterMode('read')"
+              >
+                <span
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink"
+                >
+                  <Inbox :size="20" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                    Прочитано
+                  </span>
+                </span>
+                <span
+                  class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                  :class="filterMode === 'read' ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'"
+                >
+                  {{ readCount }}
+                </span>
+              </button>
+              <button
+                class="group flex h-[70px] items-center gap-3 rounded-2xl border border-paper/20 bg-paper/[0.06] px-4 text-left text-paper transition duration-200 ease-out hover:border-paper/45 hover:bg-paper/[0.12]"
+                type="button"
+                @click="readAll"
+              >
+                <span
+                  class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink"
+                >
+                  <CheckCheck :size="20" />
+                </span>
+                <span class="min-w-0 flex-1">
+                  <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                    Прочитать все
+                  </span>
+                </span>
+              </button>
+            </section>
+          </template>
+        </PageHero>
 
         <section class="space-y-3">
           <div
@@ -133,10 +199,10 @@ onMounted(() => {
           </button>
 
           <p
-            v-if="!communication.isLoading && !communication.notifications.length"
+            v-if="!communication.isLoading && !visibleNotifications.length"
             class="rounded-[1.5rem] border border-ink bg-[#fffaf0] p-8 text-center text-lg font-black"
           >
-            Уведомлений пока нет
+            {{ filterMode === 'unread' ? 'Новых уведомлений нет' : 'Прочитанных уведомлений нет' }}
           </p>
 
           <button

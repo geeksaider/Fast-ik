@@ -11,7 +11,7 @@ import type {
   AnalyticsSummary,
 } from './analytics.types.js';
 
-const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
+const managerRoles = new Set(['admin']);
 const moneyFormatter = new Intl.NumberFormat('ru-RU');
 
 const amountLabel = (value: number) => `${moneyFormatter.format(value)} руб.`;
@@ -42,8 +42,11 @@ const buildCustomerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary>
   const data = await getCustomerAnalyticsData(user.id);
   const totalJobs = toNumber(data.jobs?.totalJobs);
   const applicationsReceived = toNumber(data.jobs?.applicationsReceived);
+  const pendingApplications = toNumber(data.incomingApplications?.pendingApplications);
   const sentInvites = toNumber(data.invites?.sentInvites);
   const activeOrders = toNumber(data.orders?.activeOrders);
+  const inProgressOrders = toNumber(data.orders?.inProgressOrders);
+  const submittedOrders = toNumber(data.orders?.submittedOrders);
   const completedOrders = toNumber(data.orders?.completedOrders);
   const disputedOrders = toNumber(data.orders?.disputedOrders);
   const heldAmount = toNumber(data.escrow?.heldAmount);
@@ -55,10 +58,11 @@ const buildCustomerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary>
     subtitle: 'Публикации, отклики, выбор исполнителей и гарант в одной спокойной сводке.',
     generatedAt: new Date().toISOString(),
     metrics: [
-      metric('Заказы', totalJobs, 'создано на платформе', 'dark'),
-      metric('Отклики', applicationsReceived, 'получено от исполнителей', 'bolt'),
-      metric('Приглашения', sentInvites, 'отправлено из профилей', 'ember'),
-      metric('В гаранте', heldAmount, 'удержано сейчас', 'moss', amountLabel(heldAmount)),
+      metric('Откликов ждёт решения', pendingApplications, 'на ваших задачах', 'ember'),
+      metric('На приёмке', submittedOrders, 'исполнитель сдал работу', 'ember'),
+      metric('Споры', disputedOrders, 'требуют вашего решения', 'ember'),
+      metric('В работе', inProgressOrders, 'активные заказы', 'bolt'),
+      metric('На удержании', heldAmount, 'удержано сейчас', 'moss', amountLabel(heldAmount)),
     ],
     pipeline: [
       item('Опубликовано', toNumber(data.jobs?.publishedJobs)),
@@ -91,8 +95,12 @@ const buildPerformerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary
   const data = await getPerformerAnalyticsData(user.id);
   const totalApplications = toNumber(data.applications?.totalApplications);
   const acceptedApplications = toNumber(data.applications?.acceptedApplications);
+  const pendingApplications = toNumber(data.applications?.pendingApplications);
+  const pendingInvites = toNumber(data.invites?.pendingInvites);
   const completedOrders = toNumber(data.orders?.completedOrders);
   const activeOrders = toNumber(data.orders?.activeOrders);
+  const inProgressOrders = toNumber(data.orders?.inProgressOrders);
+  const submittedOrders = toNumber(data.orders?.submittedOrders);
   const earnedAmount = toNumber(data.orders?.earnedAmount);
   const averageRating = Number(data.reviews?.averageRating ?? 0);
   const xp = toNumber(data.progress?.xp);
@@ -103,9 +111,11 @@ const buildPerformerAnalytics = async (user: AuthUser): Promise<AnalyticsSummary
     subtitle: 'Отклики, выбранные заявки, рейтинг, XP и деньги по выполненным заказам.',
     generatedAt: new Date().toISOString(),
     metrics: [
+      metric('Приглашения', pendingInvites, 'прямые от заказчиков', 'ember'),
+      metric('Откликов в ожидании', pendingApplications, 'ждут решения заказчиков', 'bolt'),
+      metric('На приёмке', submittedOrders, 'отправлено заказчику', 'ember'),
+      metric('В работе', inProgressOrders, 'активные заказы', 'bolt'),
       metric('XP', xp, data.progress?.levelTitle ?? 'уровень еще считается', 'dark'),
-      metric('Отклики', totalApplications, 'отправлено на бирже', 'bolt'),
-      metric('Выбрано', acceptedApplications, 'раз заказчики выбрали вас', 'moss'),
       metric(
         'Рейтинг',
         averageRating,
@@ -156,7 +166,7 @@ const buildAdminAnalytics = async (user: AuthUser): Promise<AnalyticsSummary> =>
       metric('Пользователи', toNumber(data.users?.totalUsers), 'всего аккаунтов', 'dark'),
       metric('Заказы', toNumber(data.jobs?.totalJobs), 'опубликованные и рабочие', 'bolt'),
       metric('Споры', disputedOrders, 'требуют внимания', 'ember'),
-      metric('В гаранте', heldAmount, 'удержано платформой', 'moss', amountLabel(heldAmount)),
+      metric('На удержании', heldAmount, 'удержано платформой', 'moss', amountLabel(heldAmount)),
     ],
     pipeline: [
       item('Заказчики', toNumber(data.users?.customers)),
@@ -170,7 +180,10 @@ const buildAdminAnalytics = async (user: AuthUser): Promise<AnalyticsSummary> =>
       item('Отменено', toNumber(data.orders?.cancelledOrders)),
       item('Споры', disputedOrders),
     ],
-    money: [moneyItem('В гаранте', heldAmount), moneyItem('Завершенный оборот', completedAmount)],
+    money: [
+      moneyItem('На удержании', heldAmount),
+      moneyItem('Завершенный оборот', completedAmount),
+    ],
     activity: [
       item('Отклики', toNumber(data.jobs?.totalApplications)),
       item('Приглашения', toNumber(data.jobs?.totalInvites)),

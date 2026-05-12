@@ -25,8 +25,6 @@ import {
 
 export const adminRouter = Router();
 
-const managerRoles = ['support', 'moderator', 'admin', 'super_admin'] as const;
-
 const getUser = (request: Request) => {
   if (!request.user) {
     throw new HttpError(401, 'Требуется авторизация');
@@ -35,7 +33,7 @@ const getUser = (request: Request) => {
   return request.user;
 };
 
-adminRouter.use(requireAuth, requireRoles([...managerRoles]));
+adminRouter.use(requireAuth, requireRoles(['admin']));
 
 adminRouter.get('/overview', async (request, response, next) => {
   try {

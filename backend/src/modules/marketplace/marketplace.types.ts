@@ -55,6 +55,19 @@ export type JobInvite = {
   updatedAt: string;
 };
 
+export type PerformerInvite = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  budgetMin: number | null;
+  budgetMax: number | null;
+  deadlineAt: string | null;
+  customerId: string;
+  customerName: string;
+  message: string;
+  createdAt: string;
+};
+
 export type JobDetail = JobListItem & {
   applications: JobApplication[];
   invites: JobInvite[];

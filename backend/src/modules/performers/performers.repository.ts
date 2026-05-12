@@ -349,6 +349,13 @@ export const listPublicPerformers = async (input: {
          or performer_profiles.headline ilike '%' || $1 || '%'
          or performer_profiles.specialization ilike '%' || $1 || '%'
          or user_profiles.city ilike '%' || $1 || '%'
+         or exists (
+           select 1
+           from user_skills
+           join skills on skills.id = user_skills.skill_id
+           where user_skills.user_id = users.id
+             and (skills.name ilike '%' || $1 || '%' or skills.slug ilike '%' || $1 || '%')
+         )
        )
      order by coalesce(performer_progress.xp, 0) desc,
               coalesce((select avg(rating) from order_reviews where performer_id = users.id), 0) desc,

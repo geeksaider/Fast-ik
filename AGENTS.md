@@ -35,10 +35,7 @@ Core idea:
 - Guest
 - Customer
 - Performer
-- Support
-- Moderator
 - Admin
-- Super admin
 
 ## Preferred Stack
 
@@ -136,7 +133,4 @@ After running `npm run db:seed`, these accounts are available:
 
 - `customer@fastik.local` / `Fastik123!`
 - `performer@fastik.local` / `Fastik123!`
-- `support@fastik.local` / `Fastik123!`
-- `moderator@fastik.local` / `Fastik123!`
 - `admin@fastik.local` / `Fastik123!`
-- `superadmin@fastik.local` / `Fastik123!`

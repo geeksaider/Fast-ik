@@ -5,13 +5,18 @@ import {
   createJob,
   createJobInvite,
   getApplicationById,
+  getInviteById,
   getJobById,
   getPerformerInviteTarget,
   hasApplicationForJob,
   listApplicationsByJob,
+  listApplicationsByPerformer,
   listCategories,
   listInvitesByJob,
+  listInvitesForPerformer,
+  listInvitesSentByCustomer,
   listJobs,
+  markInviteDeclined,
 } from './marketplace.repository.js';
 import {
   EscrowBalanceError,
@@ -27,7 +32,7 @@ import type {
 } from './marketplace.schemas.js';
 import type { JobApplication, JobDetail, JobInvite } from './marketplace.types.js';
 
-const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
+const managerRoles = new Set(['admin']);
 
 const canManageJob = (user: AuthUser | undefined, customerId: string) => {
   if (!user) {
@@ -260,6 +265,80 @@ export const applyToJob = async (user: AuthUser, jobId: string, input: Applicati
   }
 
   return buildJobDetail(jobId, user);
+};
+
+export const getMyApplications = async (user: AuthUser) => {
+  if (user.role !== 'performer') {
+    throw new HttpError(403, 'Доступно только исполнителю');
+  }
+
+  return listApplicationsByPerformer(user.id);
+};
+
+export const getCustomerSentInvites = async (user: AuthUser) => {
+  if (user.role !== 'customer') {
+    throw new HttpError(403, 'Доступно только заказчику');
+  }
+
+  return listInvitesSentByCustomer(user.id);
+};
+
+export const getPerformerInvites = async (user: AuthUser) => {
+  if (user.role !== 'performer') {
+    throw new HttpError(403, 'Приглашения доступны только исполнителям');
+  }
+
+  return listInvitesForPerformer(user.id);
+};
+
+const ensureOwnPendingInvite = async (user: AuthUser, inviteId: string) => {
+  if (user.role !== 'performer') {
+    throw new HttpError(403, 'Действие доступно только исполнителю');
+  }
+
+  const invite = await getInviteById(inviteId);
+
+  if (!invite || invite.performerId !== user.id) {
+    throw new HttpError(404, 'Приглашение не найдено');
+  }
+
+  if (invite.status !== 'pending') {
+    throw new HttpError(409, 'Это приглашение уже обработано');
+  }
+
+  return invite;
+};
+
+export const acceptPerformerInvite = async (user: AuthUser, inviteId: string) => {
+  const invite = await ensureOwnPendingInvite(user, inviteId);
+  const job = await getJobById(invite.jobId);
+
+  if (!job) {
+    throw new HttpError(404, 'Заказ из приглашения недоступен');
+  }
+
+  if (job.status !== 'published') {
+    throw new HttpError(409, 'Заказ уже закрыт или не принимает отклики');
+  }
+
+  const price = job.budgetMax ?? job.budgetMin ?? null;
+  const coverLetter =
+    invite.message.trim().length >= 10
+      ? `Принимаю приглашение. ${invite.message.trim()}`
+      : 'Принимаю приглашение заказчика и готов взяться за задачу.';
+
+  return applyToJob(user, invite.jobId, {
+    coverLetter,
+    price,
+    deliveryDays: null,
+  });
+};
+
+export const declinePerformerInvite = async (user: AuthUser, inviteId: string) => {
+  await ensureOwnPendingInvite(user, inviteId);
+  await markInviteDeclined(inviteId);
+
+  return { ok: true };
 };
 
 export const selectApplication = async (user: AuthUser, jobId: string, applicationId: string) => {

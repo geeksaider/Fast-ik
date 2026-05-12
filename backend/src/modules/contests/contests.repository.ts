@@ -46,7 +46,9 @@ const contestGroupBy = `
     performer_levels.sort_order
 `;
 
-export const listContests = async (query: ContestListQuery & { customerId?: string | null }) => {
+export const listContests = async (
+  query: ContestListQuery & { customerId?: string | null; performerId?: string | null },
+) => {
   const result = await pool.query<ContestListItem>(
     `${contestSelect}
      where contests.status in ('open', 'review', 'completed')
@@ -61,13 +63,25 @@ export const listContests = async (query: ContestListQuery & { customerId?: stri
          )
        )
        and ($3::uuid is null or contests.customer_id = $3)
+       and (
+         $4::uuid is null
+         or exists (
+           select 1 from contest_submissions cs
+           where cs.contest_id = contests.id and cs.performer_id = $4
+         )
+       )
      ${contestGroupBy}
      order by
        case contests.status when 'open' then 1 when 'review' then 2 else 3 end,
        contests.deadline_at asc nulls last,
        contests.created_at desc
      limit 60`,
-    [query.category ?? null, query.search ?? null, query.customerId ?? null],
+    [
+      query.category ?? null,
+      query.search ?? null,
+      query.customerId ?? null,
+      query.performerId ?? null,
+    ],
   );
 
   return result.rows;

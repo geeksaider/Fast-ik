@@ -31,7 +31,7 @@ const auth = useAuthStore();
 const admin = useAdminStore();
 const router = useRouter();
 
-const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
+const managerRoles = new Set(['admin']);
 const activeTab = ref<AdminPermission>('overview');
 const localError = ref<string | null>(null);
 const moderationPage = ref(1);
@@ -58,7 +58,7 @@ type AdminTab = {
 const hasAdminAccess = computed(() => Boolean(auth.user?.role && managerRoles.has(auth.user.role)));
 
 const tabs = computed<AdminTab[]>(() => {
-  const items: AdminTab[] = [{ key: 'overview', label: 'Сводка', icon: Activity }];
+  const items: AdminTab[] = [{ key: 'overview', label: 'Обзор', icon: Activity }];
 
   if (admin.can('disputes')) {
     items.push({ key: 'disputes', label: 'Споры', icon: Scale, count: admin.disputes.length });
@@ -142,7 +142,7 @@ const statCards = computed(() => {
       icon: ClipboardList,
     },
     {
-      title: 'В гаранте',
+      title: 'На удержании',
       value: formatAmount(stats.value?.escrowHeldAmount ?? 0),
       detail: `${stats.value?.activeOrders ?? 0} активных заказов`,
       icon: WalletCards,
@@ -304,7 +304,7 @@ onMounted(() => {
           <ShieldCheck class="mx-auto text-ember" :size="42" />
           <h1 class="mt-5 text-4xl font-black tracking-[-0.06em]">Нет доступа</h1>
           <p class="mt-3 text-sm font-semibold leading-6 text-ink/65">
-            Этот раздел открыт только для support, moderator, admin и super admin.
+            Этот раздел открыт только для администратора.
           </p>
           <RouterLink
             class="mt-6 inline-flex items-center justify-center rounded-full border border-ink bg-ink px-5 py-3 font-black text-paper transition hover:bg-bolt"
@@ -418,7 +418,7 @@ onMounted(() => {
                   <span>
                     <span class="block font-black">Закрыть открытые споры</span>
                     <span class="mt-1 block text-sm font-semibold text-ink/62">
-                      Деньги в гаранте не должны висеть без решения.
+                      Деньги на удержании не должны висеть без решения.
                     </span>
                   </span>
                   <span class="text-2xl font-black">{{ admin.disputes.length }}</span>
@@ -526,7 +526,7 @@ onMounted(() => {
                 </div>
                 <div class="rounded-2xl border border-line bg-paper px-4 py-3 text-right">
                   <p class="text-xl font-black text-bolt">{{ formatAmount(dispute.amount) }}</p>
-                  <p class="mt-1 text-xs font-bold text-ink/55">удержано в гаранте</p>
+                  <p class="mt-1 text-xs font-bold text-ink/55">на удержании</p>
                 </div>
               </div>
 
@@ -729,7 +729,7 @@ onMounted(() => {
                     Финальная проверка доверия
                   </h2>
                   <p class="mt-3 max-w-2xl text-sm font-semibold leading-6 text-paper/68">
-                    Здесь админ фиксирует итог онлайн-интервью. Решение сразу влияет на путь роста
+                    Админ фиксирует итог онлайн-интервью. Решение сразу влияет на путь роста
                     исполнителя, уведомления и журнал действий.
                   </p>
                 </div>

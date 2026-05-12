@@ -16,6 +16,7 @@ import { financeRouter } from '../modules/finance/finance.routes.js';
 import { healthRouter } from '../modules/health/health.routes.js';
 import { levelsRouter } from '../modules/levels/levels.routes.js';
 import { marketplaceRouter } from '../modules/marketplace/marketplace.routes.js';
+import { searchRouter } from '../modules/search/search.routes.js';
 import { ordersRouter } from '../modules/orders/orders.routes.js';
 import { performersRouter } from '../modules/performers/performers.routes.js';
 import { profileRouter } from '../modules/profile/profile.routes.js';
@@ -51,6 +52,7 @@ export const createApp = () => {
   app.use('/api/orders', ordersRouter);
   app.use('/api/performers', performersRouter);
   app.use('/api/profile', profileRouter);
+  app.use('/api/search', searchRouter);
   app.use(errorHandler);
 
   return app;

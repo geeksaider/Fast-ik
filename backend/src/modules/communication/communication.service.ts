@@ -2,11 +2,9 @@ import type { AuthUser } from '../auth/auth.types.js';
 import { HttpError } from '../../http/errors/http-error.js';
 import {
   createMessage,
-  createNotification,
   countUnreadNotifications,
   getConversationDetail,
   hasConversationAccess,
-  listConversationParticipants,
   listConversations,
   listNotifications,
   markAllNotificationsRead,
@@ -15,7 +13,7 @@ import {
 } from './communication.repository.js';
 import type { SendMessageInput } from './communication.schemas.js';
 
-const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
+const managerRoles = new Set(['admin']);
 
 const assertConversationAccess = async (user: AuthUser, conversationId: string) => {
   const hasAccess = await hasConversationAccess(conversationId, user.id, user.role);
@@ -61,27 +59,7 @@ export const sendMessage = async (
     throw new HttpError(500, 'Не удалось отправить сообщение');
   }
 
-  const participants = await listConversationParticipants(conversationId);
   const conversation = await getConversationDetail(conversationId, user.id);
-  const notificationBody =
-    attachmentsCount > 0
-      ? `${user.displayName}: ${body.slice(0, 90)} · файлов: ${attachmentsCount}`
-      : `${user.displayName}: ${body.slice(0, 120)}`;
-
-  await Promise.all(
-    participants
-      .filter((participant) => participant.userId !== user.id)
-      .map((participant) =>
-        createNotification({
-          userId: participant.userId,
-          actorId: user.id,
-          type: 'message_received',
-          title: 'Новое сообщение',
-          body: notificationBody,
-          linkUrl: `/messages/${conversationId}`,
-        }),
-      ),
-  );
 
   return {
     message,

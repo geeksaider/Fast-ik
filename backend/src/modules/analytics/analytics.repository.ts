@@ -3,8 +3,14 @@ import { pool } from '../../db/pool.js';
 const toNumber = (value: number | string | null | undefined) => Number(value ?? 0);
 
 export const getCustomerAnalyticsData = async (userId: string) => {
-  const [jobsResult, ordersResult, escrowResult, invitesResult, transactionsResult] =
-    await Promise.all([
+  const [
+    jobsResult,
+    ordersResult,
+    incomingApplicationsResult,
+    escrowResult,
+    invitesResult,
+    transactionsResult,
+  ] = await Promise.all([
       pool.query<{
         totalJobs: string;
         publishedJobs: string;
@@ -21,6 +27,8 @@ export const getCustomerAnalyticsData = async (userId: string) => {
       pool.query<{
         totalOrders: string;
         activeOrders: string;
+        inProgressOrders: string;
+        submittedOrders: string;
         completedOrders: string;
         disputedOrders: string;
         cancelledOrders: string;
@@ -30,6 +38,8 @@ export const getCustomerAnalyticsData = async (userId: string) => {
         `select
            count(*)::text as "totalOrders",
            count(*) filter (where status in ('in_progress', 'submitted', 'disputed'))::text as "activeOrders",
+           count(*) filter (where status = 'in_progress')::text as "inProgressOrders",
+           count(*) filter (where status = 'submitted')::text as "submittedOrders",
            count(*) filter (where status = 'completed')::text as "completedOrders",
            count(*) filter (where status = 'disputed')::text as "disputedOrders",
            count(*) filter (where status = 'cancelled')::text as "cancelledOrders",
@@ -37,6 +47,13 @@ export const getCustomerAnalyticsData = async (userId: string) => {
            coalesce(sum(amount), 0)::text as "totalAmount"
          from orders
          where customer_id = $1`,
+        [userId],
+      ),
+      pool.query<{ pendingApplications: string }>(
+        `select coalesce(count(ja.*) filter (where ja.status = 'pending'), 0)::text as "pendingApplications"
+         from jobs j
+         left join job_applications ja on ja.job_id = j.id
+         where j.customer_id = $1`,
         [userId],
       ),
       pool.query<{ heldAmount: string }>(
@@ -72,6 +89,7 @@ export const getCustomerAnalyticsData = async (userId: string) => {
   return {
     jobs: jobsResult.rows[0],
     orders: ordersResult.rows[0],
+    incomingApplications: incomingApplicationsResult.rows[0],
     escrow: escrowResult.rows[0],
     invites: invitesResult.rows[0],
     transactions: transactionsResult.rows[0],
@@ -99,6 +117,8 @@ export const getPerformerAnalyticsData = async (userId: string) => {
       pool.query<{
         totalOrders: string;
         activeOrders: string;
+        inProgressOrders: string;
+        submittedOrders: string;
         completedOrders: string;
         disputedOrders: string;
         earnedAmount: string;
@@ -107,6 +127,8 @@ export const getPerformerAnalyticsData = async (userId: string) => {
         `select
            count(*)::text as "totalOrders",
            count(*) filter (where status in ('in_progress', 'submitted', 'disputed'))::text as "activeOrders",
+           count(*) filter (where status = 'in_progress')::text as "inProgressOrders",
+           count(*) filter (where status = 'submitted')::text as "submittedOrders",
            count(*) filter (where status = 'completed')::text as "completedOrders",
            count(*) filter (where status = 'disputed')::text as "disputedOrders",
            coalesce(sum(amount) filter (where status = 'completed'), 0)::text as "earnedAmount",

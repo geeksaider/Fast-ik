@@ -11,6 +11,10 @@ import {
 
 const tokenKey = 'fastik.accessToken';
 const userKey = 'fastik.user';
+export const clearStoredSession = () => {
+  localStorage.removeItem(tokenKey);
+  localStorage.removeItem(userKey);
+};
 
 const readStoredUser = () => {
   const raw = localStorage.getItem(userKey);
@@ -78,6 +82,7 @@ export const useAuthStore = defineStore('auth', {
     },
     async refreshCurrentUser() {
       if (!this.accessToken) {
+        this.user = null;
         return;
       }
 
@@ -92,8 +97,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.accessToken = null;
       this.user = null;
-      localStorage.removeItem(tokenKey);
-      localStorage.removeItem(userKey);
+      clearStoredSession();
     },
   },
 });

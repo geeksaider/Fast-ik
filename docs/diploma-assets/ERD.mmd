@@ -1,0 +1,257 @@
+erDiagram
+  roles ||--o{ users : assigns
+  users ||--|| profiles : has
+  users ||--o| customer_profiles : has
+  users ||--o| performer_profiles : has
+  users ||--|| wallets : owns
+  users ||--o{ transactions : has
+  users ||--o{ notifications : receives
+  users ||--o{ messages : sends
+  users ||--o{ admin_actions : performs
+
+  categories ||--o{ jobs : groups
+  categories ||--o{ skills : groups
+  categories ||--o{ contests : groups
+  users ||--o{ jobs : creates
+  jobs ||--o{ applications : receives
+  users ||--o{ applications : sends
+  jobs ||--o{ job_invites : has
+  users ||--o{ job_invites : sends
+  users ||--o{ job_invites : receives
+
+  users ||--o{ orders : customer
+  users ||--o{ orders : performer
+  jobs ||--o{ orders : creates
+  orders ||--o{ reviews : receives
+  users ||--o{ reviews : writes
+  users ||--o{ reviews : gets
+
+  conversations ||--o{ messages : contains
+  conversations ||--o{ message_attachments : contains
+  messages ||--o{ message_attachments : owns
+
+  performer_levels ||--o{ performer_progress : current_level
+  users ||--o{ performer_progress : progresses
+  users ||--o{ xp_events : earns
+  performer_levels ||--o{ xp_events : references
+  users ||--o{ elite_interviews : candidate
+  users ||--o{ elite_interviews : reviewer
+
+  users ||--o{ user_skills : has
+  skills ||--o{ user_skills : selected
+  users ||--o{ portfolio_items : owns
+
+  performer_levels ||--o{ contests : required_level
+  users ||--o{ contests : creates
+  contests ||--o{ contest_submissions : receives
+  users ||--o{ contest_submissions : sends
+
+  roles {
+    int id PK
+    text code UK
+    text title
+    text description
+  }
+
+  users {
+    uuid id PK
+    text email UK
+    text password_hash
+    text display_name
+    int role_id FK
+    text status
+    boolean email_verified
+    timestamp last_login_at
+  }
+
+  profiles {
+    uuid user_id PK,FK
+    text bio
+    text city
+    text avatar_url
+    text website_url
+    text telegram
+    text preferred_language
+  }
+
+  customer_profiles {
+    uuid user_id PK,FK
+    text company_name
+    text company_site
+    text company_description
+    numeric project_budget_min
+    numeric project_budget_max
+    text moderation_status
+  }
+
+  performer_profiles {
+    uuid user_id PK,FK
+    text headline
+    numeric hourly_rate
+    text availability
+    int experience_years
+    text specialization
+    boolean onboarding_completed
+  }
+
+  categories {
+    uuid id PK
+    text name
+    text slug UK
+    text description
+  }
+
+  jobs {
+    uuid id PK
+    uuid customer_id FK
+    uuid category_id FK
+    text title
+    text description
+    numeric budget_min
+    numeric budget_max
+    timestamp deadline_at
+    text status
+    text moderation_status
+    text[] tags
+  }
+
+  applications {
+    uuid id PK
+    uuid job_id FK
+    uuid performer_id FK
+    text cover_letter
+    numeric price
+    int delivery_days
+    text status
+  }
+
+  orders {
+    uuid id PK
+    uuid job_id FK
+    uuid customer_id FK
+    uuid performer_id FK
+    text title
+    numeric amount
+    text status
+    text escrow_status
+    timestamp deadline_at
+  }
+
+  wallets {
+    uuid user_id PK,FK
+    numeric available_balance
+    numeric held_balance
+  }
+
+  transactions {
+    uuid id PK
+    uuid user_id FK
+    uuid order_id FK
+    numeric amount
+    text direction
+    text type
+    text description
+  }
+
+  conversations {
+    uuid id PK
+    text type
+    uuid job_id
+    uuid order_id
+    text title
+  }
+
+  messages {
+    uuid id PK
+    uuid conversation_id FK
+    uuid sender_id FK
+    text body
+  }
+
+  message_attachments {
+    uuid id PK
+    uuid message_id FK
+    uuid conversation_id FK
+    text file_name
+    text mime_type
+    int file_size
+    text storage_url
+  }
+
+  notifications {
+    uuid id PK
+    uuid user_id FK
+    uuid actor_id FK
+    text type
+    text title
+    text body
+    timestamp read_at
+  }
+
+  reviews {
+    uuid id PK
+    uuid order_id FK
+    uuid reviewer_id FK
+    uuid performer_id FK
+    int rating
+    text comment
+  }
+
+  performer_levels {
+    int id PK
+    text code UK
+    text title
+    int required_xp
+    int sort_order
+    boolean interview_required
+  }
+
+  performer_progress {
+    uuid user_id FK
+    int level_id FK
+    int xp
+    int completed_orders
+    int positive_reviews
+    boolean interview_passed
+  }
+
+  xp_events {
+    uuid id PK
+    uuid user_id FK
+    int level_id FK
+    text event_type
+    int xp_delta
+    text description
+  }
+
+  contests {
+    uuid id PK
+    uuid customer_id FK
+    uuid category_id FK
+    int required_level_id FK
+    text title
+    text brief
+    numeric prize_amount
+    timestamp deadline_at
+    text status
+    text[] tags
+  }
+
+  contest_submissions {
+    uuid id PK
+    uuid contest_id FK
+    uuid performer_id FK
+    text pitch
+    text preview_url
+    text status
+  }
+
+  admin_actions {
+    uuid id PK
+    uuid actor_id FK
+    text target_type
+    uuid target_id
+    text action
+    text note
+    jsonb metadata
+  }

@@ -19,7 +19,7 @@ import type {
 } from './orders.schemas.js';
 import type { OrderDetail } from './orders.types.js';
 
-const managerRoles = new Set(['admin', 'super_admin', 'moderator', 'support']);
+const managerRoles = new Set(['admin']);
 
 const canManage = (user: AuthUser) => managerRoles.has(user.role);
 

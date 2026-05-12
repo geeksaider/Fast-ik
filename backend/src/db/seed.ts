@@ -5,10 +5,7 @@ const roles = [
   ['guest', 'Гость', 'Публичный доступ без авторизации'],
   ['customer', 'Заказчик', 'Создает заказы и выбирает исполнителей'],
   ['performer', 'Исполнитель', 'Откликается на заказы и развивает профиль'],
-  ['support', 'Поддержка', 'Помогает пользователям и участвует в спорах'],
-  ['moderator', 'Модератор', 'Проверяет контент и жалобы'],
-  ['admin', 'Администратор', 'Управляет операционными разделами платформы'],
-  ['super_admin', 'Суперадмин', 'Имеет полный системный доступ'],
+  ['admin', 'Администратор', 'Управляет всеми операционными разделами платформы'],
 ];
 
 const categories = [
@@ -82,10 +79,7 @@ const levels = [
 const demoUsers = [
   ['customer@fastik.local', 'Антон Заказчик', 'customer'],
   ['performer@fastik.local', 'Мария Исполнитель', 'performer'],
-  ['support@fastik.local', 'Fastik Support', 'support'],
-  ['moderator@fastik.local', 'Fastik Moderator', 'moderator'],
   ['admin@fastik.local', 'Fastik Admin', 'admin'],
-  ['superadmin@fastik.local', 'Fastik Super Admin', 'super_admin'],
 ];
 
 const demoJobs = [
@@ -223,6 +217,10 @@ const run = async () => {
 
   const passwordHash = await bcrypt.hash('Fastik123!', 12);
 
+  await pool.query(`delete from users where email = any($1::text[])`, [
+    ['support@fastik.local', 'moderator@fastik.local', 'superadmin@fastik.local'],
+  ]);
+
   for (const user of demoUsers) {
     await pool.query(
       `insert into users (email, display_name, password_hash, role_id, email_verified)
@@ -242,10 +240,7 @@ const run = async () => {
   const demoWallets = [
     ['customer@fastik.local', 750_000],
     ['performer@fastik.local', 80_000],
-    ['support@fastik.local', 0],
-    ['moderator@fastik.local', 0],
     ['admin@fastik.local', 0],
-    ['superadmin@fastik.local', 0],
   ];
 
   for (const wallet of demoWallets) {

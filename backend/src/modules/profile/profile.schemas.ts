@@ -17,6 +17,32 @@ const nullableUrl = z
   .or(z.literal(''))
   .transform((value) => (value ? value : null));
 
+const nullableImageSource = z
+  .string()
+  .trim()
+  .refine(
+    (value) => {
+      if (!value) {
+        return true;
+      }
+
+      if (value.length <= 240) {
+        try {
+          new URL(value);
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      return value.length <= 2_000_000 && /^data:image\/(png|jpe?g|webp);base64,/i.test(value);
+    },
+    'Некорректное изображение',
+  )
+  .optional()
+  .or(z.literal(''))
+  .transform((value) => (value ? value : null));
+
 const nullableNumber = (max: number) =>
   z
     .number()
@@ -30,7 +56,7 @@ const nullableNumber = (max: number) =>
 export const profileUpdateSchema = z.object({
   bio: nullableText(700),
   city: nullableText(80),
-  avatarUrl: nullableUrl,
+  avatarUrl: nullableImageSource,
   websiteUrl: nullableUrl,
   telegram: nullableText(80),
   preferredLanguage: z.enum(['ru', 'en']).optional().default('ru'),

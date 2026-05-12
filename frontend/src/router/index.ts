@@ -1,22 +1,28 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import AdminPage from '../pages/AdminPage.vue';
-import AnalyticsPage from '../pages/AnalyticsPage.vue';
 import ApplicationsPage from '../pages/ApplicationsPage.vue';
 import ContestDetailPage from '../pages/ContestDetailPage.vue';
+import ContestCreatePage from '../pages/ContestCreatePage.vue';
+import ContestSubmitPage from '../pages/ContestSubmitPage.vue';
 import ContestsPage from '../pages/ContestsPage.vue';
 import CustomerPublicPage from '../pages/CustomerPublicPage.vue';
 import CustomersPage from '../pages/CustomersPage.vue';
 import DashboardPage from '../pages/DashboardPage.vue';
+import FaqPage from '../pages/FaqPage.vue';
 import HomePage from '../pages/HomePage.vue';
+import HowItWorksPage from '../pages/HowItWorksPage.vue';
 import JobCreatePage from '../pages/JobCreatePage.vue';
 import JobDetailPage from '../pages/JobDetailPage.vue';
 import JobsPage from '../pages/JobsPage.vue';
 import FinancePage from '../pages/FinancePage.vue';
+import LegalPage from '../pages/LegalPage.vue';
 import LevelRoadmapPage from '../pages/LevelRoadmapPage.vue';
 import LoginPage from '../pages/LoginPage.vue';
 import ConversationPage from '../pages/ConversationPage.vue';
 import MessagesPage from '../pages/MessagesPage.vue';
+import MePage from '../pages/MePage.vue';
+import NotFoundPage from '../pages/NotFoundPage.vue';
 import NotificationsPage from '../pages/NotificationsPage.vue';
 import OnboardingPage from '../pages/OnboardingPage.vue';
 import OrderDetailPage from '../pages/OrderDetailPage.vue';
@@ -24,6 +30,8 @@ import OrdersPage from '../pages/OrdersPage.vue';
 import PerformerPublicPage from '../pages/PerformerPublicPage.vue';
 import PerformersPage from '../pages/PerformersPage.vue';
 import RegisterPage from '../pages/RegisterPage.vue';
+import SearchPage from '../pages/SearchPage.vue';
+import SupportPage from '../pages/SupportPage.vue';
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -64,9 +72,7 @@ export const router = createRouter({
     },
     {
       path: '/analytics',
-      name: 'analytics',
-      component: AnalyticsPage,
-      meta: { requiresAuth: true },
+      redirect: '/dashboard',
     },
     {
       path: '/onboarding',
@@ -102,9 +108,21 @@ export const router = createRouter({
       component: ContestsPage,
     },
     {
+      path: '/contests/new',
+      name: 'contests-new',
+      component: ContestCreatePage,
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/contests/:id',
       name: 'contests-detail',
       component: ContestDetailPage,
+    },
+    {
+      path: '/contests/:id/submit',
+      name: 'contests-submit',
+      component: ContestSubmitPage,
+      meta: { requiresAuth: true },
     },
     {
       path: '/applications',
@@ -168,13 +186,61 @@ export const router = createRouter({
       component: NotificationsPage,
       meta: { requiresAuth: true },
     },
+    {
+      path: '/invites',
+      redirect: '/applications?tab=invites',
+    },
+    {
+      path: '/invites/sent',
+      redirect: '/applications?tab=invites',
+    },
+    {
+      path: '/settings',
+      redirect: '/onboarding',
+    },
+    {
+      path: '/me',
+      name: 'me',
+      component: MePage,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/search',
+      name: 'search',
+      component: SearchPage,
+    },
+    {
+      path: '/how-it-works',
+      name: 'how-it-works',
+      component: HowItWorksPage,
+    },
+    {
+      path: '/faq',
+      name: 'faq',
+      component: FaqPage,
+    },
+    {
+      path: '/support',
+      name: 'support',
+      component: SupportPage,
+    },
+    {
+      path: '/legal/:slug(terms|privacy|contacts)',
+      name: 'legal',
+      component: LegalPage,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: NotFoundPage,
+    },
   ],
 });
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
 
-  if (to.meta.requiresAuth && !auth.isAuthenticated) {
+  if (to.meta.requiresAuth && auth.accessToken) {
     await auth.refreshCurrentUser();
   }
 

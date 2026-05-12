@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { BriefcaseBusiness, Filter, Loader2, Plus, Search } from 'lucide-vue-next';
+import {
+  BriefcaseBusiness,
+  CalendarOff,
+  CircleDollarSign,
+  Loader2,
+  Trophy,
+} from 'lucide-vue-next';
+import FilterPanel from '../components/FilterPanel.vue';
+import InlineFilterSelect from '../components/InlineFilterSelect.vue';
+import PageHero from '../components/PageHero.vue';
 import { useAuthStore } from '../stores/auth';
 import { useMarketplaceStore } from '../stores/marketplace';
 import { useProfileStore } from '../stores/profile';
@@ -12,24 +21,73 @@ const marketplace = useMarketplaceStore();
 const profile = useProfileStore();
 const page = ref(1);
 const pageSize = 6;
+const presetFilter = ref<'all' | 'budget' | 'without'>('all');
 
 const filters = reactive({
   search: '',
   category: '',
+  mine: false,
 });
 
-const canCreateJob = computed(
-  () =>
-    auth.user?.role === 'customer' ||
-    auth.user?.role === 'admin' ||
-    auth.user?.role === 'super_admin',
-);
-const visibleJobs = computed(() => marketplace.jobs.slice(0, page.value * pageSize));
-const hasMoreJobs = computed(() => visibleJobs.value.length < marketplace.jobs.length);
+const filteredJobs = computed(() => {
+  if (presetFilter.value === 'budget') {
+    return marketplace.jobs.filter((job) => job.budgetMin !== null || job.budgetMax !== null);
+  }
+
+  if (presetFilter.value === 'without') {
+    return marketplace.jobs.filter((job) => !job.deadlineAt);
+  }
+
+  return marketplace.jobs;
+});
+const visibleJobs = computed(() => filteredJobs.value.slice(0, page.value * pageSize));
+const hasMoreJobs = computed(() => visibleJobs.value.length < filteredJobs.value.length);
 const profilePercent = computed(() => profile.summary?.progress.percentage ?? 0);
 const shouldMotivateVerification = computed(
   () => auth.user?.role === 'performer' && profilePercent.value < 80,
 );
+const presetCards = computed(() => [
+  {
+    key: 'all' as const,
+    title: 'Все задачи',
+    text: 'Вся биржа',
+    value: marketplace.jobs.length,
+    icon: Trophy,
+  },
+  {
+    key: 'budget' as const,
+    title: 'С бюджетом',
+    text: 'Сумма указана',
+    value: marketplace.jobs.filter((job) => job.budgetMin !== null || job.budgetMax !== null)
+      .length,
+    icon: CircleDollarSign,
+  },
+  {
+    key: 'without' as const,
+    title: 'Без срока',
+    text: 'Срок уточнить',
+    value: marketplace.jobs.filter((job) => !job.deadlineAt).length,
+    icon: CalendarOff,
+  },
+]);
+
+const applyPreset = (preset: (typeof presetCards.value)[number]['key']) => {
+  presetFilter.value = preset;
+  page.value = 1;
+};
+
+let searchTimer: ReturnType<typeof window.setTimeout> | null = null;
+const scheduleLoad = () => {
+  page.value = 1;
+
+  if (searchTimer) {
+    window.clearTimeout(searchTimer);
+  }
+
+  searchTimer = window.setTimeout(() => {
+    void load();
+  }, 300);
+};
 
 const load = async () => {
   page.value = 1;
@@ -37,10 +95,21 @@ const load = async () => {
     marketplace.loadCategories(),
     auth.accessToken ? profile.load(auth.accessToken) : Promise.resolve(),
   ]);
-  await marketplace.loadJobs({
-    search: filters.search || undefined,
-    category: filters.category || undefined,
-  });
+  await marketplace.loadJobs(
+    {
+      search: filters.search || undefined,
+      category: filters.category || undefined,
+      mine: auth.user?.role === 'customer' && filters.mine ? true : undefined,
+    },
+    auth.accessToken,
+  );
+};
+
+const resetFilters = () => {
+  filters.search = '';
+  filters.category = '';
+  filters.mine = false;
+  void load();
 };
 
 onMounted(() => {
@@ -53,76 +122,88 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
-      <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <p class="text-xs font-black uppercase tracking-[0.24em] text-paper/55">Биржа задач</p>
-            <RouterLink
-              v-if="canCreateJob"
-              class="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-paper bg-ember px-4 text-sm font-black text-paper transition hover:bg-bolt"
-              to="/jobs/new"
+      <PageHero
+        eyebrow="Биржа задач"
+        title="Заказы для исполнителей."
+        text="Тут находятся опубликованные задачи. Откройте заказ, чтобы посмотреть детали."
+      >
+        <template #actions>
+          <section class="grid w-full gap-2 lg:max-w-[21rem] lg:justify-self-end">
+            <button
+              v-for="card in presetCards"
+              :key="card.key"
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+              :class="
+                presetFilter === card.key
+                  ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                  : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+              "
+              type="button"
+              @click="applyPreset(card.key)"
             >
-              <Plus :size="16" />
-              Создать заказ
-            </RouterLink>
-          </div>
-          <h1
-            class="mt-3 max-w-2xl text-[2.6rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-          >
-            Живые задачи для проверенных исполнителей.
-          </h1>
-          <p class="mt-4 max-w-xl text-sm font-semibold leading-6 text-paper/68">
-            Категории, поиск, создание заказа и отклики собраны в одном месте. Откройте задачу,
-            чтобы обсудить детали и выбрать исполнителя.
-          </p>
-        </aside>
-
-        <form
-          class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:p-5"
-          @submit.prevent="load"
-        >
-          <div class="flex items-center justify-between gap-3">
-            <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Фильтр задач</p>
-            <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
-              {{ marketplace.jobs.length }}
-            </span>
-          </div>
-          <label class="mt-4 block">
-            <span class="mb-2 flex items-center gap-2 text-sm font-black"
-              ><Search :size="16" /> Поиск</span
-            >
-            <input
-              v-model="filters.search"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold text-ink outline-none focus:border-ink"
-              placeholder="Vue, дизайн, Docker"
-            />
-          </label>
-          <label class="mt-3 block">
-            <span class="mb-2 flex items-center gap-2 text-sm font-black"
-              ><Filter :size="16" /> Категория</span
-            >
-            <select
-              v-model="filters.category"
-              class="w-full rounded-2xl border border-line bg-paper px-4 py-3 font-semibold text-ink outline-none focus:border-ink"
-            >
-              <option value="">Все категории</option>
-              <option
-                v-for="category in marketplace.categories"
-                :key="category.id"
-                :value="category.slug"
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <component :is="card.icon" :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                  {{ card.title }}
+                </span>
+              </span>
+              <span
+                class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                :class="presetFilter === card.key ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'"
               >
-                {{ category.name }}
-              </option>
-            </select>
+                {{ card.value }}
+              </span>
+            </button>
+          </section>
+        </template>
+      </PageHero>
+
+      <div class="mt-4">
+        <FilterPanel
+          :columns="
+            auth.user?.role === 'customer'
+              ? 'lg:grid-cols-[minmax(0,1fr)_17rem_auto]'
+              : 'lg:grid-cols-[minmax(0,1fr)_17rem]'
+          "
+          @reset="resetFilters"
+        >
+          <input
+            v-model="filters.search"
+            class="h-12 w-full rounded-2xl border border-line bg-paper px-4 font-semibold text-ink outline-none placeholder:text-ink/35 focus:border-ink"
+            placeholder="Vue, дизайн, Docker"
+            @input="scheduleLoad"
+          />
+          <InlineFilterSelect v-model="filters.category" @change="load">
+            <option value="">Все категории</option>
+            <option
+              v-for="category in marketplace.categories"
+              :key="category.id"
+              :value="category.slug"
+            >
+              {{ category.name }}
+            </option>
+          </InlineFilterSelect>
+          <label v-if="auth.user?.role === 'customer'" class="flex cursor-pointer">
+            <span
+              class="flex h-12 items-center gap-3 rounded-2xl border border-line bg-paper px-4 text-sm font-black transition hover:border-ink"
+            >
+              Мои
+              <input v-model="filters.mine" type="checkbox" class="sr-only" @change="load" />
+              <span
+                class="relative inline-flex h-7 w-12 shrink-0 rounded-xl transition"
+                :class="filters.mine ? 'bg-ink' : 'bg-ink/15'"
+              >
+                <span
+                  class="absolute top-1 h-5 w-5 rounded-lg bg-paper shadow transition-all"
+                  :class="filters.mine ? 'left-[1.5rem]' : 'left-1'"
+                />
+              </span>
+            </span>
           </label>
-          <button
-            class="mt-4 h-10 w-full rounded-full border border-ink bg-ink px-4 text-sm font-black text-paper transition hover:bg-bolt"
-            type="submit"
-          >
-            Применить фильтр
-          </button>
-        </form>
-      </section>
+        </FilterPanel>
+      </div>
 
       <section class="mt-4 space-y-4">
         <RouterLink

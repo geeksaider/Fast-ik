@@ -20,7 +20,7 @@ import type {
 } from './contests.schemas.js';
 import type { ContestDetail, ContestSubmission } from './contests.types.js';
 
-const managerRoles = new Set(['support', 'moderator', 'admin', 'super_admin']);
+const managerRoles = new Set(['admin']);
 
 const canManageContest = (user: AuthUser | undefined, customerId: string) => {
   if (!user) {
@@ -99,9 +99,11 @@ const buildContestDetail = async (id: string, user?: AuthUser): Promise<ContestD
 };
 
 export const getContests = async (query: ContestListQuery, user?: AuthUser) => {
-  const customerId = query.mine === 'true' && user?.role === 'customer' ? user.id : null;
+  const isMine = query.mine === 'true';
+  const customerId = isMine && user?.role === 'customer' ? user.id : null;
+  const performerId = isMine && user?.role === 'performer' ? user.id : null;
 
-  if (query.mine === 'true' && !customerId) {
+  if (isMine && !customerId && !performerId) {
     return { contests: [] };
   }
 
@@ -109,6 +111,7 @@ export const getContests = async (query: ContestListQuery, user?: AuthUser) => {
     contests: await listContests({
       ...query,
       customerId,
+      performerId,
     }),
   };
 };

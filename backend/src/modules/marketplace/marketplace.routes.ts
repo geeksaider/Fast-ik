@@ -11,10 +11,15 @@ import {
   selectApplicationParamsSchema,
 } from './marketplace.schemas.js';
 import {
+  acceptPerformerInvite,
   applyToJob,
+  declinePerformerInvite,
+  getCustomerSentInvites,
   getMarketplaceCategories,
   getMarketplaceJob,
   getMarketplaceJobs,
+  getMyApplications,
+  getPerformerInvites,
   invitePerformerToJob,
   publishJob,
   selectApplication,
@@ -85,6 +90,50 @@ marketplaceRouter.post('/jobs/:id/invites', requireAuth, async (request, respons
     const input = jobInviteCreateSchema.parse(request.body);
 
     response.status(201).json(await invitePerformerToJob(getUser(request), params.id, input));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.get('/applications/mine', requireAuth, async (request, response, next) => {
+  try {
+    response.json(await getMyApplications(getUser(request)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.get('/invites/sent', requireAuth, async (request, response, next) => {
+  try {
+    response.json(await getCustomerSentInvites(getUser(request)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.get('/invites/mine', requireAuth, async (request, response, next) => {
+  try {
+    response.json(await getPerformerInvites(getUser(request)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.post('/invites/:id/accept', requireAuth, async (request, response, next) => {
+  try {
+    const params = idParamSchema.parse(request.params);
+
+    response.json(await acceptPerformerInvite(getUser(request), params.id));
+  } catch (error) {
+    next(error);
+  }
+});
+
+marketplaceRouter.post('/invites/:id/decline', requireAuth, async (request, response, next) => {
+  try {
+    const params = idParamSchema.parse(request.params);
+
+    response.json(await declinePerformerInvite(getUser(request), params.id));
   } catch (error) {
     next(error);
   }

@@ -6,11 +6,23 @@ import { env } from '../../config/env.js';
 import { HttpError } from '../../http/errors/http-error.js';
 import {
   createAuthUser,
+  deleteUserById,
   findAuthUserByEmail,
   findAuthUserById,
+  getNotificationSettings,
   markLoginSuccess,
+  setNotificationSettings,
+  updateUserEmail,
+  updateUserPassword,
 } from './auth.repository.js';
-import type { LoginInput, RegisterInput } from './auth.schemas.js';
+import type {
+  ChangeEmailInput,
+  ChangePasswordInput,
+  DeleteAccountInput,
+  LoginInput,
+  NotificationSettingsInput,
+  RegisterInput,
+} from './auth.schemas.js';
 import type { AuthResponse, AuthTokenPayload, AuthUser } from './auth.types.js';
 
 const sanitizeUser = (user: AuthUser): AuthUser => ({
@@ -96,6 +108,90 @@ export const getCurrentUser = async (id: string) => {
   }
 
   return sanitizeUser(user);
+};
+
+const requireUserWithPassword = async (userId: string) => {
+  const user = await findAuthUserById(userId);
+
+  if (!user?.passwordHash) {
+    throw new HttpError(401, 'Пользователь не найден');
+  }
+
+  return { ...user, passwordHash: user.passwordHash };
+};
+
+export const changePassword = async (userId: string, input: ChangePasswordInput) => {
+  const user = await requireUserWithPassword(userId);
+  const passwordMatches = await bcrypt.compare(input.currentPassword, user.passwordHash);
+
+  if (!passwordMatches) {
+    throw new HttpError(401, 'Текущий пароль введён неверно');
+  }
+
+  if (input.currentPassword === input.newPassword) {
+    throw new HttpError(400, 'Новый пароль должен отличаться от текущего');
+  }
+
+  const newHash = await bcrypt.hash(input.newPassword, 12);
+  await updateUserPassword(userId, newHash);
+
+  return { ok: true };
+};
+
+export const changeEmail = async (userId: string, input: ChangeEmailInput) => {
+  const user = await requireUserWithPassword(userId);
+  const passwordMatches = await bcrypt.compare(input.currentPassword, user.passwordHash);
+
+  if (!passwordMatches) {
+    throw new HttpError(401, 'Текущий пароль введён неверно');
+  }
+
+  if (user.email === input.newEmail) {
+    throw new HttpError(400, 'Новый email совпадает с текущим');
+  }
+
+  const existing = await findAuthUserByEmail(input.newEmail);
+
+  if (existing && existing.id !== userId) {
+    throw new HttpError(409, 'Этот email уже используется другим аккаунтом');
+  }
+
+  await updateUserEmail(userId, input.newEmail);
+
+  return { ok: true, email: input.newEmail };
+};
+
+export const deleteAccount = async (userId: string, input: DeleteAccountInput) => {
+  const user = await requireUserWithPassword(userId);
+  const passwordMatches = await bcrypt.compare(input.currentPassword, user.passwordHash);
+
+  if (!passwordMatches) {
+    throw new HttpError(401, 'Пароль введён неверно');
+  }
+
+  await deleteUserById(userId);
+
+  return { ok: true };
+};
+
+export const getMyNotificationSettings = async (userId: string) => {
+  const settings = await getNotificationSettings(userId);
+
+  return (
+    settings ?? {
+      email: { messages: true, applications: true, orders: true, marketing: false },
+      inApp: { messages: true, applications: true, orders: true },
+    }
+  );
+};
+
+export const saveNotificationSettings = async (
+  userId: string,
+  input: NotificationSettingsInput,
+) => {
+  await setNotificationSettings(userId, input);
+
+  return input;
 };
 
 export const verifyAccessToken = (token: string): AuthTokenPayload => {

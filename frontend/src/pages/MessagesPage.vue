@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { RouterLink, useRouter } from 'vue-router';
-import { CheckCircle2, Inbox, Loader2, MessageCircle, Search, Users } from 'lucide-vue-next';
+import { Inbox, Loader2, MessageCircle, Search, Users } from 'lucide-vue-next';
+import PageHero from '../components/PageHero.vue';
 import { useAuthStore } from '../stores/auth';
 import { useCommunicationStore } from '../stores/communication';
 import PersonAvatar from '../components/PersonAvatar.vue';
@@ -26,7 +27,6 @@ const visibleConversations = computed(() =>
 const hasMoreConversations = computed(
   () => visibleConversations.value.length < filteredConversations.value.length,
 );
-const latestConversation = computed(() => communication.conversations[0] ?? null);
 
 const setConversationFilter = (filter: typeof conversationFilter.value) => {
   conversationFilter.value = filter;
@@ -52,87 +52,68 @@ onMounted(() => {
     <section
       class="mx-auto max-w-[1044px] rounded-[1.75rem] border border-ink bg-paper/95 p-4 sm:p-5 lg:p-6"
     >
-      <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <aside class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-          <MessageCircle class="text-ember" :size="34" />
-          <p class="mt-6 text-xs font-black uppercase tracking-[0.24em] text-paper/55">Чаты</p>
-          <h1
-            class="mt-3 max-w-xl text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-          >
-            Рабочие диалоги по заказам.
-          </h1>
-          <p class="mt-4 max-w-xl text-sm font-semibold leading-6 text-paper/68">
-            Здесь остаются договоренности, ссылки и файлы после выбора исполнителя.
-          </p>
-        </aside>
-
-        <article class="rounded-[1.35rem] border border-ink bg-[#fffaf0] p-5">
-          <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">Сводка</p>
-          <div class="mt-4 divide-y divide-line rounded-2xl border border-line bg-paper">
-            <div class="flex items-center justify-between gap-4 p-4">
-              <p class="text-sm font-bold text-ink/55">Диалоги</p>
-              <p class="text-2xl font-black">{{ communication.conversations.length }}</p>
-            </div>
-            <div class="flex items-center justify-between gap-4 p-4">
-              <p class="text-sm font-bold text-ink/55">Непрочитано</p>
-              <p class="text-2xl font-black">{{ unreadCount }}</p>
-            </div>
-          </div>
-          <div v-if="latestConversation" class="mt-4 rounded-2xl border border-line bg-paper p-4">
-            <p class="text-xs font-black uppercase tracking-[0.16em] text-ink/45">
-              Последний диалог
-            </p>
-            <p class="mt-2 line-clamp-2 text-sm font-black leading-5">
-              {{ formatDisplayText(latestConversation.title) }}
-            </p>
-          </div>
-        </article>
-      </section>
-
-      <section class="mt-4 grid gap-3 md:grid-cols-3">
-        <button
-          class="rounded-[1.2rem] border p-4 text-left transition duration-200 hover:-translate-y-0.5"
-          :class="
-            conversationFilter === 'all'
-              ? 'border-ink bg-ink text-paper'
-              : 'border-line bg-[#fffaf0] text-ink hover:border-ink'
-          "
-          type="button"
-          @click="setConversationFilter('all')"
-        >
-          <Users :size="22" />
-          <p class="mt-3 text-xl font-black">Все диалоги</p>
-          <p class="mt-1 text-sm font-semibold opacity-70">Полная история рабочих заказов.</p>
-        </button>
-        <button
-          class="rounded-[1.2rem] border p-4 text-left transition duration-200 hover:-translate-y-0.5"
-          :class="
-            conversationFilter === 'unread'
-              ? 'border-ink bg-ember text-paper'
-              : 'border-line bg-[#fffaf0] text-ink hover:border-ink'
-          "
-          type="button"
-          @click="setConversationFilter('unread')"
-        >
-          <MessageCircle :size="22" />
-          <p class="mt-3 text-xl font-black">Новые</p>
-          <p class="mt-1 text-sm font-semibold opacity-70">
-            {{ unreadCount ? `${unreadCount} требуют внимания.` : 'Все спокойно.' }}
-          </p>
-        </button>
-        <RouterLink
-          class="rounded-[1.2rem] border border-line bg-[#fffaf0] p-4 transition duration-200 hover:border-ink hover:bg-white"
-          :to="latestConversation ? `/messages/${latestConversation.id}` : '/orders'"
-        >
-          <CheckCircle2 :size="22" class="text-moss" />
-          <p class="mt-3 flex items-center justify-between gap-3 text-xl font-black">
-            Контекст внутри
-          </p>
-          <p class="mt-1 text-sm font-semibold text-ink/65">
-            Чат привязан к заказу: договоренности, ссылки и файлы не теряются.
-          </p>
-        </RouterLink>
-      </section>
+      <PageHero
+        eyebrow="Чаты"
+        title="Рабочие диалоги по заказам."
+        text="Тут находятся переписки по заказам."
+      >
+        <template #actions>
+          <section class="grid w-full gap-2 lg:max-w-[21rem] lg:justify-self-end">
+            <button
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+              :class="
+                conversationFilter === 'all'
+                  ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                  : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+              "
+              type="button"
+              @click="setConversationFilter('all')"
+            >
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <Users :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]">
+                  Все диалоги
+                </span>
+              </span>
+              <span
+                class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                :class="
+                  conversationFilter === 'all' ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'
+                "
+              >
+                {{ communication.conversations.length }}
+              </span>
+            </button>
+            <button
+              class="group flex h-[70px] items-center gap-3 rounded-2xl border px-4 text-left transition duration-200 ease-out"
+              :class="
+                conversationFilter === 'unread'
+                  ? 'border-ember bg-ember text-paper hover:bg-bolt'
+                  : 'border-paper/20 bg-paper/[0.06] text-paper hover:border-paper/45 hover:bg-paper/[0.12]'
+              "
+              type="button"
+              @click="setConversationFilter('unread')"
+            >
+              <span class="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paper text-ink">
+                <MessageCircle :size="20" />
+              </span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-black tracking-[-0.02em]"> Новые </span>
+              </span>
+              <span
+                class="ml-2 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full px-0 text-xs font-black leading-none tabular-nums"
+                :class="
+                  conversationFilter === 'unread' ? 'bg-paper text-ink' : 'bg-paper/15 text-paper'
+                "
+              >
+                {{ unreadCount }}
+              </span>
+            </button>
+          </section>
+        </template>
+      </PageHero>
 
       <section class="mt-4 space-y-3">
         <div

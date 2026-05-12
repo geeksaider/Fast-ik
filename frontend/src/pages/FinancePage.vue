@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Loader2, Plus, WalletCards } from 'lucide-vue-next';
+import { ArrowDownLeft, ArrowUpRight, Loader2, Plus, ShieldCheck, WalletCards } from 'lucide-vue-next';
+import PageHero from '../components/PageHero.vue';
 import { useAuthStore } from '../stores/auth';
 import { useFinanceStore } from '../stores/finance';
 import { formatAmount, formatDateTime, formatSystemLabel } from '../lib/format';
+import type { Transaction } from '../lib/api';
 
 const auth = useAuthStore();
 const finance = useFinanceStore();
 const router = useRouter();
 const page = ref(1);
-const pageSize = 10;
+const pageSize = 5;
 
 const form = reactive({ amount: 150000 });
 const visibleTransactions = computed(() => finance.transactions.slice(0, page.value * pageSize));
@@ -19,7 +21,43 @@ const hasMoreTransactions = computed(
 );
 
 const transactionDescription = (description: string) =>
-  description.replace('Моковое пополнение баланса', 'Пополнение баланса');
+  description.replace(/^.+ пополнение баланса$/u, 'Пополнение баланса');
+
+const transactionTone = (transaction: Transaction) => {
+  if (transaction.direction === 'hold') {
+    return {
+      icon: ShieldCheck,
+      iconClass: 'bg-ember text-paper',
+      amountClass: 'text-ember',
+      sign: '-',
+    };
+  }
+
+  if (transaction.direction === 'out') {
+    return {
+      icon: ArrowUpRight,
+      iconClass: 'bg-ink text-paper',
+      amountClass: 'text-ink',
+      sign: '-',
+    };
+  }
+
+  if (transaction.direction === 'release') {
+    return {
+      icon: WalletCards,
+      iconClass: 'bg-moss text-paper',
+      amountClass: 'text-moss',
+      sign: '+',
+    };
+  }
+
+  return {
+    icon: ArrowDownLeft,
+    iconClass: 'bg-moss text-paper',
+    amountClass: 'text-moss',
+    sign: '+',
+  };
+};
 
 const load = async () => {
   if (!auth.accessToken) {
@@ -60,22 +98,7 @@ onMounted(() => {
 
       <section v-else class="grid gap-4 lg:grid-cols-[22rem_minmax(0,1fr)]">
         <aside class="space-y-4">
-          <section class="rounded-[1.35rem] border border-ink bg-ink p-5 text-paper sm:p-6">
-            <div class="flex items-start justify-between gap-4">
-              <WalletCards class="text-ember" :size="32" />
-              <span
-                class="rounded-full border border-paper/25 px-3 py-1 text-xs font-black uppercase tracking-[0.16em]"
-              >
-                Wallet
-              </span>
-            </div>
-            <p class="mt-5 text-xs font-black uppercase tracking-[0.24em] text-paper/55">Wallet</p>
-            <h1
-              class="mt-3 text-[2.45rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
-            >
-              Финансы под контролем.
-            </h1>
-          </section>
+          <PageHero eyebrow="Финансы" title="Баланс и операции." />
 
           <section class="grid gap-3 rounded-[1.35rem] border border-ink bg-[#fffaf0] p-4 sm:p-5">
             <div class="rounded-2xl border border-line bg-paper p-4">
@@ -85,7 +108,7 @@ onMounted(() => {
               </p>
             </div>
             <div class="rounded-2xl border border-line bg-paper p-4">
-              <p class="text-sm font-bold text-ink/55">В гаранте</p>
+              <p class="text-sm font-bold text-ink/55">На удержании</p>
               <p class="mt-1 text-3xl font-black">
                 {{ formatAmount(finance.wallet?.heldBalance ?? 0) }}
               </p>
@@ -113,9 +136,9 @@ onMounted(() => {
           <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p class="text-xs font-black uppercase tracking-[0.2em] text-ink/50">
-                Движение средств
+                Операции
               </p>
-              <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">История транзакций</h2>
+              <h2 class="mt-2 text-4xl font-black tracking-[-0.06em]">История баланса</h2>
             </div>
             <span class="rounded-full border border-line bg-paper px-3 py-1 text-xs font-black">
               {{ finance.transactions.length }} операций
@@ -125,25 +148,41 @@ onMounted(() => {
             <article
               v-for="transaction in visibleTransactions"
               :key="transaction.id"
-              class="rounded-2xl border border-line bg-paper p-4"
+              class="rounded-2xl border border-line bg-paper p-4 transition hover:border-ink hover:bg-white"
             >
-              <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <p class="font-black">{{ transactionDescription(transaction.description) }}</p>
-                  <div
-                    class="mt-2 grid gap-1 text-xs font-bold uppercase tracking-[0.12em] text-ink/50 sm:grid-cols-3"
-                  >
-                    <span>{{ formatSystemLabel(transaction.type) }}</span>
-                    <span>{{ formatSystemLabel(transaction.direction) }}</span>
-                    <span>{{ formatDateTime(transaction.createdAt) }}</span>
-                  </div>
-                </div>
-                <p
-                  class="text-lg font-black"
-                  :class="transaction.direction === 'hold' ? 'text-ember' : 'text-moss'"
+              <div class="grid gap-4 sm:grid-cols-[3rem_minmax(0,1fr)_auto] sm:items-center">
+                <span
+                  class="grid h-12 w-12 place-items-center rounded-2xl"
+                  :class="transactionTone(transaction).iconClass"
                 >
-                  {{ formatAmount(transaction.amount) }}
-                </p>
+                  <component :is="transactionTone(transaction).icon" :size="20" />
+                </span>
+
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <p class="font-black">{{ transactionDescription(transaction.description) }}</p>
+                    <span
+                      class="rounded-full border border-line bg-[#fffaf0] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-ink/55"
+                    >
+                      {{ formatSystemLabel(transaction.type) }}
+                    </span>
+                  </div>
+                  <p class="mt-2 text-sm font-semibold text-ink/55">
+                    {{ formatDateTime(transaction.createdAt) }}
+                  </p>
+                </div>
+
+                <div class="grid gap-1 sm:justify-items-end sm:text-right">
+                  <p
+                    class="text-xl font-black"
+                    :class="transactionTone(transaction).amountClass"
+                  >
+                    {{ transactionTone(transaction).sign }}{{ formatAmount(transaction.amount) }}
+                  </p>
+                  <p class="text-xs font-bold text-ink/45">
+                    Остаток: {{ formatAmount(transaction.balanceAfter) }}
+                  </p>
+                </div>
               </div>
             </article>
             <p
