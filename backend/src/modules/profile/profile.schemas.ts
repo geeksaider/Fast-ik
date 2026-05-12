@@ -35,7 +35,7 @@ const nullableImageSource = z
         }
       }
 
-      return value.length <= 2_000_000 && /^data:image\/(png|jpe?g|webp);base64,/i.test(value);
+      return value.length <= 350_000 && /^data:image\/(png|jpe?g|webp);base64,/i.test(value);
     },
     'Некорректное изображение',
   )

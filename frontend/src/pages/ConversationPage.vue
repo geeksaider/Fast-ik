@@ -29,7 +29,7 @@ const form = reactive({ body: '' });
 const attachments = ref<SendMessageAttachmentPayload[]>([]);
 const conversationId = computed(() => String(route.params.id));
 const conversation = computed(() => communication.currentConversation);
-const maxAttachmentSize = 524_288;
+const maxAttachmentSize = 262_144;
 const maxAttachments = 3;
 
 const scrollToBottom = async (behavior: ScrollBehavior = 'smooth') => {
@@ -81,7 +81,7 @@ const addFiles = async (event: Event) => {
 
   for (const file of files) {
     if (file.size > maxAttachmentSize) {
-      localError.value = `Файл «${file.name}» больше 512 КБ. В рабочем чате пока принимаем только небольшие вложения.`;
+      localError.value = `Файл «${file.name}» больше 256 КБ. В рабочем чате пока принимаем только небольшие вложения.`;
       input.value = '';
       return;
     }

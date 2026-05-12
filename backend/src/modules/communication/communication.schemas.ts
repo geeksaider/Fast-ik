@@ -4,9 +4,9 @@ export const idParamSchema = z.object({ id: z.string().uuid() });
 
 const attachmentSchema = z.object({
   fileName: z.string().trim().min(1).max(180),
-  fileUrl: z.string().trim().min(1).max(800_000),
+  fileUrl: z.string().trim().min(1).max(350_000),
   mimeType: z.string().trim().min(1).max(120).nullable().optional(),
-  sizeBytes: z.number().int().min(0).max(524_288),
+  sizeBytes: z.number().int().min(0).max(262_144),
 });
 
 export const sendMessageSchema = z

@@ -189,8 +189,8 @@ const uploadAvatar = async (event: Event) => {
     return;
   }
 
-  if (file.size > 1_500_000) {
-    avatarError.value = 'Фото должно быть меньше 1,5 МБ.';
+  if (file.size > 262_144) {
+    avatarError.value = 'Фото должно быть меньше 256 КБ.';
     input.value = '';
     return;
   }
