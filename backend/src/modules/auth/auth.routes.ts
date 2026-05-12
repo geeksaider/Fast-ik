@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Request } from 'express';
 import { requireAuth } from '../../http/middlewares/auth.js';
 import { HttpError } from '../../http/errors/http-error.js';
+import { createRateLimit } from '../../http/middlewares/rate-limit.js';
 import {
   changeEmail,
   changePassword,
@@ -23,6 +24,12 @@ import {
 
 export const authRouter = Router();
 
+const authWriteRateLimit = createRateLimit({
+  windowMs: 60_000,
+  maxRequests: 8,
+  message: 'Слишком много попыток. Попробуйте позже.',
+});
+
 const getUserId = (request: Request) => {
   if (!request.user) {
     throw new HttpError(401, 'Требуется авторизация');
@@ -40,7 +47,7 @@ authRouter.get('/roles', (_request, response) => {
   });
 });
 
-authRouter.post('/register', async (request, response, next) => {
+authRouter.post('/register', authWriteRateLimit, async (request, response, next) => {
   try {
     const input = registerSchema.parse(request.body);
     const result = await register(input);
@@ -51,7 +58,7 @@ authRouter.post('/register', async (request, response, next) => {
   }
 });
 
-authRouter.post('/login', async (request, response, next) => {
+authRouter.post('/login', authWriteRateLimit, async (request, response, next) => {
   try {
     const input = loginSchema.parse(request.body);
     const result = await login(input, {

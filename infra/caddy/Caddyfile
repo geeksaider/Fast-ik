@@ -1,6 +1,15 @@
 {$FASTIK_DOMAIN} {
   encode zstd gzip
 
+  @blockedRegister {
+    method POST
+    path /api/auth/register
+  }
+
+  handle @blockedRegister {
+    respond "Регистрация временно ограничена. Попробуйте позже." 429
+  }
+
   handle /api/* {
     reverse_proxy api:4200
   }
