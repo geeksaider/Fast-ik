@@ -40,9 +40,8 @@ jobs:
 
       - name: Prepare deploy files
         run: |
-          mkdir -p deploy/infra/caddy deploy/images
+          mkdir -p deploy/images
           cp docker-compose.prod.yml deploy/docker-compose.prod.yml
-          cp infra/caddy/Caddyfile deploy/infra/caddy/Caddyfile
           docker save \
             ${{ env.API_IMAGE }}:${{ github.sha }} \
             ${{ env.API_IMAGE }}:latest \
@@ -58,7 +57,7 @@ jobs:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          source: deploy/docker-compose.prod.yml,deploy/infra/caddy/Caddyfile,deploy/images/api-image.tar.gz,deploy/images/web-image.tar.gz
+          source: deploy/docker-compose.prod.yml,deploy/images/api-image.tar.gz,deploy/images/web-image.tar.gz
           target: ${{ env.DEPLOY_PATH }}
           strip_components: 1
           overwrite: true

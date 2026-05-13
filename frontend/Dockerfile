@@ -17,9 +17,9 @@ COPY shared shared
 
 RUN npm run build -w @fastik/frontend
 
-FROM nginx:1.27-alpine AS runtime
+FROM caddy:2.8-alpine AS runtime
 
-COPY infra/nginx/frontend.conf /etc/nginx/conf.d/default.conf
-COPY --from=build /app/frontend/dist /usr/share/nginx/html
+COPY infra/caddy/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /app/frontend/dist /srv
 
-EXPOSE 80
+EXPOSE 80 443

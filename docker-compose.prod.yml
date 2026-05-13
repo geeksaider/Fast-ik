@@ -39,16 +39,8 @@ services:
       timeout: 5s
       retries: 10
 
-  web:
-    image: ${FASTIK_WEB_IMAGE}
-    container_name: fastik-web
-    restart: unless-stopped
-    depends_on:
-      api:
-        condition: service_started
-
   caddy:
-    image: caddy:2.8-alpine
+    image: ${FASTIK_WEB_IMAGE}
     container_name: fastik-caddy
     restart: unless-stopped
     environment:
@@ -57,12 +49,9 @@ services:
       - '80:80'
       - '443:443'
     volumes:
-      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
       - fastik-caddy-data:/data
       - fastik-caddy-config:/config
     depends_on:
-      web:
-        condition: service_started
       api:
         condition: service_started
 
