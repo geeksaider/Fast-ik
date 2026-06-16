@@ -5,6 +5,23 @@ on:
     branches:
       - codex/fastik-navigation-shell
   workflow_dispatch:
+    inputs:
+      reset_database:
+        description: 'Drop and recreate public schema before migrations'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      seed_database:
+        description: 'Fill database with presentation data after migrations'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 env:
   API_IMAGE: fastik-api
@@ -67,11 +84,13 @@ jobs:
         env:
           API_IMAGE: ${{ env.API_IMAGE }}:${{ github.sha }}
           WEB_IMAGE: ${{ env.WEB_IMAGE }}:${{ github.sha }}
+          RESET_DATABASE: ${{ github.event.inputs.reset_database || 'false' }}
+          SEED_DATABASE: ${{ github.event.inputs.seed_database || 'false' }}
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
-          envs: API_IMAGE,WEB_IMAGE
+          envs: API_IMAGE,WEB_IMAGE,RESET_DATABASE,SEED_DATABASE
           script: |
             set -e
             cd /opt/fastik
@@ -95,6 +114,12 @@ jobs:
             grep -q '^POSTGRES_USER=' .env
             grep -q '^POSTGRES_PASSWORD=' .env
             grep -q '^JWT_ACCESS_SECRET=' .env
+            if [ "$RESET_DATABASE" = "true" ]; then
+              docker compose -f docker-compose.prod.yml run --rm api node backend/dist/db/reset.js
+            fi
             docker compose -f docker-compose.prod.yml run --rm api node backend/dist/db/migrate.js
+            if [ "$SEED_DATABASE" = "true" ]; then
+              docker compose -f docker-compose.prod.yml run --rm api node backend/dist/db/seed.js
+            fi
             docker compose -f docker-compose.prod.yml up -d
             docker image prune -f

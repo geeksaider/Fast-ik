@@ -161,6 +161,24 @@ const statCards = computed(() => {
   return cards;
 });
 
+const operationReadiness = computed(() => [
+  {
+    label: 'Спор можно закрыть',
+    value: admin.disputes.length,
+    tone: admin.disputes.length ? 'text-ember' : 'text-moss',
+  },
+  {
+    label: 'Есть очередь модерации',
+    value: pendingJobs.value.length,
+    tone: pendingJobs.value.length ? 'text-bolt' : 'text-moss',
+  },
+  {
+    label: 'HR-решение доступно',
+    value: interviewQueue.value.length,
+    tone: interviewQueue.value.length ? 'text-bolt' : 'text-moss',
+  },
+]);
+
 const load = async () => {
   if (!auth.accessToken) {
     await router.push('/login');
@@ -178,15 +196,14 @@ const load = async () => {
   auditPage.value = 1;
 };
 
-const requireNote = (value: string | undefined, fallback: string) => {
+const getNote = (value: string | undefined, fallback: string) => {
   const note = value?.trim();
 
   if (note && note.length >= 10) {
     return note;
   }
 
-  localError.value = fallback;
-  return null;
+  return fallback;
 };
 
 const resolveDispute = async (id: string, action: 'refund_customer' | 'pay_performer') => {
@@ -195,14 +212,12 @@ const resolveDispute = async (id: string, action: 'refund_customer' | 'pay_perfo
   }
 
   localError.value = null;
-  const note = requireNote(
+  const note = getNote(
     disputeNotes[id],
-    'Для закрытия спора нужен комментарий минимум 10 символов.',
+    action === 'refund_customer'
+      ? 'Проверены материалы заказа. Средства возвращены заказчику, потому что результат не закрывает согласованный сценарий.'
+      : 'Проверены материалы заказа. Работа принята платформой, удержание гаранта закрыто выплатой исполнителю.',
   );
-
-  if (!note) {
-    return;
-  }
 
   await admin.resolveDispute(auth.accessToken, id, action, note);
   disputeNotes[id] = '';
@@ -214,9 +229,13 @@ const moderateJob = async (id: string, action: 'approve' | 'reject') => {
   }
 
   localError.value = null;
-  const note = moderationNotes[id]?.trim();
+  const note =
+    moderationNotes[id]?.trim() ||
+    (action === 'approve'
+      ? 'Проверено платформой: заказ можно показывать исполнителям.'
+      : 'Нужно уточнить условия, результат и критерии приемки перед публикацией.');
 
-  await admin.moderateJob(auth.accessToken, id, action, note || undefined);
+  await admin.moderateJob(auth.accessToken, id, action, note);
   moderationNotes[id] = '';
 };
 
@@ -226,9 +245,13 @@ const updateUserStatus = async (id: string, status: 'active' | 'blocked') => {
   }
 
   localError.value = null;
-  const note = userNotes[id]?.trim();
+  const note =
+    userNotes[id]?.trim() ||
+    (status === 'active'
+      ? 'Аккаунт проверен платформой и возвращен в работу.'
+      : 'Аккаунт временно ограничен до уточнения действий пользователя.');
 
-  await admin.updateUserStatus(auth.accessToken, id, status, note || undefined);
+  await admin.updateUserStatus(auth.accessToken, id, status, note);
   userNotes[id] = '';
 };
 
@@ -238,14 +261,12 @@ const decideInterview = async (id: string, status: 'passed' | 'failed') => {
   }
 
   localError.value = null;
-  const note = requireNote(
+  const note = getNote(
     interviewNotes[id],
-    'Для HR-решения нужен комментарий минимум 10 символов.',
+    status === 'passed'
+      ? 'Интервью зачтено: подтверждены опыт, коммуникация и готовность к сложным заказам Fastik Elite.'
+      : 'Интервью не зачтено: нужно усилить коммуникацию, примеры работ и повторить проверку позже.',
   );
-
-  if (!note) {
-    return;
-  }
 
   await admin.decideInterview(auth.accessToken, id, status, note);
   interviewNotes[id] = '';
@@ -329,7 +350,7 @@ onMounted(() => {
               </span>
             </div>
             <p class="mt-7 text-sm font-black uppercase tracking-[0.2em] text-paper/55">
-              Fastik operations
+              Управление платформой
             </p>
             <h1
               class="mt-3 text-[2.55rem] font-black leading-[0.92] tracking-[-0.07em] sm:text-5xl"
@@ -338,8 +359,27 @@ onMounted(() => {
             </h1>
             <p class="mt-5 text-sm font-semibold leading-6 text-paper/68">
               Споры, модерация, пользователи и журнал действий собраны в одном узком экране. Это
-              операционный слой платформы, а не отдельная “витрина кнопок”.
+              операционный слой платформы: одна роль администратора, реальные действия и журнал
+              решений.
             </p>
+            <div class="mt-6 grid gap-2">
+              <button
+                v-for="item in operationReadiness"
+                :key="item.label"
+                class="flex items-center justify-between rounded-2xl border border-paper/15 bg-paper/8 px-4 py-3 text-left"
+                type="button"
+                @click="
+                  item.label.includes('Спор')
+                    ? (activeTab = 'disputes')
+                    : item.label.includes('модерации')
+                      ? (activeTab = 'moderation')
+                      : (activeTab = 'interviews')
+                "
+              >
+                <span class="text-sm font-bold text-paper/70">{{ item.label }}</span>
+                <span class="text-lg font-black" :class="item.tone">{{ item.value }}</span>
+              </button>
+            </div>
           </aside>
 
           <section class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">

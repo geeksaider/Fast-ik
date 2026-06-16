@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, reactive } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { ArrowLeft, LockKeyhole, Mail, Zap } from 'lucide-vue-next';
+import { ArrowLeft, LockKeyhole, Mail, UserRound, Zap } from 'lucide-vue-next';
 import { useAuthStore } from '../stores/auth';
 
 const auth = useAuthStore();
@@ -12,6 +12,17 @@ const form = reactive({
   email: 'customer@fastik.local',
   password: 'Fastik123!',
 });
+
+const standAccounts = [
+  { label: 'Заказчик', email: 'customer@fastik.local' },
+  { label: 'Исполнитель', email: 'performer@fastik.local' },
+  { label: 'Админ', email: 'admin@fastik.local' },
+];
+
+const fillStandAccount = (email: string) => {
+  form.email = email;
+  form.password = 'Fastik123!';
+};
 
 const submit = async () => {
   try {
@@ -112,15 +123,30 @@ onMounted(() => {
             </button>
           </form>
 
-          <div
-            class="mt-6 rounded-2xl border border-line bg-paper p-4 text-sm leading-6 text-ink/70"
-          >
-            <p class="font-black text-ink">Аккаунты для проверки ролей:</p>
-            <p>Заказчик: `customer@fastik.local`</p>
-            <p>Исполнитель: `performer@fastik.local`</p>
-            <p>Админ: `admin@fastik.local`</p>
-            <p>Пароль для всех: `Fastik123!`</p>
-          </div>
+          <details class="group mt-4 text-sm text-ink/55">
+            <summary
+              class="inline-flex cursor-pointer list-none items-center gap-2 rounded-full border border-line bg-paper px-3 py-2 text-xs font-black uppercase tracking-[0.16em] transition hover:border-ink hover:text-ink"
+            >
+              <UserRound :size="14" />
+              Режим показа
+            </summary>
+            <div class="mt-3 rounded-2xl border border-line bg-paper p-3">
+              <div class="grid gap-2 sm:grid-cols-3">
+                <button
+                  v-for="account in standAccounts"
+                  :key="account.email"
+                  class="rounded-full border border-line px-3 py-2 text-xs font-black transition hover:border-ink hover:bg-[#fffaf0]"
+                  type="button"
+                  @click="fillStandAccount(account.email)"
+                >
+                  {{ account.label }}
+                </button>
+              </div>
+              <p class="mt-3 text-xs font-semibold leading-5 text-ink/45">
+                Пароль стенда: Fastik123!
+              </p>
+            </div>
+          </details>
 
           <p class="mt-6 text-center text-sm font-bold text-ink/65">
             Нет аккаунта?
